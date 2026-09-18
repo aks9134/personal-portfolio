@@ -48,3 +48,11 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 /.playwright-cli/
+
+# Playwright
+node_modules/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
