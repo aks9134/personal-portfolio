@@ -12,6 +12,13 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Installed skills, test output and local-only folders are not site code.
+    ".claude/**",
+    "test-results/**",
+    "playwright-report/**",
+    "Info Repository/**",
+    "_notes/**",
+    ".venv-media/**",
   ]),
 ]);
 

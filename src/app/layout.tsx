@@ -1,16 +1,36 @@
 import type { Metadata } from "next";
+import { Archivo } from "next/font/google";
+import { site } from "@/lib/site";
 import "./globals.css";
 
+const archivo = Archivo({ subsets: ["latin"], axes: ["wdth"], variable: "--font-archivo", display: "swap" });
+
 export const metadata: Metadata = {
-  title: "Allen Sun, Mechanical Design Engineer",
-  description:
-    "Portfolio of Allen Sun, a mechanical design engineer: product design, prototyping, CAD and analysis work.",
+  title: { default: `${site.name}, ${site.role.toLowerCase()}`, template: `%s | ${site.name}` },
+  description: site.description,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={archivo.variable}>
+      <body className="min-h-dvh">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-10 focus:bg-ink focus:px-4 focus:py-2 focus:text-stock"
+        >
+          Skip to content
+        </a>
+        {children}
+        <footer className="mx-auto mt-28 max-w-[1400px] px-4 pb-10 md:px-10">
+          <div className="flex flex-col gap-3 border-t-[1.5px] border-ink pt-5 text-sm md:flex-row md:justify-between">
+            <p>{site.name}. Views and work shown are my own and do not represent my employer.</p>
+            <p className="flex gap-6">
+              <a href={`mailto:${site.email}`} className="underline hover:text-stamp">{site.email}</a>
+              <a href={site.linkedin} className="underline hover:text-stamp">LinkedIn</a>
+            </p>
+          </div>
+        </footer>
+      </body>
     </html>
   );
 }

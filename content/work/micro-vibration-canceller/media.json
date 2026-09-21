@@ -8,12 +8,70 @@
   {
     "out": "exploded",
     "src": "Info Repository/Senior Design/Senior Design/Sem 2 Final Deliverables/Report Figures/VI_Lab.png",
-    "crop": [0, 312, 2500, 1328],
+    "crop": [
+      0,
+      312,
+      2500,
+      1328
+    ],
     "alt": "Labeled exploded view: voice coil motor, aluminum mount plate, piezo sensor, test beam, cage shield and centering spring"
   },
   {
     "out": "rig-photo",
     "src": "_notes/media/senior-design/fabrev_image32.jpg",
     "alt": "First build of the device clamped to the machined test rig: aluminum beam on two posts over a steel base plate"
+  },
+  {
+    "out": "sem1-exploded",
+    "src": "Info Repository/Senior Design/Senior Design/CAD/Images/Labeled Explo (2).png",
+    "alt": "Exploded view of the first-semester design: open-frame shield and no centering spring",
+    "trim": true
+  },
+  {
+    "out": "final-photo",
+    "src": "_notes/media/senior-design/portfolio_final-device-photo.jpg",
+    "alt": "The finished device on the beam, with the printed cage shield and centering spring"
+  },
+  {
+    "out": "fea-plate",
+    "src": "_notes/media/senior-design/sem1pres_image17.png",
+    "alt": "FEA displacement plot of the mount plate under the motor's 15 N peak force",
+    "trim": true
+  },
+  {
+    "out": "control-diagram",
+    "src": "_notes/media/senior-design/report_image13.png",
+    "alt": "Control loop: negative acceleration feedback drives PWM to the voice coil motor, which acts on the beam, which the piezo sensor measures",
+    "trim": true
+  },
+  {
+    "out": "test1-plot",
+    "src": "_notes/media/senior-design/report_image12.png",
+    "alt": "Test 1 plot: beam vibration frequency rising roughly linearly with the excitation motor's voltage",
+    "trim": true
+  },
+  {
+    "out": "solver-failure",
+    "src": "_notes/media/senior-design/report_image16.png",
+    "alt": "Simulation output showing the controller's position command coming out jagged and slower than the beam",
+    "trim": true
+  },
+  {
+    "out": "sim-result",
+    "src": "_notes/media/senior-design/report_image25.png",
+    "alt": "Simulated closed-loop result: beam acceleration decaying to a small steady amplitude once the controller engages",
+    "trim": true
+  },
+  {
+    "out": "rig-cad",
+    "src": "_notes/media/senior-design/poster_image10.png",
+    "alt": "CAD of the test rig: double-fixed beam on posts over a steel base, the device off-center and the vibration motor at the far end",
+    "trim": true
+  },
+  {
+    "out": "wiring",
+    "src": "_notes/media/senior-design/report_image14.png",
+    "alt": "Wiring schematic: Arduino Uno reading the biased piezo signal and driving the voice coil motor through an L298 H-bridge from a 12 V battery",
+    "trim": true
   }
 ]

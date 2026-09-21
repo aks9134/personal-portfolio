@@ -1,4 +1,4 @@
-﻿# PLAN: slices
+# PLAN: slices
 
 Vertical slices only: each one is a thin complete path a visitor could use, and each ends with build, smoke test, screenshots, commit.
 
@@ -6,7 +6,7 @@ Vertical slices only: each one is a thin complete path a visitor could use, and 
 |---|---|---|---|---|
 | 0 | Media pipeline | One command turns raw files into web files: background-removed stills, GLB models from STEP, muted MP4 clips with posters. Run for the hero images | - | done |
 | D | Design direction (Phase 4) | Allen picks one of three home-page variants built on real content | 0 | done: A's colors, B's layout |
-| 1 | Home + lead case study | Home with name, role, work list, contact; the micro-vibration canceller case study end to end; responsive, tested | D | todo |
+| 1 | Home + lead case study | Home with name, role, work list, contact; the micro-vibration canceller case study end to end; responsive, tested | D | done |
 | 2 | Terrament + 3D viewer | Gravity storage case study with click-to-load 3D viewers for every design generation in order (geared module, six-pin concept, linear harmonic drive; Allen asked for the earlier iterations) and the animation | 1 | todo |
 | 3 | Robotic arm + weld rig | Two more case studies; arm viewer (hand to forearm) | 2 | todo |
 | 4 | Short entries | Buggy analysis, TouchDesigner clips, motorized couch, bolted flange | 1 | todo |

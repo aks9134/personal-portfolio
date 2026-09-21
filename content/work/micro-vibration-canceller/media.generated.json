@@ -19,5 +19,68 @@
     "height": 2048,
     "alt": "First build of the device clamped to the machined test rig: aluminum beam on two posts over a steel base plate",
     "hash": "8d53e3adb8"
+  },
+  "sem1-exploded": {
+    "src": "/work/micro-vibration-canceller/sem1-exploded.webp",
+    "width": 914,
+    "height": 646,
+    "alt": "Exploded view of the first-semester design: open-frame shield and no centering spring",
+    "hash": "a22c28bb2b"
+  },
+  "final-photo": {
+    "src": "/work/micro-vibration-canceller/final-photo.webp",
+    "width": 598,
+    "height": 782,
+    "alt": "The finished device on the beam, with the printed cage shield and centering spring",
+    "hash": "b9ec9135a1"
+  },
+  "fea-plate": {
+    "src": "/work/micro-vibration-canceller/fea-plate.webp",
+    "width": 902,
+    "height": 624,
+    "alt": "FEA displacement plot of the mount plate under the motor's 15 N peak force",
+    "hash": "5bdc7828c1"
+  },
+  "control-diagram": {
+    "src": "/work/micro-vibration-canceller/control-diagram.webp",
+    "width": 1600,
+    "height": 356,
+    "alt": "Control loop: negative acceleration feedback drives PWM to the voice coil motor, which acts on the beam, which the piezo sensor measures",
+    "hash": "ea7c53abf3"
+  },
+  "test1-plot": {
+    "src": "/work/micro-vibration-canceller/test1-plot.webp",
+    "width": 1150,
+    "height": 681,
+    "alt": "Test 1 plot: beam vibration frequency rising roughly linearly with the excitation motor's voltage",
+    "hash": "979c22610d"
+  },
+  "solver-failure": {
+    "src": "/work/micro-vibration-canceller/solver-failure.webp",
+    "width": 940,
+    "height": 771,
+    "alt": "Simulation output showing the controller's position command coming out jagged and slower than the beam",
+    "hash": "4d49d66d71"
+  },
+  "sim-result": {
+    "src": "/work/micro-vibration-canceller/sim-result.webp",
+    "width": 1600,
+    "height": 694,
+    "alt": "Simulated closed-loop result: beam acceleration decaying to a small steady amplitude once the controller engages",
+    "hash": "e3e2e27a57"
+  },
+  "rig-cad": {
+    "src": "/work/micro-vibration-canceller/rig-cad.webp",
+    "width": 832,
+    "height": 432,
+    "alt": "CAD of the test rig: double-fixed beam on posts over a steel base, the device off-center and the vibration motor at the far end",
+    "hash": "2578f6d493"
+  },
+  "wiring": {
+    "src": "/work/micro-vibration-canceller/wiring.webp",
+    "width": 614,
+    "height": 373,
+    "alt": "Wiring schematic: Arduino Uno reading the biased piezo signal and driving the voice coil motor through an L298 H-bridge from a 12 V battery",
+    "hash": "1b858903be"
   }
 }

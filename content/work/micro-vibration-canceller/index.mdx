@@ -1,0 +1,101 @@
+export const meta = {
+  title: "Micro-vibration canceller",
+  context: "Senior design, NYU",
+  year: "2025",
+  order: 1,
+  format: "case",
+  line: "A bolt-on device that fights beam vibration with a voice coil motor. Open-loop tests cut it 75 to 90% at 54 Hz.",
+  summary:
+    "Satellites shake their own instruments: reaction wheels and thrusters put small vibrations into everything bolted near them. Our team of four built a bolt-on device that senses that vibration with a piezo disc and pushes back with a voice coil motor, and on the test rig I machined for it, an open-loop test cut beam vibration 75 to 90% at 54 Hz.",
+  status: "Built and tested",
+  role: "CAD and drawings, mount plate FEA, test rig and test procedure, all the machining, motor drive wiring and PWM code",
+  team: "Four: Caiden McDonough, Kacy Murphy, Shannon Watridge and me",
+  timeframe: "Sept 2024 to May 2025",
+  tools: "SolidWorks, SolidWorks Simulation, MATLAB and Simulink, Arduino, mill and lathe",
+  hero: "device-render",
+  award: "Best Senior Design Project, NYU ME class of 2025",
+  figure: {
+    name: "exploded",
+    parts: [
+      { n: 1, name: "Voice coil motor", note: "Thorlabs VC250, 25.4 mm travel", x: 60.6, y: 58.8 },
+      { n: 2, name: "Mount plate", note: "6061 aluminum, machined", x: 72.5, y: 67 },
+      { n: 3, name: "Piezo sensor", note: "under the motor axis", x: 79.4, y: 71.8 },
+      { n: 4, name: "Test beam", note: "fixed at both ends on the rig", x: 83.4, y: 76 },
+      { n: 5, name: "Cage shield", note: "printed PLA, solid infill", x: 16.3, y: 24.7 },
+      { n: 6, name: "Centering spring", note: "added after the first tests", x: 43.1, y: 44.1 },
+    ],
+  },
+};
+
+## The problem
+
+Reaction wheels, cryocoolers and thrusters all shake the satellite they're bolted to. The vibration is small, somewhere between 0.1 and 1 kHz, but it's enough to blur a camera or pull a laser off target, and nobody is going up there to fix it. Passive isolators only work across a narrow band and can make things worse near resonance. We wanted something you could bolt on that listens for the vibration and pushes back against it.
+
+## Constraints
+
+Where the requirements ended up:
+
+- Detect vibration at 100 ± 50 Hz and cancel 90% of its amplitude, with 75% as the floor.
+- Respond in under 5 seconds, 10 at worst.
+- Run off a 12 V battery.
+- Attach to the structure without modifying it.
+
+The frequency band moved more than anything else. We started at 500 Hz, and every time we priced a shaker or checked what the lab could lend us, the number came down, through 150 and 50 before settling at 100 Hz on a rig we could build ourselves. That's lower than what a satellite sees, and we said so on the showcase poster.
+
+## The design
+
+We sensed with a piezo disc glued to the beam directly under the motor's axis. It cost a few dollars and came with no sensitivity rating, so we calibrated it against Prof. Borowiec's reference accelerometer and got 15.74 mV/g.
+
+For the push we used a Thorlabs voice coil motor with 25.4 mm of travel and a 15 N peak force. It didn't top our scoring matrix (the linear motors did), but everything above it either cost too much or could shake the beam off-axis, and a voice coil has no rotating parts to add vibration of its own.
+
+<Figure name="fea-plate" caption="Mount plate displacement under the motor's 15 N peak force, from the ABS vs. 6061 comparison in SolidWorks Simulation." narrow />
+
+I ran the mount plate as an FEA trade between printed ABS and 6061 aluminum, loaded with that 15 N in both directions. ABS weighed 12.3 g and deflected 4.56 µm. Aluminum weighed 32.6 g and deflected 0.134 µm, about 34 times stiffer. We took the aluminum. A soft mount soaks up the very motion you're trying to cancel, and the motor was already 135 g of a 219 g device, so twenty grams of plate barely moved the total.
+
+An Arduino Uno reads the piezo and drives the motor through an L298 H-bridge. The piezo swings negative, which the Arduino can't read, so the signal rides on a 2.5 V bias from a pair of 47 kΩ resistors, with a 1 MΩ resistor bleeding off charge. The driver took three tries: a $280 linear amplifier on paper, then a $75 TI evaluation board that needed a GUI and a manual override, then a $6.99 L298 that just worked.
+
+<Figure name="wiring" caption="The final circuit: biased piezo input on A0, PWM and direction out to the L298, motor power from a 12 V battery." print narrow />
+
+The fall plan for control was system identification (OKID and ERA) feeding a positive position feedback controller. It needed test data we didn't have yet, and more computing than an Arduino running Simulink could give it. In the spring we switched to negative acceleration feedback, which takes constant gains and the beam's natural frequency and skips identification entirely. Kacy owned the controller tuning; Shannon and I wrote the PWM drive that turns its output into a signed duty cycle for the motor.
+
+<Figure name="control-diagram" caption="The loop as built: the piezo measures beam acceleration, negative acceleration feedback sets a position command, and PWM drives the motor against the beam." print />
+
+<Strip
+  items={[
+    { name: "sem1-exploded", label: "Fall: open-frame shield, no spring" },
+    { name: "exploded", label: "Spring: cage shield and centering spring" },
+  ]}
+  caption="The biggest mechanical change came from the first motor tests. Without a spring the magnet sat wherever it landed, so the start position was random and the dynamics were loosely defined. The spring couldn't fit inside the motor, which is why the shield grew into a stiff cage."
+/>
+
+## The build and the rig
+
+I machined every part: the 6061 mount plate, the beam, the posts and the steel base. The shield was printed in PLA at solid infill, because a flexible shield would add vibration we couldn't model.
+
+Lab shakers were out of budget, so we built our own rig. A 6061 beam is fixed at both ends on machined posts over a 1018 steel base with rubber feet, and an $8.29 eccentric-mass motor clamped at the far end shakes it. The device sits 7.5 in from one end, off the nodes of the modes we expected to excite. I wrote the test procedure in three stages: calibrate the rig, cancel a known frequency, then cancel an unknown one.
+
+<Figure name="rig-cad" caption="The test rig in CAD with the final device: beam on two posts over the steel base, excitation motor at the far end." print />
+
+<Figure name="rig-photo" caption="The first build on the machined rig, before the spring and the cage shield." narrow />
+
+## Results
+
+Test 1 mapped motor voltage to beam frequency, close to a straight line from 26.3 Hz at 2 V to 116.5 Hz at 10 V.
+
+<Figure name="test1-plot" caption="Test 1: beam frequency against excitation motor voltage." print />
+
+Test 2 was the real check. We held the beam at 54 Hz, inverted and phase-shifted the known signal, and drove the motor with it open-loop. Vibration dropped from a 0.17 V peak to as low as 0.015 V, 75 to 90% less, but only in windows of 40 to 50 ms before the fixed signal drifted out of phase with the beam.
+
+Test 3, closed-loop at an unknown frequency, didn't work on hardware. The controller's position command came out jagged and far slower than the beam. We traced it to Simulink's solver timestep, which couldn't resolve the loop at the rig's frequencies, and shrinking the step didn't help. Every earlier simulation had run near the beam's natural frequency, where the problem never showed up.
+
+<Figure name="solver-failure" caption="What the solver did to the controller's output at a high input frequency: jagged, and slower than the beam it was chasing." print narrow />
+
+In simulation, the same controller reached 90% steady-state cancellation in about 8 seconds.
+
+<Figure name="sim-result" caption="Simulation, not hardware: beam acceleration settling once the controller engages." print />
+
+So physical cancellation is proven open-loop, closed-loop is proven in simulation, and we know exactly why the two didn't meet. The faculty voted it the best mechanical engineering senior design project of 2025.
+
+## What I'd do differently
+
+I'd put the controller on a microcontroller from the first week instead of running it through Simulink over USB. The solver limit is what stopped Test 3, and we found it late in the spring. I'd also measure the beam's natural frequencies on the rig before tuning anything, rather than taking them from hand calculations.
