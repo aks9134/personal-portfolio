@@ -71,9 +71,7 @@ function ShortEntry({ w }: { w: Work }) {
       <div className="flex h-44 items-center justify-center">
         <MediaImage
           m={m}
-          print={w.heroStyle === "print"}
           sizes="20rem"
-          className={w.heroStyle === "frame" ? "border-[1.5px] border-ink" : ""}
           imgClassName="max-h-40 w-auto"
         />
       </div>

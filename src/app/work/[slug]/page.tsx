@@ -65,9 +65,8 @@ export default async function WorkPage({ params }: PageProps<"/work/[slug]">) {
             <MediaImage
               m={still(w.media[w.hero])}
               priority
-              print={w.heroStyle === "print"}
               sizes="(min-width: 1100px) 1100px, 100vw"
-              className={`mx-auto max-w-[1100px] ${w.heroStyle === "frame" ? "border-[1.5px] border-ink" : ""}`}
+              className="mx-auto w-fit max-w-[1100px]"
               imgClassName="mx-auto max-h-[70vh] w-auto"
             />
           )}

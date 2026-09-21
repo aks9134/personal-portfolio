@@ -9,6 +9,7 @@ export type Media = {
   width: number;
   height: number;
   alt?: string;
+  alpha?: boolean; // cut-out with a see-through background
   poster?: string;
   parts?: number;
   bytes?: number;
@@ -30,7 +31,6 @@ export type WorkMeta = {
   timeframe: string;
   tools: string;
   hero: string; // media name used when the project is listed
-  heroStyle?: "print" | "frame"; // print: white-ground drawing; frame: screenshot or photo that needs an edge
   figure?: { name: string; parts: Part[] }; // numbered exploded view with a legend
   award?: string;
 };

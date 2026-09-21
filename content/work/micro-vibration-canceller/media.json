@@ -25,7 +25,8 @@
     "out": "sem1-exploded",
     "src": "Info Repository/Senior Design/Senior Design/CAD/Images/Labeled Explo (2).png",
     "alt": "Exploded view of the first-semester design: open-frame shield and no centering spring",
-    "trim": true
+    "trim": true,
+    "flatten": true
   },
   {
     "out": "final-photo",
@@ -42,7 +43,8 @@
     "out": "control-diagram",
     "src": "_notes/media/senior-design/report_image13.png",
     "alt": "Control loop: negative acceleration feedback drives PWM to the voice coil motor, which acts on the beam, which the piezo sensor measures",
-    "trim": true
+    "trim": true,
+    "flatten": true
   },
   {
     "out": "test1-plot",

@@ -23,7 +23,7 @@ A list of entries. `out` is the output name, `src` the source path from the proj
 
 | Source | Output | Optional fields |
 |---|---|---|
-| `.png` `.jpg` `.jpeg` | `<out>.webp` (EXIF and GPS removed) | `crop` [left, top, width, height] in source pixels; `cutout` true (background removal, then trim); `trim` true (for images that already have a transparent background); `width` (default 1600) |
+| `.png` `.jpg` `.jpeg` | `<out>.webp` (EXIF and GPS removed) | `crop` [left, top, width, height] in source pixels; `cutout` true (background removal, then trim); `flatten` true (see-through margins become white paper, for drawings); `trim` true (for images that already have a transparent background); `width` (default 1600) |
 | `.pdf` + `pdfObject` | same as images, from a JPEG embedded in the PDF | as above. Object numbers: see `_notes/RESUME.md` or list them with the snippet in the git history |
 | `.step` `.stp` | `<out>.glb`, meshopt-compressed | `deflection` (default 0.002, smaller = finer), `color` "#rrggbb", `metallic`, `roughness` |
 | `.mov` `.mp4` | `<out>.mp4` muted H.264 + `<out>-poster.webp` | `crop` "w:h:x:y", `start`, `duration` (seconds), `width` (default 1280), `posterAt` (seconds) |

@@ -11,6 +11,7 @@
     "width": 463,
     "height": 332,
     "alt": "Exploded render of the weld rig: slotted base bar, silicone-lined channel, brass guide pins and the two heating bars",
-    "hash": "d5afb1b5b2"
+    "hash": "d5afb1b5b2",
+    "alpha": true
   }
 }

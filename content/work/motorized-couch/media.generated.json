@@ -4,13 +4,15 @@
     "width": 303,
     "height": 200,
     "alt": "Side view: loveseat on a welded steel frame, with the engine module and a large rear wheel behind the backrest",
-    "hash": "c0a9189fa7"
+    "hash": "c0a9189fa7",
+    "alpha": true
   },
   "couch-front": {
     "src": "/work/motorized-couch/couch-front.webp",
     "width": 383,
     "height": 233,
     "alt": "Front view: the loveseat and the front frame bar at ground level",
-    "hash": "e5712c011f"
+    "hash": "e5712c011f",
+    "alpha": true
   }
 }

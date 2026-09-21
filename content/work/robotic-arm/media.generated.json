@@ -4,14 +4,16 @@
     "width": 1411,
     "height": 764,
     "alt": "Render of the full arm in carbon fiber, shoulder to fingertips",
-    "hash": "27711b06d0"
+    "hash": "27711b06d0",
+    "alpha": true
   },
   "arm-aluminum": {
     "src": "/work/robotic-arm/arm-aluminum.webp",
     "width": 1170,
     "height": 374,
     "alt": "Render of the full arm in polished aluminum",
-    "hash": "22e22d5cda"
+    "hash": "22e22d5cda",
+    "alpha": true
   },
   "hand-model": {
     "src": "/work/robotic-arm/hand-model.glb",

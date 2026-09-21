@@ -4,7 +4,8 @@
     "width": 518,
     "height": 624,
     "alt": "Render of the final device: a voice coil motor inside a printed cage shield, bolted to a machined aluminum mount plate",
-    "hash": "f6966921f3"
+    "hash": "f6966921f3",
+    "alpha": true
   },
   "exploded": {
     "src": "/work/micro-vibration-canceller/exploded.webp",
@@ -22,10 +23,10 @@
   },
   "sem1-exploded": {
     "src": "/work/micro-vibration-canceller/sem1-exploded.webp",
-    "width": 914,
-    "height": 646,
+    "width": 885,
+    "height": 630,
     "alt": "Exploded view of the first-semester design: open-frame shield and no centering spring",
-    "hash": "a22c28bb2b"
+    "hash": "f3bd99478e"
   },
   "final-photo": {
     "src": "/work/micro-vibration-canceller/final-photo.webp",
@@ -39,14 +40,15 @@
     "width": 902,
     "height": 624,
     "alt": "FEA displacement plot of the mount plate under the motor's 15 N peak force",
-    "hash": "5bdc7828c1"
+    "hash": "5bdc7828c1",
+    "alpha": true
   },
   "control-diagram": {
     "src": "/work/micro-vibration-canceller/control-diagram.webp",
     "width": 1600,
-    "height": 356,
+    "height": 319,
     "alt": "Control loop: negative acceleration feedback drives PWM to the voice coil motor, which acts on the beam, which the piezo sensor measures",
-    "hash": "ea7c53abf3"
+    "hash": "e4115616df"
   },
   "test1-plot": {
     "src": "/work/micro-vibration-canceller/test1-plot.webp",
@@ -74,7 +76,8 @@
     "width": 832,
     "height": 432,
     "alt": "CAD of the test rig: double-fixed beam on posts over a steel base, the device off-center and the vibration motor at the far end",
-    "hash": "2578f6d493"
+    "hash": "2578f6d493",
+    "alpha": true
   },
   "wiring": {
     "src": "/work/micro-vibration-canceller/wiring.webp",

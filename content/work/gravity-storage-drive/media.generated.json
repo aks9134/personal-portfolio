@@ -11,7 +11,8 @@
     "width": 283,
     "height": 1122,
     "alt": "Render of the linear harmonic module riding a profiled I-beam rail",
-    "hash": "dc955872cf"
+    "hash": "dc955872cf",
+    "alpha": true
   },
   "harmonic-exploded": {
     "src": "/work/gravity-storage-drive/harmonic-exploded.webp",

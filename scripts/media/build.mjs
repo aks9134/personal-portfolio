@@ -66,12 +66,17 @@ async function image(item, slug, outDir) {
     execFileSync(PYTHON, ['scripts/media/cutout.py', a, b], { stdio: ['ignore', 'ignore', 'inherit'] });
     img = sharp(fs.readFileSync(b));
   }
+  // flatten: a drawing whose see-through margins should read as its white paper (not a cut-out)
+  if (item.flatten) img = sharp(await img.flatten({ background: "#ffffff" }).toBuffer());
   if (item.cutout || item.trim) img = sharp(await img.trim().toBuffer());
+  const file = path.join(outDir, `${item.out}.webp`);
   const info = await img
     .resize({ width: item.width ?? 1600, withoutEnlargement: true })
     .webp({ quality: 82, alphaQuality: 90 })
-    .toFile(path.join(outDir, `${item.out}.webp`));
-  return { src: `/work/${slug}/${item.out}.webp`, width: info.width, height: info.height };
+    .toFile(file);
+  // alpha: a cut-out with see-through background. Pages put these on a neutral sheet so the page color never tints them.
+  const alpha = !(await sharp(file).stats()).isOpaque;
+  return { src: `/work/${slug}/${item.out}.webp`, width: info.width, height: info.height, ...(alpha && { alpha }) };
 }
 
 // A JPEG embedded in a PDF (the old portfolio holds photos that exist nowhere else).

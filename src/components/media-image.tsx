@@ -2,25 +2,23 @@ import Image from "next/image";
 import type { Media } from "@/lib/work";
 import { cn } from "@/lib/utils";
 
-// A media entry from media.generated.json on a plate (stock-colored in dark mode).
-// `print` multiplies a white-ground line drawing into the stock, like ink on the sheet.
+// Every image keeps its true colors. Cut-outs (see-through background) sit on a neutral sheet;
+// photos, drawings and plots keep their own ground and get a thin ink frame. Never upscaled.
 export function MediaImage({
   m,
   sizes,
-  print = false,
   priority = false,
   className,
   imgClassName,
 }: {
   m: Media;
   sizes: string;
-  print?: boolean;
   priority?: boolean;
   className?: string;
   imgClassName?: string;
 }) {
   return (
-    <div className={cn("plate", className)}>
+    <div className={cn(m.alpha ? "sheet p-4 sm:p-6" : "border-[1.5px] border-ink", className)}>
       <Image
         src={m.src}
         width={m.width}
@@ -29,7 +27,7 @@ export function MediaImage({
         sizes={sizes}
         priority={priority}
         style={{ maxWidth: m.width }}
-        className={cn("h-auto w-full", print && "print", imgClassName)}
+        className={cn("h-auto w-full", imgClassName)}
       />
     </div>
   );

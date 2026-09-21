@@ -54,11 +54,11 @@ I ran the mount plate as an FEA trade between printed ABS and 6061 aluminum, loa
 
 An Arduino Uno reads the piezo and drives the motor through an L298 H-bridge. The piezo swings negative, which the Arduino can't read, so the signal rides on a 2.5 V bias from a pair of 47 kΩ resistors, with a 1 MΩ resistor bleeding off charge. The driver took three tries: a $280 linear amplifier on paper, then a $75 TI evaluation board that needed a GUI and a manual override, then a $6.99 L298 that just worked.
 
-<Figure name="wiring" caption="The final circuit: biased piezo input on A0, PWM and direction out to the L298, motor power from a 12 V battery." print narrow />
+<Figure name="wiring" caption="The final circuit: biased piezo input on A0, PWM and direction out to the L298, motor power from a 12 V battery." narrow />
 
 The fall plan for control was system identification (OKID and ERA) feeding a positive position feedback controller. It needed test data we didn't have yet, and more computing than an Arduino running Simulink could give it. In the spring we switched to negative acceleration feedback, which takes constant gains and the beam's natural frequency and skips identification entirely. Kacy owned the controller tuning; Shannon and I wrote the PWM drive that turns its output into a signed duty cycle for the motor.
 
-<Figure name="control-diagram" caption="The loop as built: the piezo measures beam acceleration, negative acceleration feedback sets a position command, and PWM drives the motor against the beam." print />
+<Figure name="control-diagram" caption="The loop as built: the piezo measures beam acceleration, negative acceleration feedback sets a position command, and PWM drives the motor against the beam." />
 
 <Strip
   items={[
@@ -74,7 +74,7 @@ I machined every part: the 6061 mount plate, the beam, the posts and the steel b
 
 Lab shakers were out of budget, so we built our own rig. A 6061 beam is fixed at both ends on machined posts over a 1018 steel base with rubber feet, and an $8.29 eccentric-mass motor clamped at the far end shakes it. The device sits 7.5 in from one end, off the nodes of the modes we expected to excite. I wrote the test procedure in three stages: calibrate the rig, cancel a known frequency, then cancel an unknown one.
 
-<Figure name="rig-cad" caption="The test rig in CAD with the final device: beam on two posts over the steel base, excitation motor at the far end." print />
+<Figure name="rig-cad" caption="The test rig in CAD with the final device: beam on two posts over the steel base, excitation motor at the far end." />
 
 <Figure name="rig-photo" caption="The first build on the machined rig, before the spring and the cage shield." narrow />
 
@@ -82,17 +82,17 @@ Lab shakers were out of budget, so we built our own rig. A 6061 beam is fixed at
 
 Test 1 mapped motor voltage to beam frequency, close to a straight line from 26.3 Hz at 2 V to 116.5 Hz at 10 V.
 
-<Figure name="test1-plot" caption="Test 1: beam frequency against excitation motor voltage." print />
+<Figure name="test1-plot" caption="Test 1: beam frequency against excitation motor voltage." />
 
 Test 2 was the real check. We held the beam at 54 Hz, inverted and phase-shifted the known signal, and drove the motor with it open-loop. Vibration dropped from a 0.17 V peak to as low as 0.015 V, 75 to 90% less, but only in windows of 40 to 50 ms before the fixed signal drifted out of phase with the beam.
 
 Test 3, closed-loop at an unknown frequency, didn't work on hardware. The controller's position command came out jagged and far slower than the beam. We traced it to Simulink's solver timestep, which couldn't resolve the loop at the rig's frequencies, and shrinking the step didn't help. Every earlier simulation had run near the beam's natural frequency, where the problem never showed up.
 
-<Figure name="solver-failure" caption="What the solver did to the controller's output at a high input frequency: jagged, and slower than the beam it was chasing." print narrow />
+<Figure name="solver-failure" caption="What the solver did to the controller's output at a high input frequency: jagged, and slower than the beam it was chasing." narrow />
 
 In simulation, the same controller reached 90% steady-state cancellation in about 8 seconds.
 
-<Figure name="sim-result" caption="Simulation, not hardware: beam acceleration settling once the controller engages." print />
+<Figure name="sim-result" caption="Simulation, not hardware: beam acceleration settling once the controller engages." />
 
 So physical cancellation is proven open-loop, closed-loop is proven in simulation, and we know exactly why the two didn't meet. The faculty voted it the best mechanical engineering senior design project of 2025.
 
