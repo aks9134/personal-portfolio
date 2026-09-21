@@ -1,0 +1,42 @@
+[
+  {
+    "out": "prototype-photo",
+    "src": "Info Repository/Engineering Portfolio (3).pdf",
+    "pdfObject": 50,
+    "alt": "The 1/24-scale prototype: printed racks and gears, pillow-block bearings and Arduino-driven motors in an aluminum extrusion tower"
+  },
+  {
+    "out": "harmonic-render",
+    "src": "Info Repository/Engineering Portfolio (3).pdf",
+    "pdfObject": 69,
+    "cutout": true,
+    "alt": "Render of the linear harmonic module riding a profiled I-beam rail"
+  },
+  {
+    "out": "harmonic-exploded",
+    "src": "Info Repository/Engineering Portfolio (3).pdf",
+    "pdfObject": 70,
+    "alt": "Exploded render of the linear harmonic module: housings, drum, chain loop with sprockets, pin arrays and I-beam segments"
+  },
+  {
+    "out": "geared-module",
+    "src": "Info Repository/Terrament/Final Assembly Model.step",
+    "alt": "3D model of the geared drive module with cycloidal reduction"
+  },
+  {
+    "out": "pin-concept",
+    "src": "Info Repository/Terrament/New Assembly.step",
+    "alt": "3D model of the first linear harmonic concept: a six-pin carriage in a profiled slot"
+  },
+  {
+    "out": "harmonic-drive",
+    "src": "Info Repository/Terrament/New Assembly 2.step",
+    "alt": "3D model of the linear harmonic drive: belt-driven roller module on a cam-profiled rail"
+  },
+  {
+    "out": "module-animation",
+    "src": "Info Repository/Terrament/Portfolio Images/Terrament/1st Iteration Design/Oringal Annimation File v10.mp4",
+    "posterAt": 12,
+    "alt": "Exploded-view animation of the geared drive module"
+  }
+]

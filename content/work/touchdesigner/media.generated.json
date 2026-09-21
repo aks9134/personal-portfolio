@@ -1,0 +1,47 @@
+{
+  "swipe-filter": {
+    "src": "/work/touchdesigner/swipe-filter.mp4",
+    "poster": "/work/touchdesigner/swipe-filter-poster.webp",
+    "width": 1080,
+    "height": 514,
+    "bytes": 2786241,
+    "alt": "Swipe filter: a swiping hand leaves a ribbon that reveals a dithered copy of the camera image",
+    "hash": "4517473c24"
+  },
+  "energy-hands": {
+    "src": "/work/touchdesigner/energy-hands.mp4",
+    "poster": "/work/touchdesigner/energy-hands-poster.webp",
+    "width": 1080,
+    "height": 504,
+    "bytes": 2948698,
+    "alt": "Energy hands: green electric tendrils follow a raised hand",
+    "hash": "b0e6f6f33a"
+  },
+  "fingertip-arcs": {
+    "src": "/work/touchdesigner/fingertip-arcs.mp4",
+    "poster": "/work/touchdesigner/fingertip-arcs-poster.webp",
+    "width": 1080,
+    "height": 508,
+    "bytes": 1276759,
+    "alt": "Fingertip arcs: tracked fingertips on both hands linked by pink arcs",
+    "hash": "3d8fe4d0ee"
+  },
+  "rift": {
+    "src": "/work/touchdesigner/rift.mp4",
+    "poster": "/work/touchdesigner/rift-poster.webp",
+    "width": 1080,
+    "height": 524,
+    "bytes": 2812213,
+    "alt": "Rift: a window stretched between two hands shows a high-contrast dithered image",
+    "hash": "33e94ddc41"
+  },
+  "framed-filter": {
+    "src": "/work/touchdesigner/framed-filter.mp4",
+    "poster": "/work/touchdesigner/framed-filter-poster.webp",
+    "width": 1080,
+    "height": 516,
+    "bytes": 3505005,
+    "alt": "Framed filter: fingers frame a rectangle and the image inside it switches to a red tint, then a halftone",
+    "hash": "5c60f10465"
+  }
+}

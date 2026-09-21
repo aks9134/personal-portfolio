@@ -56,3 +56,6 @@ node_modules/
 /playwright/.auth/
 # Playwright CLI output (may contain credentials)
 .playwright-cli/
+
+# media pipeline python env
+/.venv-media/

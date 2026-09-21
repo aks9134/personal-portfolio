@@ -1,0 +1,18 @@
+[
+  {
+    "out": "device-render",
+    "src": "Info Repository/Senior Design/Senior Design/Sem 2 Final Deliverables/Report Figures/VI_Iso.PNG",
+    "cutout": true,
+    "alt": "Render of the final device: a voice coil motor inside a printed cage shield, bolted to a machined aluminum mount plate"
+  },
+  {
+    "out": "exploded",
+    "src": "Info Repository/Senior Design/Senior Design/Sem 2 Final Deliverables/Report Figures/VI_Lab.png",
+    "alt": "Labeled exploded view: voice coil motor, aluminum mount plate, piezo sensor, test beam, cage shield and centering spring"
+  },
+  {
+    "out": "rig-photo",
+    "src": "_notes/media/senior-design/fabrev_image32.jpg",
+    "alt": "First build of the device clamped to the machined test rig: aluminum beam on two posts over a steel base plate"
+  }
+]

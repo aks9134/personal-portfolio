@@ -1,0 +1,38 @@
+[
+  {
+    "out": "swipe-filter",
+    "src": "Info Repository/Touch Designer/Insta Videos-20260918T131259Z-1-001/Insta Videos/video-output-D07A7FC8-EAFC-47A5-941A-C585DFE60017-1.mov",
+    "crop": "1080:514:0:72",
+    "posterAt": 6,
+    "alt": "Swipe filter: a swiping hand leaves a ribbon that reveals a dithered copy of the camera image"
+  },
+  {
+    "out": "energy-hands",
+    "src": "Info Repository/Touch Designer/Insta Videos-20260918T131259Z-1-001/Insta Videos/video-output-231E60A2-7ABF-49B8-92B7-A9508377A156-1.mov",
+    "crop": "1080:504:0:72",
+    "posterAt": 5,
+    "alt": "Energy hands: green electric tendrils follow a raised hand"
+  },
+  {
+    "out": "fingertip-arcs",
+    "src": "Info Repository/Touch Designer/Insta Videos-20260918T131259Z-1-001/Insta Videos/video-output-2EA903FE-3E6E-4FD1-82EB-AD333E88FB97-1.mov",
+    "crop": "1080:508:0:72",
+    "duration": 15,
+    "posterAt": 3,
+    "alt": "Fingertip arcs: tracked fingertips on both hands linked by pink arcs"
+  },
+  {
+    "out": "rift",
+    "src": "Info Repository/Touch Designer/Insta Videos-20260918T131259Z-1-001/Insta Videos/video-output-59623EEF-8C53-45D3-85CF-4C91C3CD4DB8-1.mov",
+    "crop": "1080:524:0:72",
+    "posterAt": 6,
+    "alt": "Rift: a window stretched between two hands shows a high-contrast dithered image"
+  },
+  {
+    "out": "framed-filter",
+    "src": "Info Repository/Touch Designer/Insta Videos-20260918T131259Z-1-001/Insta Videos/video-output-012E8642-F1C5-4FDF-B377-FE6FB830DA71-1.mov",
+    "crop": "1080:516:0:72",
+    "posterAt": 7,
+    "alt": "Framed filter: fingers frame a rectangle and the image inside it switches to a red tint, then a halftone"
+  }
+]

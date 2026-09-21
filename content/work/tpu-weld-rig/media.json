@@ -1,0 +1,16 @@
+[
+  {
+    "out": "rig-photo",
+    "src": "Info Repository/Engineering Portfolio (3).pdf",
+    "pdfObject": 53,
+    "crop": [0, 400, 1536, 1100],
+    "alt": "The finished weld rig: machined aluminum bars on press-fit brass guide rods"
+  },
+  {
+    "out": "rig-exploded",
+    "src": "Info Repository/Engineering Portfolio (3).pdf",
+    "pdfObject": 51,
+    "cutout": true,
+    "alt": "Exploded render of the weld rig: slotted base bar, silicone-lined channel, brass guide pins and the two heating bars"
+  }
+]

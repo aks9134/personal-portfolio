@@ -1,0 +1,23 @@
+{
+  "arm-carbon": {
+    "src": "/work/robotic-arm/arm-carbon.webp",
+    "width": 1411,
+    "height": 764,
+    "alt": "Render of the full arm in carbon fiber, shoulder to fingertips",
+    "hash": "27711b06d0"
+  },
+  "arm-aluminum": {
+    "src": "/work/robotic-arm/arm-aluminum.webp",
+    "width": 1170,
+    "height": 374,
+    "alt": "Render of the full arm in polished aluminum",
+    "hash": "22e22d5cda"
+  },
+  "hand-model": {
+    "src": "/work/robotic-arm/hand-model.glb",
+    "parts": 20,
+    "bytes": 186164,
+    "alt": "3D model of the hand, palm, wrist and forearm frame",
+    "hash": "c5da11d6fa"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "device-render": {
+    "src": "/work/micro-vibration-canceller/device-render.webp",
+    "width": 518,
+    "height": 624,
+    "alt": "Render of the final device: a voice coil motor inside a printed cage shield, bolted to a machined aluminum mount plate",
+    "hash": "f6966921f3"
+  },
+  "exploded": {
+    "src": "/work/micro-vibration-canceller/exploded.webp",
+    "width": 1600,
+    "height": 1200,
+    "alt": "Labeled exploded view: voice coil motor, aluminum mount plate, piezo sensor, test beam, cage shield and centering spring",
+    "hash": "8d3b095577"
+  },
+  "rig-photo": {
+    "src": "/work/micro-vibration-canceller/rig-photo.webp",
+    "width": 1536,
+    "height": 2048,
+    "alt": "First build of the device clamped to the machined test rig: aluminum beam on two posts over a steel base plate",
+    "hash": "8d53e3adb8"
+  }
+}
