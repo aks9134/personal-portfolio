@@ -2,8 +2,8 @@ import Image from "next/image";
 import type { Media } from "@/lib/work";
 import { cn } from "@/lib/utils";
 
-// Every image keeps its true colors. Cut-outs (see-through background) sit on a neutral sheet;
-// photos, drawings and plots keep their own ground and get a thin ink frame. Never upscaled.
+// Every image keeps its true colors. See-through images (solid-matte cut-outs, ink drawings) sit on the stock;
+// photos and screenshots keep their own ground and get a thin ink frame. Never upscaled.
 export function MediaImage({
   m,
   sizes,
@@ -18,7 +18,7 @@ export function MediaImage({
   imgClassName?: string;
 }) {
   return (
-    <div className={cn(m.alpha ? "sheet p-4 sm:p-6" : "border-[1.5px] border-ink", className)}>
+    <div className={cn(m.alpha ? "plate" : "border-[1.5px] border-ink", className)}>
       <Image
         src={m.src}
         width={m.width}

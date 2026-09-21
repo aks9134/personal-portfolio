@@ -1,18 +1,18 @@
 {
   "couch-side": {
-    "src": "/work/motorized-couch/couch-side.webp",
-    "width": 303,
-    "height": 200,
+    "src": "/work/motorized-couch/couch-side.0c26949c.webp",
+    "width": 302,
+    "height": 198,
+    "alpha": true,
     "alt": "Side view: loveseat on a welded steel frame, with the engine module and a large rear wheel behind the backrest",
-    "hash": "c0a9189fa7",
-    "alpha": true
+    "hash": "a262c3a8fd"
   },
   "couch-front": {
-    "src": "/work/motorized-couch/couch-front.webp",
-    "width": 383,
-    "height": 233,
+    "src": "/work/motorized-couch/couch-front.9d702114.webp",
+    "width": 382,
+    "height": 232,
+    "alpha": true,
     "alt": "Front view: the loveseat and the front frame bar at ground level",
-    "hash": "e5712c011f",
-    "alpha": true
+    "hash": "5ae56ffbdf"
   }
 }

@@ -1,17 +1,17 @@
 {
   "rig-photo": {
-    "src": "/work/tpu-weld-rig/rig-photo.webp",
+    "src": "/work/tpu-weld-rig/rig-photo.a02c4f6b.webp",
     "width": 1536,
     "height": 1100,
     "alt": "The finished weld rig: machined aluminum bars on press-fit brass guide rods",
     "hash": "fe17edb3f2"
   },
   "rig-exploded": {
-    "src": "/work/tpu-weld-rig/rig-exploded.webp",
+    "src": "/work/tpu-weld-rig/rig-exploded.40fb6cac.webp",
     "width": 463,
     "height": 332,
+    "alpha": true,
     "alt": "Exploded render of the weld rig: slotted base bar, silicone-lined channel, brass guide pins and the two heating bars",
-    "hash": "d5afb1b5b2",
-    "alpha": true
+    "hash": "f1734c9116"
   }
 }

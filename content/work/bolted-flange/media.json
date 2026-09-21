@@ -2,6 +2,7 @@
   {
     "out": "bolt-layout",
     "src": "_notes/media/survey/img/MD_Bolt_image4.png",
+    "alpha": "ink",
     "alt": "Flange bolt-layout drawing: 28 holes at 1-9/16 inch diameter around the rectangular flange"
   }
 ]

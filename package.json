@@ -12,6 +12,7 @@
     "media": "node scripts/media/build.mjs"
   },
   "dependencies": {
+    "@google/model-viewer": "^4.3.1",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
     "@next/mdx": "^16.3.5",

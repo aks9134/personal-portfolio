@@ -1,7 +1,7 @@
 {
   "swipe-filter": {
-    "src": "/work/touchdesigner/swipe-filter.mp4",
-    "poster": "/work/touchdesigner/swipe-filter-poster.webp",
+    "src": "/work/touchdesigner/swipe-filter.6af9a973.mp4",
+    "poster": "/work/touchdesigner/swipe-filter-poster.f1c528bd.webp",
     "width": 1080,
     "height": 514,
     "bytes": 2786241,
@@ -9,8 +9,8 @@
     "hash": "4517473c24"
   },
   "energy-hands": {
-    "src": "/work/touchdesigner/energy-hands.mp4",
-    "poster": "/work/touchdesigner/energy-hands-poster.webp",
+    "src": "/work/touchdesigner/energy-hands.e52f2991.mp4",
+    "poster": "/work/touchdesigner/energy-hands-poster.143bacd6.webp",
     "width": 1080,
     "height": 504,
     "bytes": 2948698,
@@ -18,8 +18,8 @@
     "hash": "b0e6f6f33a"
   },
   "fingertip-arcs": {
-    "src": "/work/touchdesigner/fingertip-arcs.mp4",
-    "poster": "/work/touchdesigner/fingertip-arcs-poster.webp",
+    "src": "/work/touchdesigner/fingertip-arcs.88a2f6a5.mp4",
+    "poster": "/work/touchdesigner/fingertip-arcs-poster.e67ff5a0.webp",
     "width": 1080,
     "height": 508,
     "bytes": 1276759,
@@ -27,8 +27,8 @@
     "hash": "3d8fe4d0ee"
   },
   "rift": {
-    "src": "/work/touchdesigner/rift.mp4",
-    "poster": "/work/touchdesigner/rift-poster.webp",
+    "src": "/work/touchdesigner/rift.a61e638f.mp4",
+    "poster": "/work/touchdesigner/rift-poster.f4fe5dc1.webp",
     "width": 1080,
     "height": 524,
     "bytes": 2812213,
@@ -36,8 +36,8 @@
     "hash": "33e94ddc41"
   },
   "framed-filter": {
-    "src": "/work/touchdesigner/framed-filter.mp4",
-    "poster": "/work/touchdesigner/framed-filter-poster.webp",
+    "src": "/work/touchdesigner/framed-filter.b36106f9.mp4",
+    "poster": "/work/touchdesigner/framed-filter-poster.263e07ff.webp",
     "width": 1080,
     "height": 516,
     "bytes": 3505005,

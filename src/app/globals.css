@@ -2,7 +2,7 @@
 
 /* Traveler world: goldenrod card stock, black print ink, one blue stamp ink (status, award, active part only).
    Dark theme: the same sheet at night. Ground goes near-black, text takes the stock's color,
-   and images keep their neutral sheets. */
+   and see-through images sit on a plate of the day stock so black ink labels stay readable. */
 :root {
   --stock: oklch(0.915 0.078 94);
   --stock-2: oklch(0.875 0.088 91);
@@ -10,7 +10,7 @@
   --ink-2: oklch(0.37 0.035 80);
   --rule-soft: oklch(0.21 0.02 80 / 0.3);
   --stamp: oklch(0.44 0.15 262);
-  --sheet: oklch(0.968 0.004 95);
+  --plate: transparent;
   color-scheme: light;
 }
 
@@ -22,7 +22,7 @@
     --ink-2: oklch(0.8 0.05 92);
     --rule-soft: oklch(0.93 0.06 94 / 0.3);
     --stamp: oklch(0.76 0.11 258);
-    --sheet: oklch(0.93 0.005 95);
+    --plate: oklch(0.915 0.078 94);
     color-scheme: dark;
   }
 }
@@ -34,7 +34,7 @@
   --color-ink-2: var(--ink-2);
   --color-rule-soft: var(--rule-soft);
   --color-stamp: var(--stamp);
-  --color-sheet: var(--sheet);
+  --color-plate: var(--plate);
   --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -62,9 +62,14 @@
 }
 
 @layer components {
-  /* Cut-out renders sit on a neutral sheet so the page color never tints them. */
-  .sheet {
-    background: var(--sheet);
+  /* See-through images (cut-outs, ink drawings). Light: straight on the stock. Dark: on a stock-colored plate. */
+  .plate {
+    background: var(--plate);
+  }
+  @media (prefers-color-scheme: dark) {
+    .plate {
+      padding: 1rem;
+    }
   }
 
   /* Status stamps: blue ink, hand-set tilt. They land with a quick press as they scroll in. */

@@ -15,6 +15,7 @@ import { MeshoptEncoder } from 'meshoptimizer';
 import occtimportjs from 'occt-import-js';
 import sharp from 'sharp';
 
+sharp.cache(false); // on Windows a cached handle keeps files locked, so they could not be moved or deleted
 const args = process.argv.slice(2);
 const force = args.includes('--force');
 const only = args.find((a) => !a.startsWith('--'));
@@ -48,7 +49,11 @@ try {
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
   }
 } finally {
-  fs.rmSync(tmp, { recursive: true, force: true });
+  try {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  } catch {
+    // ponytail: a locked temp folder is left for the OS to clear; never mask the real error
+  }
 }
 
 // Photos, renders, figures -> WebP. Optional: pdfObject, crop [left, top, width, height], cutout, trim, width.
@@ -59,24 +64,25 @@ async function image(item, slug, outDir) {
     const [left, top, width, height] = item.crop;
     img = img.extract({ left, top, width, height });
   }
-  if (item.cutout) {
-    const a = path.join(tmp, 'in.png');
-    const b = path.join(tmp, 'out.png');
+  // alpha: make the background see-through without letting the page color into the object (modes in cutout.py).
+  const mode = item.alpha ?? (item.cutout ? "cutout" : null);
+  if (mode) {
+    const a = path.join(tmp, "in.png");
+    const b = path.join(tmp, "out.png");
     await img.png().toFile(a);
-    execFileSync(PYTHON, ['scripts/media/cutout.py', a, b], { stdio: ['ignore', 'ignore', 'inherit'] });
+    const fill = item.fill ? [item.fill === true ? "fill" : `fill:${item.fill}`] : [];
+    execFileSync(PYTHON, ["scripts/media/cutout.py", a, b, mode, ...fill], { stdio: ["ignore", "ignore", "inherit"] });
     img = sharp(fs.readFileSync(b));
   }
-  // flatten: a drawing whose see-through margins should read as its white paper (not a cut-out)
-  if (item.flatten) img = sharp(await img.flatten({ background: "#ffffff" }).toBuffer());
-  if (item.cutout || item.trim) img = sharp(await img.trim().toBuffer());
-  const file = path.join(outDir, `${item.out}.webp`);
+  if (item.trim ?? Boolean(mode)) img = sharp(await img.trim().toBuffer());
+  const file = path.join(tmp, "out.webp");
   const info = await img
     .resize({ width: item.width ?? 1600, withoutEnlargement: true })
     .webp({ quality: 82, alphaQuality: 90 })
     .toFile(file);
-  // alpha: a cut-out with see-through background. Pages put these on a neutral sheet so the page color never tints them.
+  // alpha: see-through background. Pages put these straight on the stock (on a plate in dark mode).
   const alpha = !(await sharp(file).stats()).isOpaque;
-  return { src: `/work/${slug}/${item.out}.webp`, width: info.width, height: info.height, ...(alpha && { alpha }) };
+  return { src: publish(file, slug, outDir, item.out, "webp"), width: info.width, height: info.height, ...(alpha && { alpha }) };
 }
 
 // A JPEG embedded in a PDF (the old portfolio holds photos that exist nowhere else).
@@ -120,14 +126,15 @@ async function model(item, slug, outDir) {
   }
   await MeshoptEncoder.ready;
   await doc.transform(dedup(), weld(), quantize(), meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
-  const file = path.join(outDir, `${item.out}.glb`);
+  const file = path.join(tmp, "out.glb");
   await new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.encoder': MeshoptEncoder }).write(file, doc);
-  return { src: `/work/${slug}/${item.out}.glb`, parts: res.meshes.length, bytes: fs.statSync(file).size };
+  const bytes = fs.statSync(file).size;
+  return { src: publish(file, slug, outDir, item.out, "glb"), parts: res.meshes.length, bytes };
 }
 
 // Video -> muted H.264 MP4 with a WebP poster. Optional: crop "w:h:x:y", start, duration (s), width, posterAt (s).
 async function video(item, slug, outDir) {
-  const file = path.join(outDir, `${item.out}.mp4`);
+  const file = path.join(tmp, "out.mp4");
   const width = item.width ?? 1280;
   const vf = [item.crop && `crop=${item.crop}`, `scale='trunc(min(${width},iw)/2)*2':-2`].filter(Boolean).join(',');
   execFileSync(ffmpeg, [
@@ -136,8 +143,28 @@ async function video(item, slug, outDir) {
     '-c:v', 'libx264', '-crf', '24', '-preset', 'slow', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', file,
   ]);
   const frame = execFileSync(ffmpeg, ['-v', 'error', '-ss', `${item.posterAt ?? 0}`, '-i', file, '-frames:v', '1', '-f', 'image2pipe', '-c:v', 'png', '-'], { maxBuffer: 64 << 20 });
-  const poster = await sharp(frame).webp({ quality: 80 }).toFile(path.join(outDir, `${item.out}-poster.webp`));
-  return { src: `/work/${slug}/${item.out}.mp4`, poster: `/work/${slug}/${item.out}-poster.webp`, width: poster.width, height: poster.height, bytes: fs.statSync(file).size };
+  const posterFile = path.join(tmp, "poster.webp");
+  const poster = await sharp(frame).webp({ quality: 80 }).toFile(posterFile);
+  const bytes = fs.statSync(file).size;
+  return {
+    src: publish(file, slug, outDir, item.out, "mp4"),
+    poster: publish(posterFile, slug, outDir, `${item.out}-poster`, "webp"),
+    width: poster.width,
+    height: poster.height,
+    bytes,
+  };
+}
+
+// Move a finished file into public/ as <name>.<content hash>.<ext> and delete that name's older versions.
+// A changed file gets a new URL, so no browser, CDN or image-optimizer cache can serve a stale copy.
+function publish(file, slug, outDir, name, ext) {
+  const hash = createHash("sha1").update(fs.readFileSync(file)).digest("hex").slice(0, 8);
+  const old = new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\.[0-9a-f]{8})?\\.${ext}$`);
+  for (const f of fs.readdirSync(outDir)) if (old.test(f)) fs.rmSync(path.join(outDir, f));
+  const out = `${name}.${hash}.${ext}`;
+  fs.copyFileSync(file, path.join(outDir, out));
+  fs.rmSync(file);
+  return `/work/${slug}/${out}`;
 }
 
 // "#rrggbb" (sRGB) -> linear RGB, which is what glTF base colors are.

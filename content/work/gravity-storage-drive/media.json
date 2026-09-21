@@ -9,13 +9,15 @@
     "out": "harmonic-render",
     "src": "Info Repository/Engineering Portfolio (3).pdf",
     "pdfObject": 69,
-    "cutout": true,
+    "alpha": "cutout",
+    "fill": 61,
     "alt": "Render of the linear harmonic module riding a profiled I-beam rail"
   },
   {
     "out": "harmonic-exploded",
     "src": "Info Repository/Engineering Portfolio (3).pdf",
     "pdfObject": 70,
+    "alpha": "drawing",
     "alt": "Exploded render of the linear harmonic module: housings, drum, chain loop with sprockets, pin arrays and I-beam segments"
   },
   {

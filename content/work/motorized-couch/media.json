@@ -2,13 +2,13 @@
   {
     "out": "couch-side",
     "src": "Info Repository/Motorized Couch/IMG_0757-removebg-preview.png",
-    "trim": true,
+    "alpha": "solidify",
     "alt": "Side view: loveseat on a welded steel frame, with the engine module and a large rear wheel behind the backrest"
   },
   {
     "out": "couch-front",
     "src": "Info Repository/Motorized Couch/IMG_0756-removebg-preview.png",
-    "trim": true,
+    "alpha": "solidify",
     "alt": "Front view: the loveseat and the front frame bar at ground level"
   }
 ]

@@ -1,9 +1,10 @@
 {
   "bolt-layout": {
-    "src": "/work/bolted-flange/bolt-layout.webp",
+    "src": "/work/bolted-flange/bolt-layout.5504bfb1.webp",
     "width": 1320,
-    "height": 855,
+    "height": 853,
+    "alpha": true,
     "alt": "Flange bolt-layout drawing: 28 holes at 1-9/16 inch diameter around the rectangular flange",
-    "hash": "1c39e9a4a1"
+    "hash": "8fd1c44f82"
   }
 }

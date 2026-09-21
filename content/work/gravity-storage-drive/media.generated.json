@@ -1,50 +1,51 @@
 {
   "prototype-photo": {
-    "src": "/work/gravity-storage-drive/prototype-photo.webp",
+    "src": "/work/gravity-storage-drive/prototype-photo.faff3378.webp",
     "width": 1600,
     "height": 1200,
     "alt": "The 1/24-scale prototype: printed racks and gears, pillow-block bearings and Arduino-driven motors in an aluminum extrusion tower",
     "hash": "b7c83722b9"
   },
   "harmonic-render": {
-    "src": "/work/gravity-storage-drive/harmonic-render.webp",
+    "src": "/work/gravity-storage-drive/harmonic-render.af36b277.webp",
     "width": 283,
-    "height": 1122,
+    "height": 1121,
+    "alpha": true,
     "alt": "Render of the linear harmonic module riding a profiled I-beam rail",
-    "hash": "dc955872cf",
-    "alpha": true
+    "hash": "e279b691d2"
   },
   "harmonic-exploded": {
-    "src": "/work/gravity-storage-drive/harmonic-exploded.webp",
-    "width": 1600,
-    "height": 1055,
+    "src": "/work/gravity-storage-drive/harmonic-exploded.4b954a3b.webp",
+    "width": 1285,
+    "height": 1230,
+    "alpha": true,
     "alt": "Exploded render of the linear harmonic module: housings, drum, chain loop with sprockets, pin arrays and I-beam segments",
-    "hash": "348635e6a5"
+    "hash": "1239eabb2a"
   },
   "geared-module": {
-    "src": "/work/gravity-storage-drive/geared-module.glb",
+    "src": "/work/gravity-storage-drive/geared-module.e113c582.glb",
     "parts": 248,
     "bytes": 3125968,
     "alt": "3D model of the geared drive module with cycloidal reduction",
     "hash": "2cbd64d1ca"
   },
   "pin-concept": {
-    "src": "/work/gravity-storage-drive/pin-concept.glb",
+    "src": "/work/gravity-storage-drive/pin-concept.2d79e610.glb",
     "parts": 9,
     "bytes": 33660,
     "alt": "3D model of the first linear harmonic concept: a six-pin carriage in a profiled slot",
     "hash": "d27d6390a1"
   },
   "harmonic-drive": {
-    "src": "/work/gravity-storage-drive/harmonic-drive.glb",
+    "src": "/work/gravity-storage-drive/harmonic-drive.dab3d827.glb",
     "parts": 183,
     "bytes": 591652,
     "alt": "3D model of the linear harmonic drive: belt-driven roller module on a cam-profiled rail",
     "hash": "59334ebb40"
   },
   "module-animation": {
-    "src": "/work/gravity-storage-drive/module-animation.mp4",
-    "poster": "/work/gravity-storage-drive/module-animation-poster.webp",
+    "src": "/work/gravity-storage-drive/module-animation.9e77a0bf.mp4",
+    "poster": "/work/gravity-storage-drive/module-animation-poster.002dc86e.webp",
     "width": 1280,
     "height": 720,
     "bytes": 3745724,

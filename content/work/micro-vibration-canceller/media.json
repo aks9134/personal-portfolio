@@ -2,7 +2,7 @@
   {
     "out": "device-render",
     "src": "Info Repository/Senior Design/Senior Design/Sem 2 Final Deliverables/Report Figures/VI_Iso.PNG",
-    "cutout": true,
+    "alpha": "cutout",
     "alt": "Render of the final device: a voice coil motor inside a printed cage shield, bolted to a machined aluminum mount plate"
   },
   {
@@ -14,6 +14,8 @@
       2500,
       1328
     ],
+    "alpha": "drawing",
+    "trim": false,
     "alt": "Labeled exploded view: voice coil motor, aluminum mount plate, piezo sensor, test beam, cage shield and centering spring"
   },
   {
@@ -24,9 +26,8 @@
   {
     "out": "sem1-exploded",
     "src": "Info Repository/Senior Design/Senior Design/CAD/Images/Labeled Explo (2).png",
-    "alt": "Exploded view of the first-semester design: open-frame shield and no centering spring",
-    "trim": true,
-    "flatten": true
+    "alpha": "drawing",
+    "alt": "Exploded view of the first-semester design: open-frame shield and no centering spring"
   },
   {
     "out": "final-photo",
@@ -36,44 +37,43 @@
   {
     "out": "fea-plate",
     "src": "_notes/media/senior-design/sem1pres_image17.png",
-    "alt": "FEA displacement plot of the mount plate under the motor's 15 N peak force",
-    "trim": true
+    "alpha": "solidify",
+    "alt": "FEA displacement plot of the mount plate under the motor's 15 N peak force"
   },
   {
     "out": "control-diagram",
     "src": "_notes/media/senior-design/report_image13.png",
-    "alt": "Control loop: negative acceleration feedback drives PWM to the voice coil motor, which acts on the beam, which the piezo sensor measures",
-    "trim": true,
-    "flatten": true
+    "alpha": "ink",
+    "alt": "Control loop: negative acceleration feedback drives PWM to the voice coil motor, which acts on the beam, which the piezo sensor measures"
   },
   {
     "out": "test1-plot",
     "src": "_notes/media/senior-design/report_image12.png",
-    "alt": "Test 1 plot: beam vibration frequency rising roughly linearly with the excitation motor's voltage",
-    "trim": true
+    "alpha": "ink",
+    "alt": "Test 1 plot: beam vibration frequency rising roughly linearly with the excitation motor's voltage"
   },
   {
     "out": "solver-failure",
     "src": "_notes/media/senior-design/report_image16.png",
-    "alt": "Simulation output showing the controller's position command coming out jagged and slower than the beam",
-    "trim": true
+    "alpha": "ink",
+    "alt": "Simulation output showing the controller's position command coming out jagged and slower than the beam"
   },
   {
     "out": "sim-result",
     "src": "_notes/media/senior-design/report_image25.png",
-    "alt": "Simulated closed-loop result: beam acceleration decaying to a small steady amplitude once the controller engages",
-    "trim": true
+    "alpha": "ink",
+    "alt": "Simulated closed-loop result: beam acceleration decaying to a small steady amplitude once the controller engages"
   },
   {
     "out": "rig-cad",
     "src": "_notes/media/senior-design/poster_image10.png",
-    "alt": "CAD of the test rig: double-fixed beam on posts over a steel base, the device off-center and the vibration motor at the far end",
-    "trim": true
+    "alpha": "solidify",
+    "alt": "CAD of the test rig: double-fixed beam on posts over a steel base, the device off-center and the vibration motor at the far end"
   },
   {
     "out": "wiring",
     "src": "_notes/media/senior-design/report_image14.png",
-    "alt": "Wiring schematic: Arduino Uno reading the biased piezo signal and driving the voice coil motor through an L298 H-bridge from a 12 V battery",
-    "trim": true
+    "alpha": "ink",
+    "alt": "Wiring schematic: Arduino Uno reading the biased piezo signal and driving the voice coil motor through an L298 H-bridge from a 12 V battery"
   }
 ]
