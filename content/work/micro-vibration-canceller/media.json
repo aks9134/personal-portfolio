@@ -8,6 +8,7 @@
   {
     "out": "exploded",
     "src": "Info Repository/Senior Design/Senior Design/Sem 2 Final Deliverables/Report Figures/VI_Lab.png",
+    "crop": [0, 312, 2500, 1328],
     "alt": "Labeled exploded view: voice coil motor, aluminum mount plate, piezo sensor, test beam, cage shield and centering spring"
   },
   {

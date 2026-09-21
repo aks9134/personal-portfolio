@@ -9,9 +9,9 @@
   "exploded": {
     "src": "/work/micro-vibration-canceller/exploded.webp",
     "width": 1600,
-    "height": 1200,
+    "height": 850,
     "alt": "Labeled exploded view: voice coil motor, aluminum mount plate, piezo sensor, test beam, cage shield and centering spring",
-    "hash": "8d3b095577"
+    "hash": "a521101158"
   },
   "rig-photo": {
     "src": "/work/micro-vibration-canceller/rig-photo.webp",
