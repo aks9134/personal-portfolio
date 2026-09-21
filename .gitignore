@@ -59,3 +59,6 @@ node_modules/
 
 # media pipeline python env
 /.venv-media/
+
+# local review captures (scripts/review-shots.mjs)
+/review-shots/

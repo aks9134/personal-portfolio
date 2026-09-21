@@ -1,12 +1,12 @@
 // node scripts/review-shots.mjs <baseUrl> <route> [route...]
 // Review captures that show what a visitor actually sees: scrolls first so lazy images load,
-// settles motion, then writes full pages and 1440x1600 slices to test-results/review/pages/.
+// settles motion, then writes full pages and 1440x1600 slices to review-shots/.
 import fs from "node:fs";
 import { chromium } from "@playwright/test";
 import sharp from "sharp";
 
 const [base, ...routes] = process.argv.slice(2);
-const out = "test-results/review/pages";
+const out = "review-shots";
 fs.mkdirSync(out, { recursive: true });
 const browser = await chromium.launch();
 
