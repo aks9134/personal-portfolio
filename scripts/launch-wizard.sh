@@ -195,7 +195,7 @@ stage "Before anything leaves this computer"
 say "A push to GitHub uploads the code, the text and the published media (not Info Repository or _notes)."
 step "Confirm the employer rules still hold:"
 note "  Terrament and Ergami: written public-release approval (2026-09-18)."
-note "  Curtiss-Wright: only the approved generic text, no technical material."
+note "  Curtiss-Wright: text stays inside what your resume says; no employer images, drawings or data."
 note "  Relavo Medical: resume-level text only."
 confirm "Is all of that still true?" || { warn "Stopping. Nothing was uploaded."; exit 1; }
 
