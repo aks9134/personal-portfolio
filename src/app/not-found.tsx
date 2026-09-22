@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { SiteHeader } from "@/components/site-nav";
 import { allWork } from "@/lib/work";
 
@@ -20,13 +19,13 @@ export default async function NotFound() {
           <ul className="mt-8 grid max-w-3xl gap-x-10 gap-y-3 sm:grid-cols-2">
             {work.map((w) => (
               <li key={w.slug}>
-                <Link href={`/work/${w.slug}`} className="text-lg font-bold underline hover:text-stamp">{w.title}</Link>
+                <a href={`/work/${w.slug}`} className="text-lg font-bold underline hover:text-stamp">{w.title}</a>
                 <span className="block text-sm text-ink-2">{w.context}, {w.year}</span>
               </li>
             ))}
           </ul>
           <p className="mt-10">
-            <Link href="/" className="font-semibold underline hover:text-stamp">Back to the home page</Link>
+            <a href="/" className="font-semibold underline hover:text-stamp">Back to the home page</a>
           </p>
         </div>
       </main>

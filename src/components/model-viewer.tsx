@@ -17,6 +17,14 @@ declare module "react" {
         "disable-pan"?: string;
         "interaction-prompt"?: string;
         "touch-action"?: string;
+        "auto-rotate"?: string;
+        "auto-rotate-delay"?: string;
+        "rotation-per-second"?: string;
+        "shadow-intensity"?: string;
+        "shadow-softness"?: string;
+        exposure?: string;
+        loading?: string;
+        reveal?: string;
       };
     }
   }

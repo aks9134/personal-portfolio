@@ -38,8 +38,13 @@ for (const route of routes) {
       for (let i = 1; i < levels.length; i++) {
         expect(levels[i] - levels[i - 1], `heading jump at index ${i}: ${levels.join(',')}`).toBeLessThanOrEqual(1);
       }
-      expect(await page.locator('img:not([alt])').count(), 'images without alt attribute').toBe(0);
-      expect(await page.locator('a:not([href]), a[href="#"], a[href=""]').count(), 'dead links').toBe(0);
+      // Light DOM only: Playwright locators pierce shadow roots, and model-viewer ships its own AR anchors.
+      const authored = await page.evaluate(() => ({
+        noAlt: document.querySelectorAll('img:not([alt])').length,
+        dead: document.querySelectorAll('a:not([href]), a[href="#"], a[href=""]').length,
+      }));
+      expect(authored.noAlt, 'images without alt attribute').toBe(0);
+      expect(authored.dead, 'dead links').toBe(0);
     });
 
     test('no horizontal scroll at any width', async ({ page }) => {

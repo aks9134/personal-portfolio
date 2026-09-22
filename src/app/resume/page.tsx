@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { preview } from "@/lib/og";
-import Link from "next/link";
 import { SiteHeader } from "@/components/site-nav";
 import { resume } from "@/lib/resume";
 import { site } from "@/lib/site";
@@ -68,7 +67,7 @@ export default function ResumePage() {
               </div>
               <p className="mt-1 max-w-[75ch] print:max-w-none">
                 {p.point}{" "}
-                <Link href={`/work/${p.slug}`} className="whitespace-nowrap underline hover:text-stamp print:hidden">Case study</Link>
+                <a href={`/work/${p.slug}`} className="whitespace-nowrap underline hover:text-stamp print:hidden">Case study</a>
               </p>
             </article>
           ))}

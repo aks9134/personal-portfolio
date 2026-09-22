@@ -2,15 +2,21 @@
 import { useState, type ReactNode } from "react";
 import type { Media, Part } from "@/lib/work";
 import { MediaImage } from "./media-image";
+import { Tilt } from "./tilt";
 
 // Numbered exploded view with its parts legend. Hover or focus a part name and it's ringed on the drawing.
 // `children` render above the legend (result line, award), so they're on the first screen.
-export function PartsFigure({ m, parts, priority = false, children }: { m: Media; parts: Part[]; priority?: boolean; children?: ReactNode }) {
+export function PartsFigure({ m, parts, priority = false, children, vt }: { m: Media; parts: Part[]; priority?: boolean; children?: ReactNode; vt?: string }) {
   const [on, setOn] = useState<number | null>(null);
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_19rem] lg:items-start">
-      <div className="relative">
-        <MediaImage m={m} priority={priority} sizes="(min-width: 1024px) 68vw, 100vw" />
+      <Tilt className="relative" max={4}>
+        <MediaImage
+          m={m}
+          priority={priority}
+          sizes="(min-width: 1024px) 68vw, 100vw"
+          style={vt ? ({ viewTransitionName: vt } as React.CSSProperties) : undefined}
+        />
         {parts.map((p) => (
           <span
             key={p.n}
@@ -19,7 +25,7 @@ export function PartsFigure({ m, parts, priority = false, children }: { m: Media
             style={{ left: `${p.x}%`, top: `${p.y}%`, translate: "-50% -50%" }}
           />
         ))}
-      </div>
+      </Tilt>
       <div>
         {children}
         <ol aria-label="Parts" className={`border-t-[1.5px] border-ink ${children ? "mt-6" : ""}`}>

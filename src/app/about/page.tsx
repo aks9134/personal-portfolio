@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { preview } from "@/lib/og";
-import Link from "next/link";
 import { SiteHeader } from "@/components/site-nav";
 import { resume } from "@/lib/resume";
 import { site } from "@/lib/site";
@@ -57,7 +56,7 @@ export default function AboutPage() {
                   {(j.detail ?? [j.text]).map((d) => <p key={d.slice(0, 40)}>{d}</p>)}
                   {caseStudy[j.org] && (
                     <p className="mt-3">
-                      <Link href={`/work/${caseStudy[j.org]}`} className="font-semibold underline hover:text-stamp">Read the case study</Link>
+                      <a href={`/work/${caseStudy[j.org]}`} className="font-semibold underline hover:text-stamp">Read the case study</a>
                     </p>
                   )}
                 </div>
@@ -90,7 +89,7 @@ export default function AboutPage() {
           <p className="mt-6 text-xl">
             Email <a href={`mailto:${site.email}`} className="font-semibold underline hover:text-stamp">{site.email}</a>, find me on{" "}
             <a href={site.linkedin} className="font-semibold underline hover:text-stamp">LinkedIn</a>, or see the{" "}
-            <Link href="/resume" className="font-semibold underline hover:text-stamp">resume</Link>.
+            <a href="/resume" className="font-semibold underline hover:text-stamp">resume</a>.
           </p>
         </section>
       </main>

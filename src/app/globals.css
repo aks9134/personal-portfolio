@@ -11,11 +11,14 @@
   --rule-soft: oklch(0.21 0.02 80 / 0.3);
   --stamp: oklch(0.44 0.15 262);
   --plate: transparent;
+  /* Engineering-paper grid, printed faintly on the stock. */
+  --grid-line: oklch(0.21 0.02 80 / 0.05);
+  --grid-line-2: oklch(0.44 0.15 262 / 0.07);
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --stock: oklch(0.2 0.016 85);
     --stock-2: oklch(0.25 0.02 85);
     --ink: oklch(0.93 0.06 94);
@@ -23,8 +26,23 @@
     --rule-soft: oklch(0.93 0.06 94 / 0.3);
     --stamp: oklch(0.76 0.11 258);
     --plate: oklch(0.915 0.078 94);
+    --grid-line: oklch(0.93 0.06 94 / 0.045);
+    --grid-line-2: oklch(0.76 0.11 258 / 0.08);
     color-scheme: dark;
   }
+}
+
+:root[data-theme="dark"] {
+  --stock: oklch(0.2 0.016 85);
+  --stock-2: oklch(0.25 0.02 85);
+  --ink: oklch(0.93 0.06 94);
+  --ink-2: oklch(0.8 0.05 92);
+  --rule-soft: oklch(0.93 0.06 94 / 0.3);
+  --stamp: oklch(0.76 0.11 258);
+  --plate: oklch(0.915 0.078 94);
+  --grid-line: oklch(0.93 0.06 94 / 0.045);
+  --grid-line-2: oklch(0.76 0.11 258 / 0.08);
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -79,9 +97,12 @@
     background: var(--plate);
   }
   @media (prefers-color-scheme: dark) {
-    .plate {
+    :root:not([data-theme="light"]) .plate {
       padding: 1rem;
     }
+  }
+  :root[data-theme="dark"] .plate {
+    padding: 1rem;
   }
 
   /* Status stamps: blue ink, hand-set tilt. They land with a quick press as they scroll in. */
@@ -109,6 +130,235 @@
   }
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   Kinetic layer. Everything here is decoration: it sits behind reduced-motion
+   guards, prints as nothing, and degrades to the plain document when a browser
+   lacks scroll timelines or view transitions.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Page-to-page morphs. Project links are plain anchors, so these are real
+   cross-document transitions: the render and title fly from the index into the case study. */
+@view-transition {
+  navigation: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(*) {
+    animation-duration: 420ms;
+    animation-timing-function: var(--ease-out);
+  }
+  ::view-transition-old(root) {
+    animation: vt-out 180ms cubic-bezier(0.4, 0, 1, 1) both;
+  }
+  ::view-transition-new(root) {
+    animation: vt-in 320ms var(--ease-out) both;
+  }
+}
+@keyframes vt-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@layer base {
+  /* Engineering paper: a fine grid, a heavier one every fifth line, and a whisper of grain.
+     Fixed, so the sheet stays put while the content travels over it. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to right, var(--grid-line-2) 1.5px, transparent 1.5px),
+      linear-gradient(to bottom, var(--grid-line-2) 1.5px, transparent 1.5px);
+    background-size:
+      24px 24px,
+      24px 24px,
+      120px 120px,
+      120px 120px;
+    background-position: var(--grid-shift, 0) var(--grid-shift, 0);
+    mask-image: radial-gradient(ellipse 120% 90% at 50% 0%, #000 35%, transparent 100%);
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.4;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)' opacity='0.24'/%3E%3C/svg%3E");
+    mix-blend-mode: multiply;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) body::after {
+      opacity: 0.18;
+    }
+  }
+  :root[data-theme="dark"] body::after {
+    opacity: 0.18;
+  }
+}
+
+@layer components {
+  /* Sections rise as they enter. Scroll-driven, so it tracks the scrollbar rather than firing on a timer. */
+  @media screen and (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .rise {
+        animation: rise linear both;
+        animation-timeline: view();
+        animation-range: entry 5% entry 55%;
+      }
+      /* Rules draw themselves left to right, like a drafting line being struck. */
+      .draw-rule {
+        animation: draw-rule linear both;
+        animation-timeline: view();
+        animation-range: entry 10% entry 60%;
+        transform-origin: left center;
+      }
+      /* The paper drifts a touch slower than the content: depth without parallax theatre. */
+      body::before {
+        animation: grid-drift linear both;
+        animation-timeline: scroll(root block);
+      }
+      /* Renders are uncovered left to right as they arrive, like a sheet being pulled off a drawing. */
+      .wipe {
+        animation: wipe linear both;
+        animation-timeline: view();
+        animation-range: entry 8% entry 62%;
+      }
+      /* Callout rings on an exploded view strike in sequence as the drawing crosses the screen. */
+      .callout {
+        animation: callout-strike linear both;
+        animation-timeline: view();
+        animation-range: entry 25% cover 35%;
+        animation-delay: calc(var(--n, 1) * -0.02s);
+      }
+    }
+  }
+
+  /* A machinist's dimension line down the edge of the page, with a travelling marker. */
+  .rail {
+    position: fixed;
+    left: max(0.75rem, env(safe-area-inset-left));
+    top: 18vh;
+    bottom: 18vh;
+    width: 1.5px;
+    background: var(--rule-soft);
+    z-index: 20;
+    pointer-events: none;
+  }
+  .rail::before,
+  .rail::after {
+    content: "";
+    position: absolute;
+    left: -4px;
+    width: 10px;
+    height: 1.5px;
+    background: var(--rule-soft);
+  }
+  .rail::before {
+    top: 0;
+  }
+  .rail::after {
+    bottom: 0;
+  }
+  .rail-marker {
+    position: absolute;
+    left: -5px;
+    width: 12px;
+    height: 2.5px;
+    background: var(--stamp);
+    top: calc(var(--p, 0) * 100%);
+  }
+  .rail-label {
+    position: absolute;
+    left: 0.9rem;
+    bottom: 0;
+    writing-mode: vertical-rl;
+    white-space: nowrap;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--stamp);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Chips fill from the side the pointer entered, and lean toward it. */
+  .chip-fill {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .chip-fill::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--ink);
+    transform: translateX(var(--fill-from, -101%));
+    transition: transform 260ms var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .chip-fill:hover::before {
+      transform: translateX(0);
+    }
+  }
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(26px);
+  }
+}
+@keyframes wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes draw-rule {
+  from {
+    scale: 0 1;
+  }
+}
+@keyframes grid-drift {
+  to {
+    --grid-shift: -96px;
+  }
+}
+@keyframes callout-strike {
+  0% {
+    opacity: 0;
+    scale: 1.6;
+  }
+  70% {
+    opacity: 1;
+    scale: 0.94;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@property --grid-shift {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
 @keyframes stamp-land {
   0%,
   55% {
@@ -127,11 +377,62 @@
 
 /* Paper (browsers skip page backgrounds when printing): the resume prints as a bare document, and its PDF is made from this. */
 @media print {
+  /* The kinetic layer is screen decoration: paper gets the plain document. */
+  body::before,
+  body::after,
+  .rail {
+    display: none !important;
+  }
   @page {
     size: letter;
     margin: 0.45in 0.55in;
   }
   body:has(main.resume) > footer {
     display: none;
+  }
+}
+
+/* The theme switch wipes the new sheet in from the button. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  mix-blend-mode: normal;
+}
+html[data-flipping]::view-transition-old(root) {
+  animation: none;
+  z-index: 1;
+}
+html[data-flipping]::view-transition-new(root) {
+  animation: sheet-wipe 620ms var(--ease-out) both;
+  z-index: 2;
+}
+@keyframes sheet-wipe {
+  from {
+    clip-path: circle(0% at var(--flip-x, 90%) var(--flip-y, 5%));
+  }
+  to {
+    clip-path: circle(155% at var(--flip-x, 90%) var(--flip-y, 5%));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-flipping]::view-transition-new(root) {
+    animation: none;
+  }
+}
+
+/* A slow band of the tools he actually uses. Paused for anyone who asked for less motion. */
+.marquee {
+  display: flex;
+  gap: 0;
+  width: max-content;
+  animation: marquee 48s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    animation: none;
+  }
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
   }
 }
