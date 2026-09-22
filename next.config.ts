@@ -7,9 +7,6 @@ const nextConfig: NextConfig = {
   // copies, and pages list them in a truthful srcset with plain <img> (src/lib/image-widths.ts). This stays as a
   // safety net if next/image is ever used again; the smoke test fails on any /_next/image request.
   images: { unoptimized: true },
-  // CSS arrives inside the HTML instead of as a render-blocking file: Tailwind keeps it small, and most visitors
-  // are first-timers from a resume link (Next.js inlineCss guide; experimental, measured with Lighthouse).
-  experimental: { inlineCss: true },
   // Security headers (framework Phase 7, Next.js CSP guide "without nonces", which keeps pages static).
   // Everything loads from this site. 'unsafe-inline' covers Next's inline bootstrap scripts and style attributes;
   // 'wasm-unsafe-eval' is the 3D viewer's meshopt decoder (WebAssembly). Retest the viewers after any change here.

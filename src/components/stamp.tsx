@@ -2,10 +2,11 @@ import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 // Blue ink stamp. Only for real status, the award, or the active part. Styles live in globals.css (.stamp).
-export function Stamp({ children, tilt = -2, large = false, className }: { children: ReactNode; tilt?: number; large?: boolean; className?: string }) {
+// `still` skips the scroll-in landing, for a stamp that is already on the first screen.
+export function Stamp({ children, tilt = -2, large = false, still = false, className }: { children: ReactNode; tilt?: number; large?: boolean; still?: boolean; className?: string }) {
   return (
     <span
-      className={cn("stamp", large ? "px-4 py-2 text-lg outline-solid outline-[1.5px] outline-offset-[3px] outline-stamp" : "text-xs", className)}
+      className={cn("stamp", still && "stamp-still", large ? "px-4 py-2 text-lg outline-solid outline-[1.5px] outline-offset-[3px] outline-stamp" : "text-xs", className)}
       style={{ "--tilt": `${tilt}deg` } as CSSProperties}
     >
       {children}

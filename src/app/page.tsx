@@ -128,7 +128,7 @@ export default async function Home() {
           {lead.figure ? (
             <PartsFigure m={lead.media[lead.figure.name]} parts={lead.figure.parts} priority>
               <p className="leading-snug">{lead.line}</p>
-              {lead.award && <div className="mt-5 pr-3"><Stamp large tilt={-3}>{lead.award}</Stamp></div>}
+              {lead.award && <div className="mt-5 pr-3"><Stamp large still tilt={-3}>{lead.award}</Stamp></div>}
             </PartsFigure>
           ) : (
             <MediaImage m={still(lead.media[lead.hero])} priority sizes="100vw" />
