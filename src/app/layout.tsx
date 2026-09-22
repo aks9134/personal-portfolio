@@ -7,11 +7,9 @@ import "./globals.css";
 
 const archivo = Archivo({ subsets: ["latin"], axes: ["wdth"], variable: "--font-archivo", display: "swap" });
 
-// Link previews need absolute URLs, so the site has to know its own address. Vercel sets the production domain
-// at build time; a custom domain later can override it with NEXT_PUBLIC_SITE_URL. Local builds stay on localhost.
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000");
+// Link previews need absolute URLs, so the site has to know its own address. `site.url` is the canonical one
+// (Vercel hands a project several), and NEXT_PUBLIC_SITE_URL overrides it for a one-off build.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? site.url;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

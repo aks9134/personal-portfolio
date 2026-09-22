@@ -4,6 +4,9 @@ export const site = {
   line: "I design parts, machine them, and put them on a test rig. Right now that's design work on large electric motors at Curtiss-Wright.",
   description:
     "Allen Sun, mechanical design engineer. Hardware he designed and built: an active vibration canceller, a gravity storage drive prototype, a TPU weld rig and more.",
+  // The address Allen shares. Link previews and canonical URLs are built from it, so it has to match the
+  // domain people actually visit. Vercel gave the project two; change this line if he buys a domain.
+  url: "https://personal-portfolio-aks9134.vercel.app",
   email: "aks9134@nyu.edu",
   linkedin: "https://www.linkedin.com/in/allen-sun-b06858233/",
   // Curtiss-Wright is naval nuclear work. Allen cleared his resume and knowledge log for sharing on 2026-09-22, and
