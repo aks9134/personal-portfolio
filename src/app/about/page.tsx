@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
+import { preview } from "@/lib/og";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-nav";
 import { resume } from "@/lib/resume";
 import { site } from "@/lib/site";
 
+const description =
+  "Allen Sun is a mechanical design engineer at Curtiss-Wright in Pittsburgh, NYU Tandon ME 2025, with internships at Terrament, Relavo Medical and Ergami Endoscopy.";
+
 export const metadata: Metadata = {
   title: "About",
-  description:
-    "Allen Sun is a mechanical design engineer at Curtiss-Wright in Pittsburgh, NYU Tandon ME 2025, with internships at Terrament, Relavo Medical and Ergami Endoscopy.",
+  description,
+  openGraph: preview("About | Allen Sun", description),
 };
 
 const h2 = "mt-16 border-t-[1.5px] border-ink pt-5 text-3xl font-extrabold tracking-[-0.02em] [font-stretch:108%]";
@@ -23,8 +27,8 @@ export default function AboutPage() {
           <div className="mt-8 max-w-[62ch] space-y-5 text-xl leading-snug">
             <p>
               I&apos;m a mechanical design engineer at Curtiss-Wright in Pittsburgh, working on large electric motors. I studied mechanical
-              engineering at NYU Tandon (class of 2025), and most of what&apos;s on this site went the whole way with me: CAD, then the mill or the
-              printer, then a test rig.
+              engineering at NYU Tandon (class of 2025). Two of the projects here, the vibration canceller and the weld rig, went the whole way
+              with me: CAD, then the mill, then testing.
             </p>
             <p>
               Before Curtiss-Wright I interned at three startups in New York. I spent a year at Terrament on a gravity storage drive, a
@@ -46,7 +50,7 @@ export default function AboutPage() {
                 <div>
                   <h3 className="font-bold">{j.org}</h3>
                   <p className="text-ink-2">{j.title}</p>
-                  <p className="text-sm tabular-nums text-ink-2">{j.dates}, {j.place}</p>
+                  <p className="text-sm text-ink-2"><span className="whitespace-nowrap tabular-nums">{j.dates}</span>, {j.place}</p>
                 </div>
                 <div className="max-w-[65ch] leading-snug">
                   {"text" in j && j.text && <p>{j.text}</p>}

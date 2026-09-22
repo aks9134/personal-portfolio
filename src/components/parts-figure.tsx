@@ -4,7 +4,7 @@ import type { Media, Part } from "@/lib/work";
 import { MediaImage } from "./media-image";
 
 // Numbered exploded view with its parts legend. Hover or focus a part name and it's ringed on the drawing.
-// `children` render under the legend (result line, award).
+// `children` render above the legend (result line, award), so they're on the first screen.
 export function PartsFigure({ m, parts, priority = false, children }: { m: Media; parts: Part[]; priority?: boolean; children?: ReactNode }) {
   const [on, setOn] = useState<number | null>(null);
   return (
@@ -21,7 +21,8 @@ export function PartsFigure({ m, parts, priority = false, children }: { m: Media
         ))}
       </div>
       <div>
-        <ol aria-label="Parts" className="border-t-[1.5px] border-ink">
+        {children}
+        <ol aria-label="Parts" className={`border-t-[1.5px] border-ink ${children ? "mt-6" : ""}`}>
           {parts.map((p) => (
             <li key={p.n} className="border-b border-rule-soft">
               <button
@@ -41,7 +42,6 @@ export function PartsFigure({ m, parts, priority = false, children }: { m: Media
             </li>
           ))}
         </ol>
-        {children}
       </div>
     </div>
   );

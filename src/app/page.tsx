@@ -127,8 +127,8 @@ export default async function Home() {
         <div className="mt-5">
           {lead.figure ? (
             <PartsFigure m={lead.media[lead.figure.name]} parts={lead.figure.parts} priority>
-              <p className="mt-5 leading-snug">{lead.line}</p>
-              {lead.award && <div className="mt-5"><Stamp large tilt={-4}>{lead.award}</Stamp></div>}
+              <p className="leading-snug">{lead.line}</p>
+              {lead.award && <div className="mt-5 pr-3"><Stamp large tilt={-3}>{lead.award}</Stamp></div>}
             </PartsFigure>
           ) : (
             <MediaImage m={still(lead.media[lead.hero])} priority sizes="100vw" />
@@ -150,7 +150,7 @@ export default async function Home() {
           {resume.jobs.map((e) => (
             <div key={e.org}>
               <dt className="font-bold">{e.org}</dt>
-              <dd className="text-ink-2">{e.title}, {e.place}. <span className="tabular-nums">{e.dates}</span></dd>
+              <dd className="text-ink-2">{e.title}, {e.place}. <span className="whitespace-nowrap tabular-nums">{e.dates}</span></dd>
             </div>
           ))}
           <div>

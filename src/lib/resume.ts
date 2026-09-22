@@ -21,7 +21,7 @@ export const resume = {
       place: "New York, NY",
       dates: "Jan - May 2025",
       points: [
-        "Designed and built the weld rig behind the TPU tube process for a soft robotic colonoscope insert: machined aluminum and brass with 3D-printed parts, for consistent heat welds.",
+        "Designed and built the weld rig behind the TPU tube process for a soft robotic colonoscope insert: machined aluminum on press-fit brass rods with 3D-printed parts, for consistent heat welds.",
         "Worked on the insert's locomotion concept: anchor design, actuator selection and motion testing.",
       ],
     },

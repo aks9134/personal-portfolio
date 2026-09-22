@@ -1,9 +1,9 @@
 export const site = {
   name: "Allen Sun",
   role: "Mechanical design engineer",
-  line: "I design parts, machine them, and put them on a test rig. Right now that's large electric motors at Curtiss-Wright.",
+  line: "I design parts, machine them, and put them on a test rig. Right now that's design work on large electric motors at Curtiss-Wright.",
   description:
-    "Allen Sun, mechanical design engineer. Hardware he designed, machined and tested: an active vibration canceller, a gravity storage drive, a TPU weld rig and more.",
+    "Allen Sun, mechanical design engineer. Hardware he designed and built: an active vibration canceller, a gravity storage drive prototype, a TPU weld rig and more.",
   email: "aks9134@nyu.edu",
   linkedin: "https://www.linkedin.com/in/allen-sun-b06858233/",
   // Approved by Allen word for word on 2026-09-21 (DECISIONS-LOG). Naval nuclear work: never add to it without him.

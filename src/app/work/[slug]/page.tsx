@@ -5,7 +5,8 @@ import { MediaImage } from "@/components/media-image";
 import { PartsFigure } from "@/components/parts-figure";
 import { SiteHeader } from "@/components/site-nav";
 import { Stamp, tiltFor } from "@/components/stamp";
-import og from "@/lib/og.generated.json";
+import { preview, projectImage } from "@/lib/og";
+import { site } from "@/lib/site";
 import { allWork, getWork, still, workSlugs } from "@/lib/work";
 
 export const dynamicParams = false;
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: PageProps<"/work/[slug]">): P
   return {
     title: w.title,
     description: w.line,
-    openGraph: { title: w.title, description: w.line, images: [{ url: og[slug as keyof typeof og], width: 1200, height: 630, alt: still(w.media[w.hero]).alt }] },
+    openGraph: preview(w.title, w.line, projectImage(slug), still(w.media[w.hero]).alt),
   };
 }
 
@@ -40,14 +41,27 @@ export default async function WorkPage({ params }: PageProps<"/work/[slug]">) {
     <>
       <SiteHeader />
       <main id="main" className="mx-auto max-w-[1400px] overflow-x-clip px-4 md:px-10">
-        <div className="mt-10 border-t-[1.5px] border-ink pt-6 md:mt-14">
-          <h1 className="text-5xl font-extrabold leading-[0.98] tracking-[-0.03em] [font-stretch:110%] md:text-7xl">{w.title}</h1>
-          <p className="mt-3 text-ink-2">{w.context}, {w.year}</p>
-          <div className="mt-7 flex flex-wrap items-center gap-x-10 gap-y-6">
-            <Stamp tilt={tiltFor(w.title)}>{w.status}</Stamp>
-            {w.award && <Stamp large tilt={-3}>{w.award}</Stamp>}
+        {/* The thing leads: the hero sits beside the title on wide screens and right after the summary on phones.
+            Pages with a parts figure show it full width below instead, because its legend needs the room. */}
+        <div className={`mt-10 border-t-[1.5px] border-ink pt-6 md:mt-14 ${w.figure ? "" : "lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center lg:gap-14"}`}>
+          <div>
+            <h1 className={`text-5xl font-extrabold leading-[0.98] tracking-[-0.03em] [font-stretch:110%] md:text-7xl ${w.figure ? "" : "lg:text-6xl xl:text-7xl"}`}>{w.title}</h1>
+            <p className="mt-3 text-ink-2">{w.context}, {w.year}</p>
+            <div className="mt-7 flex flex-wrap items-center gap-x-10 gap-y-6">
+              <Stamp tilt={tiltFor(w.title)}>{w.status}</Stamp>
+              {w.award && <Stamp large tilt={-3}>{w.award}</Stamp>}
+            </div>
+            <p className="mt-8 max-w-[62ch] text-xl leading-snug">{w.summary}</p>
           </div>
-          <p className="mt-8 max-w-[62ch] text-xl leading-snug">{w.summary}</p>
+          {!w.figure && (
+            <MediaImage
+              m={still(w.media[w.hero])}
+              priority
+              sizes="(min-width: 1024px) 45vw, 100vw"
+              className="mx-auto mt-10 w-fit max-w-full lg:mt-0"
+              imgClassName="mx-auto max-h-[70vh] w-auto"
+            />
+          )}
         </div>
 
         <dl className="mt-10 grid border-t-[1.5px] border-ink sm:grid-cols-2 lg:grid-cols-4">
@@ -59,19 +73,11 @@ export default async function WorkPage({ params }: PageProps<"/work/[slug]">) {
           ))}
         </dl>
 
-        <div className="mt-12">
-          {w.figure ? (
+        {w.figure && (
+          <div className="mt-12">
             <PartsFigure m={w.media[w.figure.name]} parts={w.figure.parts} priority />
-          ) : (
-            <MediaImage
-              m={still(w.media[w.hero])}
-              priority
-              sizes="(min-width: 1100px) 1100px, 100vw"
-              className="mx-auto w-fit max-w-[1100px]"
-              imgClassName="mx-auto max-h-[70vh] w-auto"
-            />
-          )}
-        </div>
+          </div>
+        )}
 
         <article className="mt-6">
           <w.Body
@@ -85,7 +91,12 @@ export default async function WorkPage({ params }: PageProps<"/work/[slug]">) {
           />
         </article>
 
-        <nav aria-label="Next project" className="clear-both mt-24 border-t-[1.5px] border-ink pt-5">
+        <p className="clear-both mt-20 text-lg">
+          Questions about this project? Email{" "}
+          <a href={`mailto:${site.email}`} className="font-semibold underline hover:text-stamp">{site.email}</a>.
+        </p>
+
+        <nav aria-label="Next project" className="mt-10 border-t-[1.5px] border-ink pt-5">
           <Link href={`/work/${next.slug}`} className="group block">
             <span className="text-sm text-ink-2">Next project</span>
             <span className="mt-1 block text-3xl font-extrabold tracking-[-0.02em] [font-stretch:108%] group-hover:text-stamp group-hover:underline">

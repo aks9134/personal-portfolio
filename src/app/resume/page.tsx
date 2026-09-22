@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
+import { preview } from "@/lib/og";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-nav";
 import { resume } from "@/lib/resume";
 import { site } from "@/lib/site";
 
+const description =
+  "Allen Sun's resume: mechanical design engineer at Curtiss-Wright; internships at Ergami Endoscopy, Relavo Medical and Terrament; B.S. Mechanical Engineering, NYU Tandon.";
+
 export const metadata: Metadata = {
   title: "Resume",
-  description:
-    "Allen Sun's resume: mechanical design engineer at Curtiss-Wright; internships at Ergami Endoscopy, Relavo Medical and Terrament; B.S. Mechanical Engineering, NYU Tandon.",
+  description,
+  openGraph: preview("Resume | Allen Sun", description),
 };
 
 const h2 = "mt-9 border-t-[1.5px] border-ink pt-3 text-xl font-extrabold tracking-[-0.01em] [font-stretch:108%] print:mt-3 print:pt-1 print:text-[12pt]";
@@ -46,7 +50,7 @@ export default function ResumePage() {
             <article key={j.org} className="mt-5 break-inside-avoid print:mt-2">
               <div className="flex flex-wrap items-baseline justify-between gap-x-4">
                 <h3 className="font-bold">{j.org}</h3>
-                <p className="text-sm tabular-nums text-ink-2 print:text-[9pt]">{j.dates}</p>
+                <p className="whitespace-nowrap text-sm tabular-nums text-ink-2 print:text-[9pt]">{j.dates}</p>
               </div>
               <p className="text-ink-2">{j.title}, {j.place}</p>
               {"text" in j && j.text && <p className="mt-1.5 max-w-[75ch] print:max-w-none">{j.text}</p>}

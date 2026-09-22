@@ -2,7 +2,8 @@
   "sources": [
     "src/lib/resume.ts",
     "src/lib/site.ts",
-    "src/app/resume/page.tsx"
+    "src/app/resume/page.tsx",
+    "src/app/globals.css"
   ],
-  "hash": "3ee884600e5f"
+  "hash": "df42bfde1ee4"
 }

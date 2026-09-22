@@ -4,8 +4,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // No runtime optimizer: under `next start` a request the browser aborted mid-optimization wedged that image
   // size until restart (DECISIONS-LOG 2026-09-21). `npm run media` writes content-hashed WebP plus 640/828/1200 px
-  // copies, and this loader picks the copy that fits the screen.
-  images: { loader: "custom", loaderFile: "./src/lib/image-loader.ts" },
+  // copies, and pages list them in a truthful srcset with plain <img> (src/lib/image-widths.ts). This stays as a
+  // safety net if next/image is ever used again; the smoke test fails on any /_next/image request.
+  images: { unoptimized: true },
   // CSS arrives inside the HTML instead of as a render-blocking file: Tailwind keeps it small, and most visitors
   // are first-timers from a resume link (Next.js inlineCss guide; experimental, measured with Lighthouse).
   experimental: { inlineCss: true },

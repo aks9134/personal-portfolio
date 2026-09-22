@@ -36,3 +36,24 @@ test('security headers are set', async ({ request }) => {
   expect(h['referrer-policy']).toBe('strict-origin-when-cross-origin');
   expect(h['permissions-policy']).toContain('camera=()');
 });
+
+// A srcset label that overstates a file's width makes browsers draw the image smaller than it is (this shrank
+// heroes to a third on high-density screens once). Every candidate's label must match its real pixel width.
+test('srcset widths are true', async ({ page }) => {
+  const wrong: string[] = [];
+  for (const route of routes) {
+    await page.goto(route);
+    wrong.push(...(await page.evaluate(async () => {
+      const bad: string[] = [];
+      const cands = [...document.querySelectorAll('img[srcset]')].flatMap((i) => i.getAttribute('srcset')!.split(',').map((c) => c.trim().split(/\s+/)));
+      await Promise.all(cands.map(([url, d]) => new Promise<void>((done) => {
+        const im = new Image();
+        im.onload = () => { if (d.endsWith('w') && im.naturalWidth !== Number(d.slice(0, -1))) bad.push(`${url} is ${im.naturalWidth}px, labelled ${d}`); done(); };
+        im.onerror = () => { bad.push(`${url} failed to load`); done(); };
+        im.src = url;
+      })));
+      return bad;
+    })).map((b) => `${route}: ${b}`));
+  }
+  expect(wrong).toEqual([]);
+});

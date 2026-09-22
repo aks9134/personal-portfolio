@@ -1,6 +1,7 @@
 import type { Media } from "@/lib/work";
 import { MediaImage } from "./media-image";
 import { ModelViewer } from "./model-viewer";
+import { widthCopy } from "@/lib/image-widths";
 
 type Item = { name: string; label: string };
 
@@ -49,9 +50,11 @@ export function Model({ media, name, caption }: { media: Record<string, Media>; 
 }
 
 // Silent clips in the browser's own player: nothing downloads until play is pressed.
-function Player({ m, label }: { m: Media; label?: string }) {
+// `shown` is about the widest the player gets on screen, so the poster comes from the nearest smaller copy.
+function Player({ m, label, shown }: { m: Media; label?: string; shown: 828 | 1200 }) {
+  const poster = m.poster && m.width > shown ? widthCopy(m.poster, shown) : m.poster;
   return (
-    <video controls muted playsInline preload="none" poster={m.poster} width={m.width} height={m.height} aria-label={m.alt ?? label} className="h-auto w-full border-[1.5px] border-ink bg-ink">
+    <video controls muted playsInline preload="none" poster={poster} width={m.width} height={m.height} aria-label={m.alt ?? label} className="h-auto w-full border-[1.5px] border-ink bg-ink">
       <source src={m.src} type="video/mp4" />
     </video>
   );
@@ -60,7 +63,7 @@ function Player({ m, label }: { m: Media; label?: string }) {
 export function Video({ media, name, caption }: { media: Record<string, Media>; name: string; caption?: string }) {
   return (
     <figure className="clear-both my-12 max-w-4xl">
-      <Player m={get(media, name)} />
+      <Player m={get(media, name)} shown={1200} />
       {caption && <figcaption className="mt-3 max-w-[65ch] text-sm text-ink-2">{caption}</figcaption>}
     </figure>
   );
@@ -73,7 +76,7 @@ export function Clips({ media, items, caption }: { media: Record<string, Media>;
       <div className="grid gap-x-6 gap-y-8 sm:grid-cols-2">
         {items.map((it) => (
           <div key={it.name}>
-            <Player m={get(media, it.name)} label={it.label} />
+            <Player m={get(media, it.name)} label={it.label} shown={828} />
             <p className="mt-2 text-sm font-semibold">{it.label}</p>
           </div>
         ))}

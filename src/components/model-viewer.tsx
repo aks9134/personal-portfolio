@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { srcSet } from "@/lib/image-widths";
 import type { Media } from "@/lib/work";
 
 declare module "react" {
@@ -29,8 +29,10 @@ const size = (bytes = 0) => (bytes < 1e6 ? `${Math.round(bytes / 1e3)} KB` : `${
 export function ModelViewer({ m }: { m: Media }) {
   const [state, setState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const viewer = useRef<HTMLElement>(null);
+  const frame = useRef<HTMLDivElement>(null);
 
   async function load() {
+    if (state === "loading") return; // aria-disabled, not disabled, so keyboard focus stays on the button while it loads
     setState("loading");
     const w = window as unknown as { ModelViewerElement?: { meshoptDecoderLocation?: string } };
     w.ModelViewerElement = { ...w.ModelViewerElement, meshoptDecoderLocation: "/vendor/meshopt_decoder.js" };
@@ -47,8 +49,12 @@ export function ModelViewer({ m }: { m: Media }) {
     if (!el) return;
     const ready = () => {
       setState("ready");
-      // The load button is gone, so keep keyboard users on the model (its focusable part lives in the shadow root).
-      el.shadowRoot?.querySelector<HTMLElement>(".userInput")?.focus({ preventScroll: true });
+      // The load button is about to go, so keep its keyboard user on the model (its focusable part lives in the
+      // shadow root). Only if focus is still here: someone who tabbed on while it loaded stays where they are.
+      const at = document.activeElement;
+      if (!at || at === document.body || frame.current?.contains(at)) {
+        el.shadowRoot?.querySelector<HTMLElement>(".userInput")?.focus({ preventScroll: true });
+      }
     };
     const failed = () => setState("error");
     el.addEventListener("poster-dismissed", ready);
@@ -62,7 +68,7 @@ export function ModelViewer({ m }: { m: Media }) {
   const live = state === "loading" || state === "ready";
   return (
     <div>
-      <div className="plate relative aspect-[4/3] w-full border-[1.5px] border-ink">
+      <div ref={frame} className="plate relative aspect-[4/3] w-full border-[1.5px] border-ink">
         {live && (
           <model-viewer
             ref={viewer}
@@ -80,11 +86,15 @@ export function ModelViewer({ m }: { m: Media }) {
           </model-viewer>
         )}
         {m.poster && (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             src={m.poster}
+            srcSet={srcSet(m.poster, m.width)}
+            sizes="(min-width: 800px) 768px, 100vw"
             width={m.width}
             height={m.height}
             alt=""
+            decoding="async"
             className={`pointer-events-none absolute inset-0 h-full w-full object-contain transition-opacity duration-200 ease-(--ease-out) motion-reduce:transition-none ${state === "ready" ? "opacity-0" : ""}`}
           />
         )}
@@ -92,17 +102,20 @@ export function ModelViewer({ m }: { m: Media }) {
           <button
             type="button"
             onClick={load}
-            disabled={state === "loading"}
-            aria-busy={state === "loading"}
-            className="group absolute inset-0 flex items-end p-3 text-left disabled:cursor-progress"
+            aria-disabled={state === "loading"}
+            className="group absolute inset-0 flex items-end p-3 text-left aria-disabled:cursor-progress"
           >
-            <span className="border-[1.5px] border-ink bg-stock px-3 py-1.5 text-sm font-bold transition-transform duration-150 ease-(--ease-out) group-hover:bg-ink group-hover:text-stock group-active:scale-[0.97] group-disabled:bg-stock group-disabled:text-ink">
+            <span className="border-[1.5px] border-ink bg-stock px-3 py-1.5 text-sm font-bold transition-transform duration-150 ease-(--ease-out) group-hover:bg-ink group-hover:text-stock group-active:scale-[0.97] group-aria-disabled:bg-stock group-aria-disabled:text-ink">
               {state === "loading" ? "Loading 3D model…" : state === "error" ? "The model didn't load. Try again" : `Load 3D model (${size(m.bytes)})`}
             </span>
+            {/* The three buttons on a page would otherwise sound alike to a screen reader. */}
+            <span className="sr-only">: {m.alt}</span>
           </button>
         )}
       </div>
-      {state === "ready" && <p className="mt-2 text-sm text-ink-2">Drag to rotate, or use the arrow keys.</p>}
+      <p role="status" className="mt-2 text-sm text-ink-2">
+        {state === "ready" ? "Drag to rotate, or use the arrow keys." : state === "loading" ? <span className="sr-only">Loading the 3D model.</span> : state === "error" ? <span className="sr-only">The 3D model didn't load.</span> : null}
+      </p>
     </div>
   );
 }

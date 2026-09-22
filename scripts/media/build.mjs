@@ -22,7 +22,7 @@ const only = args.find((a) => !a.startsWith('--'));
 const PYTHON = path.join('.venv-media', 'Scripts', 'python.exe');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'media-'));
 let occt; // STEP reader, loaded on first use
-const WIDTHS = [640, 828, 1200]; // width copies of every WebP; keep in sync with src/lib/image-loader.ts
+const WIDTHS = [640, 828, 1200]; // width copies of every WebP; keep in sync with src/lib/image-widths.ts
 const HANDLERS = { '.png': image, '.jpg': image, '.jpeg': image, '.pdf': image, '.step': model, '.stp': model, '.mov': video, '.mp4': video };
 
 try {
@@ -208,7 +208,7 @@ async function video(item, slug, outDir) {
 }
 
 // Phone- and laptop-sized copies of every WebP (<file>.w640.webp and so on), made from the published file.
-// src/lib/image-loader.ts picks one per screen, so no resizing service runs at request time. Keep WIDTHS in sync there.
+// Pages list them in a srcset (src/lib/image-widths.ts), so no resizing service runs at request time.
 async function widths(manifest) {
   for (const m of Object.values(manifest)) {
     for (const url of [m.src, m.poster]) {

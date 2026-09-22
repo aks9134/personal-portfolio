@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
+import { preview } from "@/lib/og";
 import { SiteHeader } from "@/components/site-nav";
 import { site } from "@/lib/site";
 
+const description =
+  "What this site collects (only the host's standard request logs) and how to reach Allen if something on it doesn't work for you.";
+
 export const metadata: Metadata = {
   title: "Privacy and accessibility",
-  description: "What this site collects (only the host's standard request logs) and how to reach Allen if something on it doesn't work for you.",
+  description,
+  openGraph: preview("Privacy and accessibility | Allen Sun", description),
 };
 
 const h2 = "mt-12 text-2xl font-extrabold tracking-[-0.02em] [font-stretch:108%]";
