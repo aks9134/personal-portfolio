@@ -211,7 +211,13 @@ step "Repository name: portfolio (any name works)."
 step "Choose Private. Leave README, .gitignore and license unchecked, so the repository starts empty."
 step "Click Create repository, then copy the HTTPS address it shows (ends in .git)."
 ask REPO_URL "Paste the repository address:"
-[[ "$REPO_URL" == https://github.com/*.git ]] || { warn "That doesn't look like https://github.com/<you>/<name>.git. Re-run and paste the HTTPS address."; exit 1; }
+# Pasted addresses arrive with stray spaces, a carriage return, wrapping quotes or no .git. Clean them up
+# rather than sending the human back to the start.
+REPO_URL="${REPO_URL//$'\r'/}"
+REPO_URL="$(printf '%s' "$REPO_URL" | sed -E 's/^[[:space:]"'\''<]+//; s/[[:space:]"'\''>]+$//; s#/+$##')"
+[[ "$REPO_URL" == *.git ]] || REPO_URL="$REPO_URL.git"
+[[ "$REPO_URL" == https://github.com/*/*.git ]] || { warn "That doesn't look like https://github.com/<you>/<name>. Re-run and paste the address from the repository page."; exit 1; }
+note "Using $REPO_URL"
 
 stage "Upload the code (private)"
 say "This sends the project to $REPO_URL. Git may open a browser window to sign you in to GitHub."
