@@ -159,6 +159,12 @@ export default async function Home() {
           </div>
         </dl>
       </section>
+
+      <p className="mt-20 max-w-[62ch] text-xl leading-snug">
+        Want to talk about any of this? Email{" "}
+        <a href={`mailto:${site.email}`} className="font-semibold underline hover:text-stamp">{site.email}</a> or find me on{" "}
+        <a href={site.linkedin} className="font-semibold underline hover:text-stamp">LinkedIn</a>.
+      </p>
     </main>
   );
 }
