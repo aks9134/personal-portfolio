@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Figure, Model, Strip, Video } from "@/components/figure";
+import { Clips, Figure, Model, Strip, Video } from "@/components/figure";
 import { MediaImage } from "@/components/media-image";
 import { PartsFigure } from "@/components/parts-figure";
 import { SiteHeader } from "@/components/site-nav";
@@ -79,11 +79,12 @@ export default async function WorkPage({ params }: PageProps<"/work/[slug]">) {
               Strip: (p: Omit<Parameters<typeof Strip>[0], "media">) => <Strip media={w.media} {...p} />,
               Model: (p: Omit<Parameters<typeof Model>[0], "media">) => <Model media={w.media} {...p} />,
               Video: (p: Omit<Parameters<typeof Video>[0], "media">) => <Video media={w.media} {...p} />,
+              Clips: (p: Omit<Parameters<typeof Clips>[0], "media">) => <Clips media={w.media} {...p} />,
             }}
           />
         </article>
 
-        <nav aria-label="Next project" className="mt-24 border-t-[1.5px] border-ink pt-5">
+        <nav aria-label="Next project" className="clear-both mt-24 border-t-[1.5px] border-ink pt-5">
           <Link href={`/work/${next.slug}`} className="group block">
             <span className="text-sm text-ink-2">Next project</span>
             <span className="mt-1 block text-3xl font-extrabold tracking-[-0.02em] [font-stretch:108%] group-hover:text-stamp group-hover:underline">

@@ -5,5 +5,12 @@
     "height": 753,
     "alt": "ANSYS total-deformation plot of the buggy frame under a frontal collision load",
     "hash": "7f190781c6"
+  },
+  "drag-setup": {
+    "src": "/work/buggy-analysis/drag-setup.6f2506f8.webp",
+    "width": 802,
+    "height": 741,
+    "alt": "The buggy frame inside the Fluent air enclosure for the drag study",
+    "hash": "6dc482c506"
   }
 }

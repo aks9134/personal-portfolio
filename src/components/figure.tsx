@@ -60,3 +60,25 @@ export function Video({ media, name, caption }: { media: Record<string, Media>; 
     </figure>
   );
 }
+
+// Several silent clips in a grid, each titled. Same player rules as Video.
+export function Clips({ media, items, caption }: { media: Record<string, Media>; items: Item[]; caption?: string }) {
+  return (
+    <figure className="clear-both my-12">
+      <div className="grid gap-x-6 gap-y-8 sm:grid-cols-2">
+        {items.map((it) => {
+          const m = get(media, it.name);
+          return (
+            <div key={it.name}>
+              <video controls muted playsInline preload="none" poster={m.poster} width={m.width} height={m.height} aria-label={m.alt ?? it.label} className="h-auto w-full border-[1.5px] border-ink bg-ink">
+                <source src={m.src} type="video/mp4" />
+              </video>
+              <p className="mt-2 text-sm font-semibold">{it.label}</p>
+            </div>
+          );
+        })}
+      </div>
+      {caption && <figcaption className="mt-4 max-w-[65ch] text-sm text-ink-2">{caption}</figcaption>}
+    </figure>
+  );
+}

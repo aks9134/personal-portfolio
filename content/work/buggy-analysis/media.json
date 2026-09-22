@@ -3,5 +3,10 @@
     "out": "collision-deformation",
     "src": "_notes/media/buggy-fea/pres_image16.png",
     "alt": "ANSYS total-deformation plot of the buggy frame under a frontal collision load"
+  },
+  {
+    "out": "drag-setup",
+    "src": "_notes/media/buggy-fea/pres_image3.png",
+    "alt": "The buggy frame inside the Fluent air enclosure for the drag study"
   }
 ]

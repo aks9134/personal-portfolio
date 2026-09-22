@@ -6,5 +6,13 @@
     "alpha": true,
     "alt": "Flange bolt-layout drawing: 28 holes at 1-9/16 inch diameter around the rectangular flange",
     "hash": "8fd1c44f82"
+  },
+  "bolt-hardware": {
+    "src": "/work/bolted-flange/bolt-hardware.24c8e49a.webp",
+    "width": 1248,
+    "height": 802,
+    "alpha": true,
+    "alt": "Drawing of the bolt, nut and washer stack for the flange joint",
+    "hash": "f3ec605b70"
   }
 }
