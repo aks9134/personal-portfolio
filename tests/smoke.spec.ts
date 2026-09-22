@@ -6,6 +6,7 @@ for (const route of routes) {
     test('loads clean: no console errors, no failed requests, no third-party calls', async ({ page, baseURL }) => {
       const problems: string[] = [];
       const thirdParty = new Set<string>();
+      const optimizer: string[] = [];
       const origin = new URL(baseURL!).origin;
       page.on('console', (m) => m.type() === 'error' && problems.push(`console: ${m.text()}`));
       page.on('pageerror', (e) => problems.push(`pageerror: ${e.message}`));
@@ -13,6 +14,7 @@ for (const route of routes) {
       page.on('request', (r) => {
         const u = new URL(r.url());
         if (u.protocol.startsWith('http') && u.origin !== origin) thirdParty.add(u.origin);
+        if (u.pathname === '/_next/image') optimizer.push(r.url());
       });
       const res = await page.goto(route, { waitUntil: 'networkidle' });
       expect(res?.status(), 'HTTP status').toBeLessThan(400);
@@ -20,6 +22,9 @@ for (const route of routes) {
       // Default for Allen's sites is zero third-party requests (privacy, speed).
       // If a third party is approved, list it in DECISIONS-LOG.md and allow it here.
       expect([...thirdParty], 'third-party origins contacted').toEqual([]);
+      // The media pipeline already sizes and fingerprints images. Next's runtime optimizer wedged on an
+      // aborted request under `next start` (DECISIONS-LOG 2026-09-21), so it stays off.
+      expect(optimizer, 'requests to the /_next/image optimizer').toEqual([]);
     });
 
     test('document basics: title, description, lang, one h1, heading order, alt text', async ({ page }) => {
