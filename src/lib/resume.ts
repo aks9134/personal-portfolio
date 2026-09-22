@@ -1,7 +1,7 @@
 // The public resume: /resume renders it and scripts/resume-pdf.mjs prints that page, so the two can't drift.
 // Public-safe by rule: no phone number, and the QA role is left out. The Curtiss-Wright text comes from Allen's
-// resume and his knowledge log, which he cleared for sharing on 2026-09-22 (DECISIONS-LOG); it stays inside what his
-// resume says until he workshops it (see site.ts). Every entry is written in full sentences.
+// resume and his knowledge log, which he cleared for sharing on 2026-09-22 (DECISIONS-LOG), plus his confirmation
+// that every resume bullet was work carried through to completion (see site.ts). Every entry is written in full sentences.
 import { site } from "./site";
 
 // `text` is the resume entry (and the About entry); `detail`, where present, replaces it on the About page.
@@ -12,9 +12,10 @@ export const resume = {
   jobs: [
     {
       org: "Curtiss-Wright, Electro-Mechanical Division",
-      title: "Mechanical Design Engineer",
+      // The company line carries his full tenure; the QA role he held until Mar 2026 stays off the site (his call).
+      title: "Mechanical Design Engineer since Mar 2026",
       place: "Pittsburgh, PA",
-      dates: "Mar 2026 - present",
+      dates: "Jun 2025 - present",
       text: site.cwText,
       detail: site.cwDetail,
     },
