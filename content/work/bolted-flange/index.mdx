@@ -4,21 +4,21 @@ export const meta = {
   year: "2024",
   order: 8,
   format: "short",
-  line: "Sized a 28-bolt pattern for a turbine exhaust flange from preload, joint stiffness and Goodman fatigue.",
+  line: "We sized a 28-bolt pattern for a turbine exhaust flange from preload, joint stiffness and Goodman fatigue.",
   summary:
-    "A Machine Design course project: bolt a steam turbine's exhaust hood to its condenser with a joint that won't separate or fail in fatigue. We sized it the way Shigley lays it out and landed on 28 bolts, 1-1/2 in. Grade B8.",
+    "In this Machine Design course project, we had to bolt a steam turbine's exhaust hood to its condenser with a joint that won't separate or fail in fatigue. We sized it the way Shigley lays it out and landed on 28 bolts, 1-1/2 in. Grade B8.",
   status: "Analysis",
-  role: "Co-author of the joint calculations and drawings",
-  team: "Team of four",
+  role: "I co-authored the joint calculations and the drawings.",
+  team: "There were four of us.",
   timeframe: "Spring 2024",
   tools: "Shigley's method, spreadsheet, SolidWorks drawings",
   hero: "bolt-layout",
 };
 
-The course gave us a real load case: bolt a steam turbine's low-pressure exhaust hood to its water-cooled condenser, with stainless SA-193 B8 bolts through a 304L flange plate and axial load only. The joint can't separate, can't yield the bolts, and has to live with the load cycling.
+The course gave us a real load case. We had to bolt a steam turbine's low-pressure exhaust hood to its water-cooled condenser, with stainless SA-193 B8 bolts through a 304L flange plate and axial load only. The joint can't separate, can't yield the bolts, and has to live with the load cycling.
 
 We worked it the way Shigley lays it out. Edge distance and bolt spacing set the geometry. Bolt and member stiffness gave the share of the load each bolt actually sees, preload went to 75% of proof strength, and we took the minimum bolt count from the proof check. Then a spreadsheet stepped up the bolt count until every check cleared at once: proof load, joint separation, load factor, Goodman fatigue, and bearing on the flange.
 
-<Figure name="bolt-hardware" caption="The bolt, nut and washer stack." narrow />
+<Figure name="bolt-hardware" caption="This drawing shows the bolt, nut and washer stack." narrow />
 
-That landed on 28 bolts, 1-1/2 in. UNC Grade B8, each with a nut and two wide washers: five up each side of the flange and nine across the top and bottom.
+That landed on 28 bolts, 1-1/2 in. UNC Grade B8, each with a nut and two wide washers, with five up each side of the flange and nine across the top and bottom.

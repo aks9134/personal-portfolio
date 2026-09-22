@@ -4,12 +4,12 @@ export const meta = {
   year: "2024",
   order: 3,
   format: "case",
-  line: "A human-scale arm, rendered in carbon fiber. I designed the hand, wrist and forearm, and the wrist held 1000 N in FEA (modeled in steel).",
+  line: "My partner and I designed a human-scale arm and rendered it in carbon fiber. I designed the hand, wrist and forearm, and the wrist held 1000 N in FEA, modeled in steel.",
   summary:
-    "A human-scale arm, shoulder to fingertips, designed entirely in CAD for NYU's Advanced CAD course. I designed the hand, palm, wrist and forearm, and the wrist took a 1000 N load in FEA at about a quarter of yield (modeled in steel).",
+    "For NYU's Advanced CAD course, my partner and I designed a human-scale arm, shoulder to fingertips, entirely in CAD. I designed the hand, palm, wrist and forearm, and the wrist took a 1000 N load in FEA at about a quarter of yield (modeled in steel).",
   status: "CAD and FEA",
-  role: "Hand, palm, wrist and forearm design; wrist FEA; drawings",
-  team: "Course project, two people",
+  role: "I designed the hand, palm, wrist and forearm, ran the wrist FEA, and made the drawings for my parts.",
+  team: "It was a two-person course project.",
   timeframe: "Fall 2024",
   tools: "Fusion 360, SolidWorks, SolidWorks Simulation",
   hero: "arm-carbon",
@@ -23,7 +23,7 @@ It's a design and analysis project. Nothing was built, and there are no motors o
 
 ## My half: fingertips to elbow
 
-<Figure name="midterm-hand" caption="The hand at the midterm: three sections per finger (two for the thumb) on a four-part palm." narrow />
+<Figure name="midterm-hand" caption="At the midterm, each finger had three sections (the thumb had two) on a four-part palm." narrow />
 
 We split the arm at the elbow. I took the fingers, palm, wrist and forearm in Fusion 360, and my partner took the elbow, upper arm, shoulder and the final assembly in SolidWorks, which is where my parts went in as a STEP file.
 
@@ -31,16 +31,16 @@ The proportions came from anatomy rather than eyeballing. I set the middle finge
 
 The palm is four parts, so it can fold the way a real hand does. Four parts still lose some of a real palm's motion, and I took that trade to keep the design simple.
 
-<Model name="hand-model" caption="The hand, palm, wrist and forearm as I exported them in October 2024, while the forearm was still an open cage." />
+<Model name="hand-model" caption="This is the hand, palm, wrist and forearm as I exported them in October 2024, while the forearm was still an open cage." />
 
 The forearm is a loft through three circular profiles. At the midterm it was an open cage of six twisted struts; by the final renders it had filled in to a dense lattice.
 
 <Strip
   items={[
-    { name: "forearm-midterm", label: "Midterm: six twisted struts" },
-    { name: "forearm-final", label: "Final: a lofted lattice, in carbon fiber" },
+    { name: "forearm-midterm", label: "At the midterm, the forearm was six twisted struts." },
+    { name: "forearm-final", label: "In the final renders, it's a lofted lattice in carbon fiber." },
   ]}
-  caption="The forearm frame between the midterm and the final review."
+  caption="The forearm frame changed the most between the midterm and the final review."
 />
 
 ## The wrist under load
@@ -49,10 +49,10 @@ We picked the wrist for FEA because it's usually the weakest joint in an arm, we
 
 <Strip
   items={[
-    { name: "fea-push", label: "Push, hand bent 90°: peak 134 MPa" },
-    { name: "fea-inline", label: "In line, load at the palm: peak 149 MPa" },
+    { name: "fea-push", label: "Bent 90° in a push, the wrist peaked at 134 MPa." },
+    { name: "fea-inline", label: "In line with the load at the palm, it peaked at 149 MPa." },
   ]}
-  caption="Von Mises stress at the wrist under 1000 N. Yield for the material in the study is 620 MPa."
+  caption="These plots show von Mises stress at the wrist under 1000 N. Yield for the material in the study is 620 MPa."
 />
 
 The worse case peaked at 149 MPa against a 620 MPa yield, about a quarter. But that's a steel number. The study used alloy steel for every part, including the M5 bolted connections added for it, while the drawings call out aluminum and the renders show carbon fiber, so the margin doesn't carry over to the arm as rendered.

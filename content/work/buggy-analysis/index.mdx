@@ -4,24 +4,24 @@ export const meta = {
   year: "2024",
   order: 5,
   format: "short",
-  line: "Drag and collision studies on a downloaded buggy frame in ANSYS. The collision result came out wrong, and working out why was the useful part.",
+  line: "I ran drag and collision studies on a downloaded buggy frame in ANSYS. The collision stress came out impossibly high, and I traced it back to how I'd built the model.",
   summary:
-    "Two of my team's four ANSYS studies on a downloaded buggy model, for NYU's finite element course. The Fluent drag study put the frame's drag coefficient at about 0.54. The frontal collision study came out far past yield, and tracing why sent me back to refine the model.",
+    "For NYU's finite element course, I ran two of my team's four ANSYS studies on a downloaded buggy model. The Fluent drag study put the frame's drag coefficient at about 0.54. The frontal collision study came out far past yield, and tracing why sent me back to refine the model.",
   status: "Analysis",
-  role: "Collision (static structural) and drag (Fluent CFD) studies",
-  team: "Course project, team of four",
+  role: "I ran the collision study in static structural and the drag study in Fluent.",
+  team: "It was a four-person course project.",
   timeframe: "Spring 2024",
   tools: "ANSYS Mechanical, Fluent, SpaceClaim",
   hero: "collision-deformation",
 };
 
-The model was a downloaded off-road buggy: a tube-frame roll cage with seats, suspension and tires. The team ran four studies on it, and I ran two: drag and a frontal collision.
+The model was a downloaded off-road buggy, a tube-frame roll cage with seats, suspension and tires. The team ran four studies on it, and I ran two: drag and a frontal collision.
 
 ## Drag
 
 The CAD was built from surfaces that wouldn't turn into solids, and Fluent needs a solid to subtract from the air. I swapped in an equivalent solid-body frame, set it in an enclosure, and ran air at 45 mph through a steady k-epsilon model. The drag coefficient came out 0.544 in the run we presented and 0.5376 in a longer run for the written report, well above the 0.25 to 0.3 we'd used as the benchmark for a modern car. Neither run had fully converged, and the feedback asked for tighter convergence and symmetry walls.
 
-<Figure name="drag-setup" caption="The frame in its air enclosure for the Fluent run." narrow />
+<Figure name="drag-setup" caption="The frame sits in its air enclosure for the Fluent run." narrow />
 
 ## Collision, and what it taught me
 

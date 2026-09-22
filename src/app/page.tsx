@@ -39,7 +39,7 @@ function Meta({ w }: { w: Work }) {
 
 // Case-study band. Layout follows the hero image: tall sits beside the text, wide runs full width, the rest splits.
 function Band({ w }: { w: Work }) {
-  const m = still(w.media[w.hero]);
+  const m = still(w.media[w.cover ?? w.hero]);
   const ratio = m.width / m.height;
   const text = (
     <div>
@@ -69,7 +69,7 @@ function Band({ w }: { w: Work }) {
     return (
       <article className="mt-20 grid gap-10 border-t-[1.5px] border-ink pt-5 md:grid-cols-2 md:items-center">
         {text}
-        <MediaImage m={m} sizes="20rem" className="mx-auto w-fit" imgClassName="h-[26rem] w-auto md:h-[32rem]" />
+        <MediaImage m={m} sizes="20rem" className="mx-auto w-fit" imgClassName="h-[28rem] w-auto md:h-[38rem]" />
       </article>
     );
 
@@ -122,7 +122,7 @@ export default async function Home() {
           <h2 id="lead-title" className="text-3xl font-extrabold tracking-[-0.02em] [font-stretch:108%] md:text-4xl">
             <Link href={`/work/${lead.slug}`} className={titleLink}>{lead.title}</Link>
           </h2>
-          <p className="text-sm text-ink-2">{lead.context}, {lead.year}. Exploded view of the final design.</p>
+          <p className="text-sm text-ink-2">{lead.context}, {lead.year}. The exploded view shows the final design.</p>
         </div>
         <div className="mt-5">
           {lead.figure ? (

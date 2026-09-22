@@ -6,8 +6,16 @@ export const site = {
     "Allen Sun, mechanical design engineer. Hardware he designed and built: an active vibration canceller, a gravity storage drive prototype, a TPU weld rig and more.",
   email: "aks9134@nyu.edu",
   linkedin: "https://www.linkedin.com/in/allen-sun-b06858233/",
-  // Approved by Allen word for word on 2026-09-21 (DECISIONS-LOG). Naval nuclear work: never add to it without him.
+  // Curtiss-Wright is naval nuclear work. Allen cleared his resume and knowledge log for sharing on 2026-09-22, but
+  // every sentence here stays inside what his resume says: the log marks some cases (the NAB casting, the stator
+  // rewind) as worked scenarios, not events. Never add detail beyond his resume without asking him; the open
+  // questions are in _notes/cw-questions.md. cwText is the resume entry; cwDetail replaces it on the About page.
   cwText:
-    "I design mechanical subsystems for large electric motors, from early layout through design for manufacturing, and make the drawings that go with them (GD&T per ASME Y14.5). The other half of the job is nonconforming hardware: working out with FEA, hand calcs and inspection data whether a part can be reworked or used as-is, then writing up the disposition.",
+    "I design and analyze canned induction motor assemblies for marine propulsion. That runs from stator geometry, windings and bearings up to how the air gap and rotor bar choices drive torque, slip and copper loss. I also disposition nonconforming hardware with Solid Edge, FEA and tolerance stack-ups, and I make the GD&T drawings, BOMs and reports that go with these parts.",
+  cwDetail: [
+    "Most of the design work is following a physical decision through to how the motor performs. The air gap length and the rotor bar resistance each shift torque, slip and copper loss, and part of the job is working out how. The motors run in seawater, so material choices trade electromagnetic performance against corrosion. I also analyze how the winding layout and the air gap interact with the propeller's load across its operating conditions.",
+    "The other half is nonconforming hardware. When a part is out of spec, I analyze it with Solid Edge, FEA and tolerance stack-ups and write the engineering disposition that gets it back to drawing. Most cases are dimensional, surface or fit problems. Some go into the material, like nickel-aluminum bronze castings that measure above their hardness ceiling, or stator rewinds where the ways of stripping cured VPI resin have to be ranked against keeping the coils and laminations intact.",
+    "I also make and revise the drawings for these parts with GD&T to ASME Y14.5, set each material's criticality and traceability class, keep the engineering BOMs, and write the design and test reports that record what was analyzed and decided.",
+  ] as const,
 };
 

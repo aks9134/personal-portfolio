@@ -4,15 +4,16 @@ export const meta = {
   year: "2023-24",
   order: 2,
   format: "case",
-  line: "Built and wired a 1/24-scale geared drive for mine-shaft energy storage, then modeled and printed its linear harmonic redesign.",
+  line: "I built and wired a 1/24-scale geared drive for mine-shaft energy storage, then modeled and printed its linear harmonic redesign.",
   summary:
     "Terrament stores grid energy by driving heavy modules up and down deep mine shafts. I built and wired the 1/24-scale geared drive prototype the company showed at Newlab's New Climate Futures in September 2023, then worked out pin spacing and ratios for a redesign that moves the modules with a linear harmonic drive instead of gears.",
   status: "Prototyped",
-  role: "CAD, load and gear-ratio calculations, FEA, printed prototypes, motor wiring and Arduino code",
-  team: "Engineering intern at an early-stage startup",
+  role: "I did the CAD, the load and gear-ratio calculations and FEA, the printed prototypes, and the motor wiring and Arduino code.",
+  team: "I was an engineering intern at an early-stage startup.",
   timeframe: "Sept 2023 to Sept 2024",
   tools: "Fusion 360, SketchUp, Arduino, 3D printing",
   hero: "prototype-photo",
+  cover: "harmonic-render",
 };
 
 ## The problem
@@ -25,13 +26,13 @@ My part was the hardware, at 1/24 scale, and then the CAD for the mechanism that
 
 The module in Terrament's patent (US 12,272,947) climbs a rack on three geared wheels, with motors in the outer two and a cycloidal reduction in the one in the middle. I modeled the motor assembly, the gear drive and the bearings in Fusion 360, then assembled the prototype from printed gears and racks, off-the-shelf pillow-block bearings and an aluminum extrusion tower. I wired the motors and wrote the Arduino code that runs them.
 
-<Model name="geared-module" caption="Generation 1: the geared drive module, from my Fusion 360 assembly." />
+<Model name="geared-module" caption="Generation 1 is the geared drive module, from my Fusion 360 assembly." />
 
-It was built for Newlab's New Climate Futures event in September 2023, and getting there took rework: the final model has a corrected shaft hub, a second axle cap, a new double bearing, and new top and bottom bases.
+It was built for Newlab's New Climate Futures event in September 2023, and getting there took rework. The final model has a corrected shaft hub, a second axle cap, a new double bearing, and new top and bottom bases.
 
-<Video name="module-animation" caption="My exploded-view animation of the geared module, made in Fusion 360. 25 seconds, no sound." />
+<Video name="module-animation" caption="I made this exploded-view animation of the geared module in Fusion 360. It runs 25 seconds with no sound." />
 
-Around both designs I also worked on the numbers: load and gear-ratio calculations, structural feasibility checks in Fusion 360, and FEA for stress distribution and fatigue life that fed the choice between metal and plastic parts.
+I also ran the numbers, for the geared module and for the redesign that replaced it. That meant load and gear-ratio calculations and structural feasibility checks in Fusion 360, plus FEA for stress distribution and fatigue life that fed the choice between metal and plastic parts.
 
 ## Why it changed
 
@@ -43,12 +44,12 @@ On the redesign I worked from SketchUp sketches to Fusion 360 models, calculated
 
 The first linear version was a carriage with six pins running in a zigzag slot.
 
-<Model name="pin-concept" caption="Generation 2: the first linear harmonic concept, a six-pin carriage in a profiled slot." />
+<Model name="pin-concept" caption="Generation 2 was the first linear harmonic concept, a six-pin carriage in a profiled slot." />
 
 ## Third: the linear harmonic drive
 
 The last version moves the drive into the module. A motor turns a belt on two drive wheels, the belt carries a column of rollers that engage a cam-profiled I-beam rail, and ballast castings supply the weight. This is the July 2024 layout.
 
-<Model name="harmonic-drive" caption="Generation 3: the linear harmonic drive, a belt-driven roller module on a cam-profiled rail, July 2024." />
+<Model name="harmonic-drive" caption="Generation 3 is the linear harmonic drive, a belt-driven roller module on a cam-profiled rail, as it stood in July 2024." />
 
-<Figure name="harmonic-exploded" caption="An exploded render of a linear harmonic module from my old portfolio: housings, drum, chain loop and sprockets, pin arrays and rail segments." />
+<Figure name="harmonic-exploded" caption="This exploded render shows another version of the module. It runs a chain loop on sprockets and carries pin arrays, where the July 2024 layout uses a belt and rollers." />

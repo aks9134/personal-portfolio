@@ -26,9 +26,9 @@ export default function AboutPage() {
           <h1 className="text-5xl font-extrabold leading-[0.98] tracking-[-0.03em] [font-stretch:110%] md:text-7xl">About</h1>
           <div className="mt-8 max-w-[62ch] space-y-5 text-xl leading-snug">
             <p>
-              I&apos;m a mechanical design engineer at Curtiss-Wright in Pittsburgh, working on large electric motors. I studied mechanical
-              engineering at NYU Tandon (class of 2025). Two of the projects here, the vibration canceller and the weld rig, went the whole way
-              with me: CAD, then the mill, then testing.
+              I&apos;m a mechanical design engineer at Curtiss-Wright in Pittsburgh, where I design and analyze canned induction motor assemblies for marine propulsion. I
+              studied mechanical engineering at NYU Tandon and graduated in 2025. Two of the projects here, the vibration canceller and the weld
+              rig, I took all the way from CAD through the mill to testing.
             </p>
             <p>
               Before Curtiss-Wright I interned at three startups in New York. I spent a year at Terrament on a gravity storage drive, a
@@ -36,8 +36,8 @@ export default function AboutPage() {
               Endoscopy building the weld rig for a soft robotic colonoscope insert.
             </p>
             <p>
-              Outside work I build things that move for less serious reasons: a loveseat on a welded scrap frame with a go-kart engine, back in
-              high school, and lately hand-tracked visuals in TouchDesigner.
+              Outside work I build things for less serious reasons. In high school it was a loveseat on a welded scrap frame with a go-kart
+              engine, and lately it&apos;s been hand-tracked visuals in TouchDesigner.
             </p>
           </div>
         </div>
@@ -52,13 +52,9 @@ export default function AboutPage() {
                   <p className="text-ink-2">{j.title}</p>
                   <p className="text-sm text-ink-2"><span className="whitespace-nowrap tabular-nums">{j.dates}</span>, {j.place}</p>
                 </div>
-                <div className="max-w-[65ch] leading-snug">
-                  {"text" in j && j.text && <p>{j.text}</p>}
-                  {"points" in j && j.points && (
-                    <ul className="list-disc space-y-1.5 pl-5">
-                      {j.points.map((pt) => <li key={pt}>{pt}</li>)}
-                    </ul>
-                  )}
+                <div className="max-w-[65ch] space-y-3 leading-snug">
+                  {/* The resume's short version, or the longer About version where one exists. */}
+                  {(j.detail ?? [j.text]).map((d) => <p key={d.slice(0, 40)}>{d}</p>)}
                   {caseStudy[j.org] && (
                     <p className="mt-3">
                       <Link href={`/work/${caseStudy[j.org]}`} className="font-semibold underline hover:text-stamp">Read the case study</Link>

@@ -22,7 +22,7 @@ Visitors come from a resume, LinkedIn, or a recruiter's forwarded link. Case stu
 ## Capabilities and Constraints
 - Pages: home, case studies (4), short entries (4), about, resume (web plus generated PDF), privacy note. Terms: see `CONTEXT.md`.
 - 3D models (STEP converted to GLB) load only on click; videos never autoplay with sound.
-- Employer gate (`knowledge/legal.md` 5.3): Curtiss-Wright appears only as the approved generic text, never technical material. Terrament and Ergami material is approved for release (written approval, 2026-09-18). Terrament's company metrics are attributed to Terrament, never stated as Allen's results.
+- Employer gate (`knowledge/legal.md` 5.3): Curtiss-Wright text stays inside what Allen's resume says (his call, 2026-09-22, DECISIONS-LOG): no employer images, drawings or data, and nothing from his knowledge log that the resume doesn't carry until he confirms it (_notes/cw-questions.md). Terrament and Ergami material is approved for release (written approval, 2026-09-18). Terrament's company metrics are attributed to Terrament, never stated as Allen's results.
 - Static site, no tracking, no third-party requests, no forms.
 
 ## Brand Commitments

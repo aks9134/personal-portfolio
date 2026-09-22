@@ -129,7 +129,7 @@
 @media print {
   @page {
     size: letter;
-    margin: 0.5in 0.55in;
+    margin: 0.45in 0.55in;
   }
   body:has(main.resume) > footer {
     display: none;

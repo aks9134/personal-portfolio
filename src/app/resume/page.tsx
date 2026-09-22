@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: preview("Resume | Allen Sun", description),
 };
 
-const h2 = "mt-9 border-t-[1.5px] border-ink pt-3 text-xl font-extrabold tracking-[-0.01em] [font-stretch:108%] print:mt-3 print:pt-1 print:text-[12pt]";
+const h2 = "mt-9 border-t-[1.5px] border-ink pt-3 text-xl font-extrabold tracking-[-0.01em] [font-stretch:108%] print:mt-2.5 print:pt-1 print:text-[12pt]";
 
 // Screen: the site's sheet. Print (and the PDF made from it by scripts/resume-pdf.mjs): one letter page, white paper.
 export default function ResumePage() {
@@ -47,18 +47,13 @@ export default function ResumePage() {
         <section aria-labelledby="experience">
           <h2 id="experience" className={h2}>Experience</h2>
           {jobs.map((j) => (
-            <article key={j.org} className="mt-5 break-inside-avoid print:mt-2">
+            <article key={j.org} className="mt-5 break-inside-avoid print:mt-1.5">
               <div className="flex flex-wrap items-baseline justify-between gap-x-4">
                 <h3 className="font-bold">{j.org}</h3>
                 <p className="whitespace-nowrap text-sm tabular-nums text-ink-2 print:text-[9pt]">{j.dates}</p>
               </div>
               <p className="text-ink-2">{j.title}, {j.place}</p>
-              {"text" in j && j.text && <p className="mt-1.5 max-w-[75ch] print:max-w-none">{j.text}</p>}
-              {"points" in j && j.points && (
-                <ul className="mt-1.5 list-disc space-y-1 pl-5 print:space-y-0.5">
-                  {j.points.map((pt) => <li key={pt} className="max-w-[75ch] print:max-w-none">{pt}</li>)}
-                </ul>
-              )}
+              <p className="mt-1.5 max-w-[75ch] print:max-w-none">{j.text}</p>
             </article>
           ))}
         </section>
@@ -66,7 +61,7 @@ export default function ResumePage() {
         <section aria-labelledby="projects">
           <h2 id="projects" className={h2}>Projects</h2>
           {projects.map((p) => (
-            <article key={p.slug} className="mt-5 break-inside-avoid print:mt-2">
+            <article key={p.slug} className="mt-5 break-inside-avoid print:mt-1.5">
               <div className="flex flex-wrap items-baseline justify-between gap-x-4">
                 <h3 className="font-bold">{p.name}</h3>
                 <p className="text-sm text-ink-2 print:text-[9pt]">{p.context}</p>

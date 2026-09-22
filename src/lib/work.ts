@@ -31,7 +31,8 @@ export type WorkMeta = {
   team: string;
   timeframe: string;
   tools: string;
-  hero: string; // media name used when the project is listed
+  hero: string; // media name that leads the project page (and link previews)
+  cover?: string; // media name for the home-page band, if different from the hero
   figure?: { name: string; parts: Part[] }; // numbered exploded view with a legend
   award?: string;
 };
