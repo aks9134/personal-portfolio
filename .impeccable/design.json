@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-22T03:38:46.170Z",
+  "title": "Design System: Allen Sun, portfolio",
+  "extensions": {
+    "colorMeta": {
+      "stock": {
+        "role": "neutral",
+        "displayName": "Goldenrod Stock",
+        "canonical": "oklch(0.915 0.078 94)",
+        "tonalRamp": [
+          "oklch(0.15 0.078 94)",
+          "oklch(0.27 0.078 94)",
+          "oklch(0.39 0.078 94)",
+          "oklch(0.51 0.078 94)",
+          "oklch(0.63 0.078 94)",
+          "oklch(0.75 0.078 94)",
+          "oklch(0.86 0.078 94)",
+          "oklch(0.95 0.078 94)"
+        ],
+        "dark": "oklch(0.2 0.016 85)"
+      },
+      "stock-2": {
+        "role": "neutral",
+        "displayName": "Deep Stock",
+        "canonical": "oklch(0.875 0.088 91)",
+        "tonalRamp": [
+          "oklch(0.15 0.088 91)",
+          "oklch(0.27 0.088 91)",
+          "oklch(0.39 0.088 91)",
+          "oklch(0.51 0.088 91)",
+          "oklch(0.63 0.088 91)",
+          "oklch(0.75 0.088 91)",
+          "oklch(0.86 0.088 91)",
+          "oklch(0.95 0.088 91)"
+        ],
+        "dark": "oklch(0.25 0.02 85)"
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Print Ink",
+        "canonical": "oklch(0.21 0.02 80)",
+        "tonalRamp": [
+          "oklch(0.15 0.02 80)",
+          "oklch(0.27 0.02 80)",
+          "oklch(0.39 0.02 80)",
+          "oklch(0.51 0.02 80)",
+          "oklch(0.63 0.02 80)",
+          "oklch(0.75 0.02 80)",
+          "oklch(0.86 0.02 80)",
+          "oklch(0.95 0.02 80)"
+        ],
+        "dark": "oklch(0.93 0.06 94)"
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Faded Ink",
+        "canonical": "oklch(0.37 0.035 80)",
+        "tonalRamp": [
+          "oklch(0.15 0.035 80)",
+          "oklch(0.27 0.035 80)",
+          "oklch(0.39 0.035 80)",
+          "oklch(0.51 0.035 80)",
+          "oklch(0.63 0.035 80)",
+          "oklch(0.75 0.035 80)",
+          "oklch(0.86 0.035 80)",
+          "oklch(0.95 0.035 80)"
+        ],
+        "dark": "oklch(0.8 0.05 92)"
+      },
+      "rule-soft": {
+        "role": "neutral",
+        "displayName": "Soft Rule",
+        "canonical": "oklch(0.21 0.02 80 / 0.3)"
+      },
+      "stamp": {
+        "role": "primary",
+        "displayName": "Stamp Blue",
+        "canonical": "oklch(0.44 0.15 262)",
+        "tonalRamp": [
+          "oklch(0.15 0.15 262)",
+          "oklch(0.27 0.15 262)",
+          "oklch(0.39 0.15 262)",
+          "oklch(0.51 0.15 262)",
+          "oklch(0.63 0.15 262)",
+          "oklch(0.75 0.15 262)",
+          "oklch(0.86 0.15 262)",
+          "oklch(0.95 0.15 262)"
+        ],
+        "dark": "oklch(0.76 0.11 258)"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Allen's name and page titles; expanded extra-bold."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings and home-band project titles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Short-entry titles and subsection heads."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Reading text, about 62-65ch per line."
+      },
+      "label": {
+        "displayName": "Stamp",
+        "purpose": "Status and award stamps only; uppercase."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "Every UI transition: poster fade, button press, part ring."
+      },
+      {
+        "name": "stamp-land",
+        "value": "scroll-driven keyframes, entry 30% to 90%: scale 1.25 -> 0.96 -> 1, opacity 0 -> 1",
+        "purpose": "The one authored motion; screen only, off under reduced motion."
+      },
+      {
+        "name": "poster-fade",
+        "value": "opacity 200ms ease-out",
+        "purpose": "3D poster gives way to the live model."
+      },
+      {
+        "name": "press",
+        "value": "scale 0.97, 150ms ease-out",
+        "purpose": "Load button feedback."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Status stamp",
+      "kind": "custom",
+      "refersTo": "stamp",
+      "description": "What state a project reached; lands on scroll.",
+      "html": "<span class=\"ds-stamp\">Built and tested</span>",
+      "css": ".ds-stamp{display:inline-block;border:2.5px solid var(--stamp);color:var(--stamp);padding:0.2rem 0.6rem;font-family:Archivo,system-ui,sans-serif;font-weight:800;font-stretch:118%;text-transform:uppercase;line-height:1.2;letter-spacing:0.01em;transform:rotate(-2deg)}"
+    },
+    {
+      "name": "Load 3D model",
+      "kind": "button",
+      "refersTo": "button-load",
+      "description": "Chip in the corner of a 3D viewport; names the file size.",
+      "html": "<button class=\"ds-load\">Load 3D model (3.1 MB)</button>",
+      "css": ".ds-load{background:var(--stock);color:var(--ink);border:1.5px solid var(--ink);border-radius:0;padding:6px 12px;font:700 0.875rem Archivo,system-ui,sans-serif;cursor:pointer;transition:transform 150ms cubic-bezier(0.23,1,0.32,1)}.ds-load:hover{background:var(--ink);color:var(--stock)}.ds-load:active{transform:scale(0.97)}.ds-load:focus-visible{outline:2.5px solid var(--stamp);outline-offset:3px}"
+    },
+    {
+      "name": "Primary nav",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Text links, semibold, slightly expanded.",
+      "html": "<nav class=\"ds-nav\"><a href=\"#\">Work</a><a href=\"#\">About</a><a href=\"#\">Resume</a><a href=\"#\">Email</a><a href=\"#\">LinkedIn</a></nav>",
+      "css": ".ds-nav{display:flex;flex-wrap:wrap;gap:0.25rem 1.5rem;font:600 1rem Archivo,system-ui,sans-serif;font-stretch:106%}.ds-nav a{color:var(--ink);text-decoration:none;text-underline-offset:0.22em;text-decoration-thickness:1.5px}.ds-nav a:hover{text-decoration:underline}.ds-nav a:focus-visible{outline:2.5px solid var(--stamp);outline-offset:3px}"
+    },
+    {
+      "name": "Parts legend row",
+      "kind": "custom",
+      "description": "Numbered part in the exploded-view legend; hover or focus rings the part on the drawing.",
+      "html": "<button class=\"ds-part\"><b>1</b><span><strong>Voice coil motor</strong><small>Thorlabs VC250, 25.4 mm travel</small></span></button>",
+      "css": ".ds-part{display:grid;grid-template-columns:1.75rem 1fr;gap:0 0.5rem;width:100%;text-align:left;padding:0.5rem 0;background:none;border:0;border-bottom:1px solid var(--rule-soft);font:400 1rem Archivo,system-ui,sans-serif;color:var(--ink)}.ds-part small{display:block;font-size:0.875rem;color:var(--ink-2)}.ds-part:hover,.ds-part:focus-visible{background:var(--stock-2)}"
+    },
+    {
+      "name": "Framed figure",
+      "kind": "card",
+      "description": "Opaque photo or plot in a 1.5px ink frame with a caption.",
+      "html": "<figure class=\"ds-fig\"><div class=\"ds-fig-frame\"></div><figcaption>The first build on the machined rig.</figcaption></figure>",
+      "css": ".ds-fig{margin:0;max-width:28rem}.ds-fig-frame{aspect-ratio:4/3;border:1.5px solid var(--ink);background:var(--stock-2)}.ds-fig figcaption{margin-top:0.75rem;font:400 0.875rem Archivo,system-ui,sans-serif;color:var(--ink-2)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Shop Traveler",
+    "overview": "The site is the paperwork that rides along with a part through the shop: goldenrod card stock, black print ink, and one blue stamp ink that marks what state each job reached. Every project is routed like real hardware, and the page steps back so renders, photos, drawings and 3D models carry it. This comes from the approved direction contract (`.impeccable/surfaces/src-app-page-tsx.md`), which rejects the category default of a dark hero over a grid of same-size thumbnails.\n\nDensity is editorial rather than dashboard: image-led bands on the home page, long-form case studies with figures that float into the margin, 1.5px ink rules between sections, square corners everywhere, no shadows. Images keep their true colors. See-through cut-outs sit straight on the stock; photos, plots and videos keep their own ground inside a thin ink frame. Nothing is blended with the page (Allen rejected both the yellow tint and white-on-yellow panels).\n\nDark mode is the same sheet at night: near-black ground, text in the stock's color, and see-through images on a stock-colored plate so black ink labels stay readable.",
+    "keyCharacteristics": [
+      "Goldenrod stock as the whole ground; black ink; blue used only for status, the award, and the active part",
+      "Archivo throughout, wide and extra-bold for display and stamps",
+      "1.5px ink rules and frames; square corners; flat",
+      "True-color images, never tinted by the page",
+      "One authored motion: status stamps land as they scroll into view"
+    ],
+    "rules": [
+      {
+        "name": "The One Blue Rule",
+        "body": "Stamp Blue marks state, never decoration: a status, the award, the active part, keyboard focus. If it isn't one of those, it's ink.",
+        "section": "colors"
+      },
+      {
+        "name": "The True Color Rule",
+        "body": "Images never pick up the stock. No multiply blending, no tinted overlays, no white panels behind cut-outs.",
+        "section": "colors"
+      },
+      {
+        "name": "The Stamp Lettering Rule",
+        "body": "Uppercase belongs to stamps. Headings are sentence case.",
+        "section": "typography"
+      },
+      {
+        "name": "The Printed Sheet Rule",
+        "body": "If it would need a shadow to look separate, give it a rule or a frame instead.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep the whole ground Goldenrod Stock and separate sections with a 1.5px ink rule.",
+      "Do show see-through images straight on the stock and frame opaque ones in 1.5px ink.",
+      "Do reserve Stamp Blue for state: status, award, active part, focus.",
+      "Do keep one authored motion per page and honor reduced motion."
+    ],
+    "donts": [
+      "Don't blend images with the page or put white panels behind cut-outs (Allen rejected both).",
+      "Don't use shadows, rounded cards, or a dark hero over a grid of same-size thumbnails.",
+      "Don't add a second accent color or use blue for decoration.",
+      "Don't use uppercase outside stamps."
+    ]
+  }
+}
