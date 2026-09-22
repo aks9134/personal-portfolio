@@ -6,7 +6,8 @@ export function SiteNav() {
   return (
     <nav aria-label="Primary" className="flex flex-wrap gap-x-6 gap-y-1 text-base font-semibold [font-stretch:106%]">
       <Link href="/#work" className="hover:underline">Work</Link>
-      <Link href="/#experience" className="hover:underline">Experience</Link>
+      <Link href="/about" className="hover:underline">About</Link>
+      <Link href="/resume" className="hover:underline">Resume</Link>
       <a href={`mailto:${site.email}`} className="hover:underline">Email</a>
       <a href={site.linkedin} className="hover:underline">LinkedIn</a>
     </nav>

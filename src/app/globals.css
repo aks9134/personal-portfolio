@@ -112,3 +112,14 @@
     opacity: 1;
   }
 }
+
+/* Paper (browsers skip page backgrounds when printing): the resume prints as a bare document, and its PDF is made from this. */
+@media print {
+  @page {
+    size: letter;
+    margin: 0.5in 0.55in;
+  }
+  body:has(main.resume) > footer {
+    display: none;
+  }
+}

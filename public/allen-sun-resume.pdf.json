@@ -1,0 +1,8 @@
+{
+  "sources": [
+    "src/lib/resume.ts",
+    "src/lib/site.ts",
+    "src/app/resume/page.tsx"
+  ],
+  "hash": "fa86be2ef48e"
+}
