@@ -6,7 +6,7 @@ export const meta = {
   format: "case",
   line: "Shoulder to fingertips in carbon fiber. I designed the hand, wrist and forearm, then loaded the wrist to 1000 N in FEA.",
   summary:
-    "A human-scale arm, shoulder to fingertips, designed entirely in CAD for NYU's Advanced CAD course. I designed the hand, palm, wrist and forearm, and the wrist held a 1000 N load in FEA at about a quarter of its yield strength.",
+    "A human-scale arm, shoulder to fingertips, designed entirely in CAD for NYU's Advanced CAD course. I designed the hand, palm, wrist and forearm, and the wrist took a 1000 N load in FEA at about a quarter of yield (modeled in steel).",
   status: "CAD and FEA",
   role: "Hand, palm, wrist and forearm design; wrist FEA; drawings",
   team: "Course project, two people",
@@ -14,3 +14,49 @@ export const meta = {
   tools: "Fusion 360, SolidWorks, SolidWorks Simulation",
   hero: "arm-carbon",
 };
+
+## The brief
+
+The goal we set was to copy the motion of a human arm, shoulder to fingertips, as closely as we could while keeping it clean and streamlined. The requirements followed from that: human proportions, full flexion in every finger joint, the palm and the elbow, full rotation at the wrist and shoulder, at least the strength of a human arm, and a mount at the shoulder so it could attach to a person or another robot.
+
+It's a design and analysis project. Nothing was built, and there are no motors or tendons in the model. The joints are pin hinges.
+
+## My half: fingertips to elbow
+
+<Figure name="midterm-hand" caption="The hand at the midterm: three sections per finger (two for the thumb) on a four-part palm." narrow />
+
+We split the arm at the elbow. I took the fingers, palm, wrist and forearm in Fusion 360, and my partner took the elbow, upper arm, shoulder and the final assembly in SolidWorks, which is where my parts went in as a STEP file.
+
+The proportions came from anatomy rather than eyeballing. I set the middle finger at 7.70 cm and scaled the rest from typical human ratios: 0.92 for the index finger, 0.95 for the ring finger, 0.65 for the pinky and thumb. Each finger except the thumb has a proximal, middle and distal section, split roughly 50/30/20, and all four share one design at different lengths.
+
+The palm is four parts, so it can fold the way a real hand does. Four parts still lose some of a real palm's motion, and I took that trade to keep the design simple.
+
+<Model name="hand-model" caption="The hand, palm, wrist and forearm as I exported them in October 2024, while the forearm was still an open cage." />
+
+The forearm is a loft through three circular profiles. At the midterm it was an open cage of six twisted struts; by the final renders it had filled in to a dense lattice.
+
+<Strip
+  items={[
+    { name: "forearm-midterm", label: "Midterm: six twisted struts" },
+    { name: "forearm-final", label: "Final: a lofted lattice, in carbon fiber" },
+  ]}
+  caption="The forearm frame between the midterm and the final review."
+/>
+
+## The wrist under load
+
+We picked the wrist for FEA because it's usually the weakest joint in an arm, weaker than the elbow or the shoulder. I ran it in SolidWorks Simulation with 1000 N on the palm, far above the roughly 70 N our report cited for a human wrist, in two cases: the hand bent 90° with the load spread across the palm like a push, and the hand in line with the load at the palm's center.
+
+<Strip
+  items={[
+    { name: "fea-push", label: "Push, hand bent 90°: peak 134 MPa" },
+    { name: "fea-inline", label: "In line, load at the palm: peak 149 MPa" },
+  ]}
+  caption="Von Mises stress at the wrist under 1000 N. Yield for the material in the study is 620 MPa."
+/>
+
+The worse case peaked at 149 MPa against a 620 MPa yield, about a quarter. But that's a steel number. The study used alloy steel for every part, including the M5 bolted connections added for it, while the drawings call out aluminum and the renders show carbon fiber, so the margin doesn't carry over to the arm as rendered.
+
+## What didn't go to plan
+
+The plan was a rendered video of the hand waving, making a fist and a peace sign. Fusion's video render scrambled the joint positions, so we recorded the animation from its motion study instead.

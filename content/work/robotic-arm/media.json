@@ -14,6 +14,47 @@
   {
     "out": "hand-model",
     "src": "_notes/media/robotic-arm/HD-AS00001 v12.step",
-    "alt": "3D model of the hand, palm, wrist and forearm frame"
+    "alt": "3D model of the hand, palm, wrist and forearm frame",
+    "orbit": "240deg 60deg auto",
+    "color": "#333333",
+    "roughness": 0.4
+  },
+  {
+    "out": "fea-push",
+    "src": "_notes/media/robotic-arm/report_image4.png",
+    "crop": [
+      420,
+      100,
+      1140,
+      780
+    ],
+    "alt": "FEA of the wrist with the hand bent 90 degrees and 1000 N spread over the palm: von Mises stress peaks at 134 MPa"
+  },
+  {
+    "out": "fea-inline",
+    "src": "_notes/media/robotic-arm/report_image2.png",
+    "crop": [
+      420,
+      100,
+      1140,
+      780
+    ],
+    "alt": "FEA of the wrist with the hand in line and 1000 N at the palm: von Mises stress peaks at 149 MPa"
+  },
+  {
+    "out": "midterm-hand",
+    "src": "_notes/media/robotic-arm/midpres_image7.png",
+    "alpha": "cutout",
+    "alt": "Midterm renders of the hand: five jointed fingers on a four-part palm, front and back"
+  },
+  {
+    "out": "forearm-midterm",
+    "src": "_notes/media/robotic-arm/midpres_image5.png",
+    "alt": "Midterm forearm frame in Fusion 360: an open cage of six twisted struts"
+  },
+  {
+    "out": "forearm-final",
+    "src": "Info Repository/Robotic Arm/Advanced CAD Final Deliverables-20260918T130957Z-1-001/Advanced CAD Final Deliverables/RenderedImages/RenderedImagesArm/Blackened5.jpg",
+    "alt": "Final hand and forearm in carbon fiber: the forearm frame is now a dense lofted lattice"
   }
 ]

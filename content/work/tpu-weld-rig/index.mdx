@@ -14,3 +14,29 @@ export const meta = {
   tools: "Mill, laser marking, 3D printing",
   hero: "rig-exploded",
 };
+
+## The problem
+
+Ergami is building a low-cost robotic device for inserting a colonoscope, and the insert is made from TPU sheet heat-welded into tube. The weld decides whether the tube holds its shape: it has to run straight along the edge, at even pressure, without punctures, bubbles or wide spots. An outsourced approach to making the tube hadn't met that bar, so the process came back in-house.
+
+## What the earlier design risked
+
+I started by going through the earlier rig. The sheet could shift while it was being clamped, and realigning it was slow, so a weld could land off center. A wood block held the sheet down, which made even pressure hard to keep. The pinch could leave bubbles or wide sections along the tube, and with an unclear travel stop, alignment came down to an eye test.
+
+I sketched two replacements. One rolled the sheet around a bar set in a U-shaped trough, with the heater flipped so its rounded edges pressed the seam. The other sandwiched the sheet under vertical force with edge clamps, taped down in the margin that gets trimmed off anyway, and aligned on a groove cut into the bottom silicone mat, which I flagged as hard to manufacture.
+
+## The rig
+
+The rig I built holds the sheet in a 3D-printed ABS channel lined with silicone strip. Two machined 6061 aluminum heating bars sit on brass guide rods pressed into a machined base, and the whole fixture goes into an oven at 500°F.
+
+<Figure name="rig-photo" caption="The finished channel rig: machined aluminum bars on press-fit brass guide rods." />
+
+## Building it
+
+The bar stock was too long for the CNC, so I laser-marked the layout on a Universal Laser ILS12.75 and cut the parts on a manual mill. The brass rods are a press fit, and I found the right hole size by drilling trial holes in scrap bar before touching real parts. Even so, the bottom bearing bar took more than one version, and I cut the brass rods out of the earlier bars to reuse them.
+
+The printed channel went through the same kind of loop. It's printed in interlocking segments, and I printed short test pieces with different groove fits before committing to full-length parts. For the silicone lining I tried both laser-cut and hole-punched strips.
+
+## Result
+
+The rig produced welded TPU sheets to the spec the team needed. It was one of two weld rigs I designed at Ergami.

@@ -16,10 +16,50 @@
     "hash": "f63e74253e"
   },
   "hand-model": {
-    "src": "/work/robotic-arm/hand-model.e146a75f.glb",
+    "src": "/work/robotic-arm/hand-model.1be27b0b.glb",
+    "poster": "/work/robotic-arm/hand-model-poster.f1b4a106.webp",
+    "width": 1200,
+    "height": 900,
     "parts": 20,
     "bytes": 186164,
+    "orbit": "240deg 60deg auto",
     "alt": "3D model of the hand, palm, wrist and forearm frame",
-    "hash": "c5da11d6fa"
+    "hash": "3ee90b7962"
+  },
+  "fea-push": {
+    "src": "/work/robotic-arm/fea-push.3cd40df6.webp",
+    "width": 1140,
+    "height": 780,
+    "alt": "FEA of the wrist with the hand bent 90 degrees and 1000 N spread over the palm: von Mises stress peaks at 134 MPa",
+    "hash": "cbad2e1581"
+  },
+  "fea-inline": {
+    "src": "/work/robotic-arm/fea-inline.69b686e1.webp",
+    "width": 1140,
+    "height": 780,
+    "alt": "FEA of the wrist with the hand in line and 1000 N at the palm: von Mises stress peaks at 149 MPa",
+    "hash": "e3aad56669"
+  },
+  "midterm-hand": {
+    "src": "/work/robotic-arm/midterm-hand.ebf03476.webp",
+    "width": 676,
+    "height": 535,
+    "alpha": true,
+    "alt": "Midterm renders of the hand: five jointed fingers on a four-part palm, front and back",
+    "hash": "502f6a8373"
+  },
+  "forearm-midterm": {
+    "src": "/work/robotic-arm/forearm-midterm.0147904b.webp",
+    "width": 512,
+    "height": 462,
+    "alt": "Midterm forearm frame in Fusion 360: an open cage of six twisted struts",
+    "hash": "6c7c182888"
+  },
+  "forearm-final": {
+    "src": "/work/robotic-arm/forearm-final.35f127a7.webp",
+    "width": 1350,
+    "height": 1080,
+    "alt": "Final hand and forearm in carbon fiber: the forearm frame is now a dense lofted lattice",
+    "hash": "b3c9be0b06"
   }
 }
