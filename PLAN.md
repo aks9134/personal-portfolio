@@ -12,9 +12,9 @@ Vertical slices only: each one is a thin complete path a visitor could use, and 
 | 4 | Short entries | Buggy analysis, TouchDesigner clips, motorized couch, bolted flange | 1 | done |
 | 5 | About + resume | About with experience and skills; web resume and generated PDF (done 2026-09-21). Later, with Allen: a project description for the Curtiss-Wright entry, written inside naval-nuclear limits (some identifiers and phrasing are restricted, others are not), drafted from what Allen tells us; the knowledge log stays closed | 1 | done (CW description pending Allen) |
 | 6 | Finish | Privacy note, accessibility line, employer disclaimer, 404, social preview images, structured data, `ASSETS.md` complete | 1-5 | done (privacy text pending Allen) |
-| R | Review gauntlet (Phase 6) | All gates green or waived | 6 | todo |
-| L | Launch (Phase 7) | Preview URL on Allen's phone and laptop, then production (accounts and domain are Allen's call) | R | todo |
-| H | Handoff | "How to add a project" steps, handoff note | L | todo |
+| R | Review gauntlet (Phase 6) | All gates green or waived | 6 | done (performance gate to re-check on the live URL) |
+| L | Launch (Phase 7) | Preview URL on Allen's phone and laptop, then production (accounts and domain are Allen's call) | R | ready: scripts/launch-wizard.sh, needs Allen |
+| H | Handoff | "How to add a project" steps, handoff note | L | README written; final note after launch |
 
 Status values: todo, doing, done, dropped (with reason).
 
