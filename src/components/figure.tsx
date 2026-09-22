@@ -48,35 +48,35 @@ export function Model({ media, name, caption }: { media: Record<string, Media>; 
   );
 }
 
-// A silent clip: the browser's own player, nothing downloads until play is pressed.
+// Silent clips in the browser's own player: nothing downloads until play is pressed.
+function Player({ m, label }: { m: Media; label?: string }) {
+  return (
+    <video controls muted playsInline preload="none" poster={m.poster} width={m.width} height={m.height} aria-label={m.alt ?? label} className="h-auto w-full border-[1.5px] border-ink bg-ink">
+      <source src={m.src} type="video/mp4" />
+    </video>
+  );
+}
+
 export function Video({ media, name, caption }: { media: Record<string, Media>; name: string; caption?: string }) {
-  const m = get(media, name);
   return (
     <figure className="clear-both my-12 max-w-4xl">
-      <video controls muted playsInline preload="none" poster={m.poster} width={m.width} height={m.height} aria-label={m.alt} className="h-auto w-full border-[1.5px] border-ink bg-ink">
-        <source src={m.src} type="video/mp4" />
-      </video>
+      <Player m={get(media, name)} />
       {caption && <figcaption className="mt-3 max-w-[65ch] text-sm text-ink-2">{caption}</figcaption>}
     </figure>
   );
 }
 
-// Several silent clips in a grid, each titled. Same player rules as Video.
+// Several clips in a grid, each titled.
 export function Clips({ media, items, caption }: { media: Record<string, Media>; items: Item[]; caption?: string }) {
   return (
     <figure className="clear-both my-12">
       <div className="grid gap-x-6 gap-y-8 sm:grid-cols-2">
-        {items.map((it) => {
-          const m = get(media, it.name);
-          return (
-            <div key={it.name}>
-              <video controls muted playsInline preload="none" poster={m.poster} width={m.width} height={m.height} aria-label={m.alt ?? it.label} className="h-auto w-full border-[1.5px] border-ink bg-ink">
-                <source src={m.src} type="video/mp4" />
-              </video>
-              <p className="mt-2 text-sm font-semibold">{it.label}</p>
-            </div>
-          );
-        })}
+        {items.map((it) => (
+          <div key={it.name}>
+            <Player m={get(media, it.name)} label={it.label} />
+            <p className="mt-2 text-sm font-semibold">{it.label}</p>
+          </div>
+        ))}
       </div>
       {caption && <figcaption className="mt-4 max-w-[65ch] text-sm text-ink-2">{caption}</figcaption>}
     </figure>

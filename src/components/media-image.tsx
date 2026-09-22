@@ -25,7 +25,7 @@ export function MediaImage({
         height={m.height}
         alt={m.alt ?? ""}
         sizes={sizes}
-        priority={priority}
+        {...(priority && { loading: "eager" as const, fetchPriority: "high" as const })}
         style={{ maxWidth: `min(100%, ${m.width}px)` }}
         className={cn("h-auto w-full", imgClassName)}
       />

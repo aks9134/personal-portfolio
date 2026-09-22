@@ -22,8 +22,8 @@ for (const route of routes) {
       // Default for Allen's sites is zero third-party requests (privacy, speed).
       // If a third party is approved, list it in DECISIONS-LOG.md and allow it here.
       expect([...thirdParty], 'third-party origins contacted').toEqual([]);
-      // The media pipeline already sizes and fingerprints images. Next's runtime optimizer wedged on an
-      // aborted request under `next start` (DECISIONS-LOG 2026-09-21), so it stays off.
+      // Images come pre-sized from the media pipeline through src/lib/image-loader.ts. Next's runtime optimizer
+      // wedged on an aborted request under `next start` (DECISIONS-LOG 2026-09-21), so it stays off.
       expect(optimizer, 'requests to the /_next/image optimizer').toEqual([]);
     });
 

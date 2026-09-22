@@ -22,6 +22,7 @@ const only = args.find((a) => !a.startsWith('--'));
 const PYTHON = path.join('.venv-media', 'Scripts', 'python.exe');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'media-'));
 let occt; // STEP reader, loaded on first use
+const WIDTHS = [640, 828, 1200]; // width copies of every WebP; keep in sync with src/lib/image-loader.ts
 const HANDLERS = { '.png': image, '.jpg': image, '.jpeg': image, '.pdf': image, '.step': model, '.stp': model, '.mov': video, '.mp4': video };
 
 try {
@@ -48,6 +49,7 @@ try {
     }
     // ponytail: stale files in public/work/<slug>/ are not deleted; clear the folder and rerun if it matters.
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
+    await widths(manifest);
   }
 } finally {
   try {
@@ -205,11 +207,26 @@ async function video(item, slug, outDir) {
   };
 }
 
-// Move a finished file into public/ as <name>.<content hash>.<ext> and delete that name's older versions.
+// Phone- and laptop-sized copies of every WebP (<file>.w640.webp and so on), made from the published file.
+// src/lib/image-loader.ts picks one per screen, so no resizing service runs at request time. Keep WIDTHS in sync there.
+async function widths(manifest) {
+  for (const m of Object.values(manifest)) {
+    for (const url of [m.src, m.poster]) {
+      if (!url?.endsWith('.webp')) continue;
+      const file = path.join('public', url);
+      for (const w of WIDTHS) {
+        const out = file.replace(/\.webp$/, `.w${w}.webp`);
+        if (!fs.existsSync(out)) await sharp(file).resize({ width: w, withoutEnlargement: true }).webp({ quality: 82, alphaQuality: 90 }).toFile(out);
+      }
+    }
+  }
+}
+
+// Move a finished file into public/ as <name>.<content hash>.<ext> and delete that name's older versions (width copies too).
 // A changed file gets a new URL, so no browser, CDN or image-optimizer cache can serve a stale copy.
 function publish(file, slug, outDir, name, ext) {
   const hash = createHash("sha1").update(fs.readFileSync(file)).digest("hex").slice(0, 8);
-  const old = new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\.[0-9a-f]{8})?\\.${ext}$`);
+  const old = new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\.[0-9a-f]{8})?(\\.w\\d+)?\\.${ext}$`);
   for (const f of fs.readdirSync(outDir)) if (old.test(f)) fs.rmSync(path.join(outDir, f));
   const out = `${name}.${hash}.${ext}`;
   fs.copyFileSync(file, path.join(outDir, out));

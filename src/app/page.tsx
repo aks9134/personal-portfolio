@@ -3,7 +3,8 @@ import { MediaImage } from "@/components/media-image";
 import { PartsFigure } from "@/components/parts-figure";
 import { SiteNav } from "@/components/site-nav";
 import { Stamp, tiltFor } from "@/components/stamp";
-import { education, experience, site } from "@/lib/site";
+import { resume } from "@/lib/resume";
+import { site } from "@/lib/site";
 
 // Structured data for search engines: who this page is about (Next.js JSON-LD guide; "<" escaped against injection).
 const profile = {
@@ -14,7 +15,7 @@ const profile = {
     name: site.name,
     jobTitle: "Mechanical Design Engineer",
     worksFor: { "@type": "Organization", name: "Curtiss-Wright" },
-    alumniOf: { "@type": "CollegeOrUniversity", name: education.school },
+    alumniOf: { "@type": "CollegeOrUniversity", name: resume.education.school },
     email: `mailto:${site.email}`,
     sameAs: [site.linkedin],
     knowsAbout: ["Mechanical design", "Machining", "Finite element analysis", "GD&T", "Prototyping"],
@@ -146,15 +147,15 @@ export default async function Home() {
       <section id="experience" aria-labelledby="exp-title" className="mt-24 scroll-mt-6 border-t-[1.5px] border-ink pt-5">
         <h2 id="exp-title" className="text-3xl font-extrabold tracking-[-0.02em] [font-stretch:108%]">Experience</h2>
         <dl className="mt-6 grid gap-x-10 gap-y-6 md:grid-cols-2">
-          {experience.map((e) => (
+          {resume.jobs.map((e) => (
             <div key={e.org}>
               <dt className="font-bold">{e.org}</dt>
               <dd className="text-ink-2">{e.title}, {e.place}. <span className="tabular-nums">{e.dates}</span></dd>
             </div>
           ))}
           <div>
-            <dt className="font-bold">{education.school}</dt>
-            <dd className="text-ink-2">{education.degree}, <span className="tabular-nums">{education.year}</span></dd>
+            <dt className="font-bold">{resume.education.school}</dt>
+            <dd className="text-ink-2">{resume.education.degree}, <span className="tabular-nums">{resume.education.year}</span></dd>
           </div>
         </dl>
       </section>

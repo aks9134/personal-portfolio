@@ -2,11 +2,13 @@ import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // `npm run media` already writes web-sized, content-hashed WebP. Next's runtime optimizer only re-encoded
-  // them, and under `next start` a request the browser aborted mid-optimization wedged that image size
-  // until restart (DECISIONS-LOG 2026-09-21).
-  // ponytail: one width per image; have the pipeline write phone widths if Lighthouse mobile LCP fails.
-  images: { unoptimized: true },
+  // No runtime optimizer: under `next start` a request the browser aborted mid-optimization wedged that image
+  // size until restart (DECISIONS-LOG 2026-09-21). `npm run media` writes content-hashed WebP plus 640/828/1200 px
+  // copies, and this loader picks the copy that fits the screen.
+  images: { loader: "custom", loaderFile: "./src/lib/image-loader.ts" },
+  // CSS arrives inside the HTML instead of as a render-blocking file: Tailwind keeps it small, and most visitors
+  // are first-timers from a resume link (Next.js inlineCss guide; experimental, measured with Lighthouse).
+  experimental: { inlineCss: true },
   // Security headers (framework Phase 7, Next.js CSP guide "without nonces", which keeps pages static).
   // Everything loads from this site. 'unsafe-inline' covers Next's inline bootstrap scripts and style attributes;
   // 'wasm-unsafe-eval' is the 3D viewer's meshopt decoder (WebAssembly). Retest the viewers after any change here.
