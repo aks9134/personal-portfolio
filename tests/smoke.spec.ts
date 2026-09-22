@@ -48,6 +48,13 @@ for (const route of routes) {
         await page.goto(route);
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
         expect(overflow, `horizontal overflow at ${width}px`).toBeLessThanOrEqual(1);
+        // Pages clip sideways overflow, so a too-wide image is cut off silently instead of scrolling. Catch it here.
+        const cut = await page.evaluate(() =>
+          [...document.querySelectorAll('img, video, model-viewer')]
+            .filter((el) => el.getBoundingClientRect().right > document.documentElement.clientWidth + 1)
+            .map((el) => el.getAttribute('src') ?? el.tagName),
+        );
+        expect(cut, `media cut off at ${width}px`).toEqual([]);
       }
     });
 

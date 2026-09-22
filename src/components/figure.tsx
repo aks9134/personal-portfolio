@@ -41,7 +41,7 @@ export function Strip({ media, items, caption }: { media: Record<string, Media>;
 // A design generation as a rotatable 3D model, loaded only when the visitor asks for it.
 export function Model({ media, name, caption }: { media: Record<string, Media>; name: string; caption?: string }) {
   return (
-    <figure className="clear-both my-12 max-w-4xl">
+    <figure className="clear-both my-12 max-w-3xl">
       <ModelViewer m={get(media, name)} />
       {caption && <figcaption className="mt-3 max-w-[65ch] text-sm text-ink-2">{caption}</figcaption>}
     </figure>
