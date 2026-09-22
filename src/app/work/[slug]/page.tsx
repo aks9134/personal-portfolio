@@ -5,6 +5,7 @@ import { MediaImage } from "@/components/media-image";
 import { PartsFigure } from "@/components/parts-figure";
 import { SiteHeader } from "@/components/site-nav";
 import { Stamp, tiltFor } from "@/components/stamp";
+import og from "@/lib/og.generated.json";
 import { allWork, getWork, still, workSlugs } from "@/lib/work";
 
 export const dynamicParams = false;
@@ -14,12 +15,12 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps<"/work/[slug]">): Promise<Metadata> {
-  const w = await getWork((await params).slug);
-  const og = still(w.media[w.hero]);
+  const { slug } = await params;
+  const w = await getWork(slug);
   return {
     title: w.title,
     description: w.line,
-    openGraph: { title: w.title, description: w.line, images: [{ url: og.src, width: og.width, height: og.height, alt: og.alt }] },
+    openGraph: { title: w.title, description: w.line, images: [{ url: og[slug as keyof typeof og], width: 1200, height: 630, alt: still(w.media[w.hero]).alt }] },
   };
 }
 

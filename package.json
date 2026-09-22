@@ -10,7 +10,8 @@
     "test": "playwright test",
     "tells": "node scripts/check-tells.mjs",
     "media": "node scripts/media/build.mjs",
-    "resume:pdf": "node scripts/resume-pdf.mjs"
+    "resume:pdf": "node scripts/resume-pdf.mjs",
+    "og": "node scripts/og.mjs"
   },
   "dependencies": {
     "@google/model-viewer": "^4.3.1",

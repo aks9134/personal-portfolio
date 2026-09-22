@@ -11,6 +11,7 @@ export const routes: string[] = [
   '/work/bolted-flange',
   '/about',
   '/resume',
+  '/privacy',
 ];
 
 // Widths checked for layout breakage. 320 is the WCAG reflow floor.

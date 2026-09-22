@@ -4,6 +4,22 @@ import { PartsFigure } from "@/components/parts-figure";
 import { SiteNav } from "@/components/site-nav";
 import { Stamp, tiltFor } from "@/components/stamp";
 import { education, experience, site } from "@/lib/site";
+
+// Structured data for search engines: who this page is about (Next.js JSON-LD guide; "<" escaped against injection).
+const profile = {
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  mainEntity: {
+    "@type": "Person",
+    name: site.name,
+    jobTitle: "Mechanical Design Engineer",
+    worksFor: { "@type": "Organization", name: "Curtiss-Wright" },
+    alumniOf: { "@type": "CollegeOrUniversity", name: education.school },
+    email: `mailto:${site.email}`,
+    sameAs: [site.linkedin],
+    knowsAbout: ["Mechanical design", "Machining", "Finite element analysis", "GD&T", "Prototyping"],
+  },
+};
 import { allWork, still, type Work } from "@/lib/work";
 
 const titleLink = "hover:text-stamp hover:underline";
@@ -89,6 +105,7 @@ export default async function Home() {
 
   return (
     <main id="main" className="mx-auto max-w-[1400px] overflow-x-clip px-4 md:px-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profile).replace(/</g, "\\u003c") }} />
       <header className="flex flex-col gap-5 pt-8 md:flex-row md:items-start md:justify-between md:pt-10">
         <div>
           <h1 className="text-6xl font-extrabold leading-[0.95] tracking-[-0.035em] [font-stretch:112%] md:text-[5.25rem]">{site.name}</h1>
