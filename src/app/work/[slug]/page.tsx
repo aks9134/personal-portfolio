@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Figure, Strip } from "@/components/figure";
+import { Figure, Model, Strip, Video } from "@/components/figure";
 import { MediaImage } from "@/components/media-image";
 import { PartsFigure } from "@/components/parts-figure";
 import { SiteHeader } from "@/components/site-nav";
@@ -77,6 +77,8 @@ export default async function WorkPage({ params }: PageProps<"/work/[slug]">) {
             components={{
               Figure: (p: Omit<Parameters<typeof Figure>[0], "media">) => <Figure media={w.media} {...p} />,
               Strip: (p: Omit<Parameters<typeof Strip>[0], "media">) => <Strip media={w.media} {...p} />,
+              Model: (p: Omit<Parameters<typeof Model>[0], "media">) => <Model media={w.media} {...p} />,
+              Video: (p: Omit<Parameters<typeof Video>[0], "media">) => <Video media={w.media} {...p} />,
             }}
           />
         </article>

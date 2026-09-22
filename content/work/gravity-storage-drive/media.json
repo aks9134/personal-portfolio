@@ -23,17 +23,20 @@
   {
     "out": "geared-module",
     "src": "Info Repository/Terrament/Final Assembly Model.step",
-    "alt": "3D model of the geared drive module with cycloidal reduction"
+    "alt": "3D model of the geared drive module with cycloidal reduction",
+    "orbit": "60deg 65deg auto"
   },
   {
     "out": "pin-concept",
     "src": "Info Repository/Terrament/New Assembly.step",
-    "alt": "3D model of the first linear harmonic concept: a six-pin carriage in a profiled slot"
+    "alt": "3D model of the first linear harmonic concept: a six-pin carriage in a profiled slot",
+    "orbit": "210deg 65deg auto"
   },
   {
     "out": "harmonic-drive",
     "src": "Info Repository/Terrament/New Assembly 2.step",
-    "alt": "3D model of the linear harmonic drive: belt-driven roller module on a cam-profiled rail"
+    "alt": "3D model of the linear harmonic drive: belt-driven roller module on a cam-profiled rail",
+    "orbit": "300deg 60deg auto"
   },
   {
     "out": "module-animation",

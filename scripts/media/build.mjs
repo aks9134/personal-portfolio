@@ -35,7 +35,8 @@ try {
     const manifest = {};
     for (const item of JSON.parse(fs.readFileSync(listPath, 'utf8'))) {
       const hash = createHash('sha1').update(JSON.stringify(item)).digest('hex').slice(0, 10);
-      if (!force && old[item.out]?.hash === hash) {
+      const posterless = HANDLERS[path.extname(item.src).toLowerCase()] === model && !old[item.out]?.poster;
+      if (!force && old[item.out]?.hash === hash && !posterless) {
         manifest[item.out] = old[item.out];
         continue;
       }
@@ -96,7 +97,8 @@ function pdfJpeg(file, obj) {
 }
 
 // STEP -> compressed GLB, one mesh per solid, CAD colors kept unless `color` overrides.
-// Optional: deflection (smaller = finer mesh), color "#rrggbb", metallic, roughness.
+// Optional: deflection (smaller = finer mesh), color "#rrggbb", metallic, roughness, orbit (camera angle for the
+// poster and the page viewer, model-viewer camera-orbit syntax, e.g. "60deg 65deg auto").
 async function model(item, slug, outDir) {
   occt ??= await occtimportjs();
   const res = occt.ReadStepFile(new Uint8Array(fs.readFileSync(item.src)), {
@@ -129,7 +131,55 @@ async function model(item, slug, outDir) {
   const file = path.join(tmp, "out.glb");
   await new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.encoder': MeshoptEncoder }).write(file, doc);
   const bytes = fs.statSync(file).size;
-  return { src: publish(file, slug, outDir, item.out, "glb"), parts: res.meshes.length, bytes };
+  const poster = await modelPoster(file, item.orbit);
+  return {
+    src: publish(file, slug, outDir, item.out, "glb"),
+    poster: publish(poster.file, slug, outDir, `${item.out}-poster`, "webp"),
+    width: poster.width,
+    height: poster.height,
+    parts: res.meshes.length,
+    bytes,
+    ...(item.orbit && { orbit: item.orbit }),
+  };
+}
+
+// GLB -> see-through WebP poster, rendered by the same <model-viewer> the page loads, in the viewer's 4:3 frame,
+// so the swap from poster to live model doesn't jump. Headless Chromium draws WebGL in software (SwiftShader).
+async function modelPoster(glb, orbit) {
+  const { chromium } = await import('@playwright/test');
+  const [w, h] = [1200, 900];
+  const files = {
+    '/mv.js': 'node_modules/@google/model-viewer/dist/model-viewer.min.js',
+    '/decoder.js': 'public/vendor/meshopt_decoder.js',
+    '/model.glb': glb,
+  };
+  const html = `<!doctype html><style>html,body{margin:0;background:transparent}model-viewer{width:${w}px;height:${h}px}</style>
+<script>self.ModelViewerElement = { meshoptDecoderLocation: '/decoder.js' };</script>
+<script type="module" src="/mv.js"></script>
+<model-viewer src="/model.glb" interaction-prompt="none"${orbit ? ` camera-orbit="${orbit}"` : ""}></model-viewer>`;
+  const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+  try {
+    const page = await browser.newPage({ viewport: { width: w, height: h } });
+    await page.route('http://poster.local/**', (r) => {
+      const p = new URL(r.request().url()).pathname;
+      if (p === '/') return r.fulfill({ contentType: 'text/html', body: html });
+      return files[p] ? r.fulfill({ path: files[p] }) : r.abort();
+    });
+    await page.goto('http://poster.local/');
+    const dataUrl = await page.evaluate(async () => {
+      const mv = document.querySelector('model-viewer');
+      await customElements.whenDefined('model-viewer');
+      if (!mv.loaded) await new Promise((ok, fail) => { mv.addEventListener('load', ok); mv.addEventListener('error', fail); });
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const blob = await mv.toBlob({ mimeType: 'image/png', idealAspect: false });
+      return new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+    });
+    const file = path.join(tmp, 'poster.webp');
+    const info = await sharp(Buffer.from(dataUrl.split(',')[1], 'base64')).webp({ quality: 85, alphaQuality: 100 }).toFile(file);
+    return { file, width: info.width, height: info.height };
+  } finally {
+    await browser.close();
+  }
 }
 
 // Video -> muted H.264 MP4 with a WebP poster. Optional: crop "w:h:x:y", start, duration (s), width, posterAt (s).

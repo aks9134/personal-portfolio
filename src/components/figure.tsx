@@ -1,5 +1,6 @@
 import type { Media } from "@/lib/work";
 import { MediaImage } from "./media-image";
+import { ModelViewer } from "./model-viewer";
 
 type Item = { name: string; label: string };
 
@@ -32,6 +33,29 @@ export function Strip({ media, items, caption }: { media: Record<string, Media>;
           </div>
         ))}
       </div>
+      {caption && <figcaption className="mt-3 max-w-[65ch] text-sm text-ink-2">{caption}</figcaption>}
+    </figure>
+  );
+}
+
+// A design generation as a rotatable 3D model, loaded only when the visitor asks for it.
+export function Model({ media, name, caption }: { media: Record<string, Media>; name: string; caption?: string }) {
+  return (
+    <figure className="clear-both my-12 max-w-4xl">
+      <ModelViewer m={get(media, name)} />
+      {caption && <figcaption className="mt-3 max-w-[65ch] text-sm text-ink-2">{caption}</figcaption>}
+    </figure>
+  );
+}
+
+// A silent clip: the browser's own player, nothing downloads until play is pressed.
+export function Video({ media, name, caption }: { media: Record<string, Media>; name: string; caption?: string }) {
+  const m = get(media, name);
+  return (
+    <figure className="clear-both my-12 max-w-4xl">
+      <video controls muted playsInline preload="none" poster={m.poster} width={m.width} height={m.height} aria-label={m.alt} className="h-auto w-full border-[1.5px] border-ink bg-ink">
+        <source src={m.src} type="video/mp4" />
+      </video>
       {caption && <figcaption className="mt-3 max-w-[65ch] text-sm text-ink-2">{caption}</figcaption>}
     </figure>
   );

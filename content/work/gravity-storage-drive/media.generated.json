@@ -24,24 +24,36 @@
   },
   "geared-module": {
     "src": "/work/gravity-storage-drive/geared-module.e113c582.glb",
+    "poster": "/work/gravity-storage-drive/geared-module-poster.aacff5ad.webp",
+    "width": 1200,
+    "height": 900,
     "parts": 248,
     "bytes": 3125968,
+    "orbit": "60deg 65deg auto",
     "alt": "3D model of the geared drive module with cycloidal reduction",
-    "hash": "2cbd64d1ca"
+    "hash": "274f049c29"
   },
   "pin-concept": {
     "src": "/work/gravity-storage-drive/pin-concept.2d79e610.glb",
+    "poster": "/work/gravity-storage-drive/pin-concept-poster.cde28c6e.webp",
+    "width": 1200,
+    "height": 900,
     "parts": 9,
     "bytes": 33660,
+    "orbit": "210deg 65deg auto",
     "alt": "3D model of the first linear harmonic concept: a six-pin carriage in a profiled slot",
-    "hash": "d27d6390a1"
+    "hash": "52bfc4d8cd"
   },
   "harmonic-drive": {
     "src": "/work/gravity-storage-drive/harmonic-drive.dab3d827.glb",
+    "poster": "/work/gravity-storage-drive/harmonic-drive-poster.a850ca96.webp",
+    "width": 1200,
+    "height": 900,
     "parts": 183,
     "bytes": 591652,
+    "orbit": "300deg 60deg auto",
     "alt": "3D model of the linear harmonic drive: belt-driven roller module on a cam-profiled rail",
-    "hash": "59334ebb40"
+    "hash": "1ea2c381b4"
   },
   "module-animation": {
     "src": "/work/gravity-storage-drive/module-animation.9e77a0bf.mp4",

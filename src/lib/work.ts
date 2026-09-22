@@ -13,6 +13,7 @@ export type Media = {
   poster?: string;
   parts?: number;
   bytes?: number;
+  orbit?: string; // 3D models: camera angle shared by the poster and the viewer
 };
 
 export type Part = { n: number; name: string; note: string; x: number; y: number };
