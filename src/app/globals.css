@@ -43,6 +43,18 @@
   html {
     @apply bg-stock font-sans text-ink antialiased;
     scrollbar-color: var(--ink-2) var(--stock);
+    /* Phones: no gray flash on tap (controls have their own press states), no text inflation in landscape. */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  /* Taps fire at once (no double-tap-zoom wait); a long press on a control doesn't select its label. */
+  a,
+  button {
+    touch-action: manipulation;
+  }
+  button {
+    user-select: none;
+    -webkit-user-select: none;
   }
   body {
     caret-color: var(--stamp);

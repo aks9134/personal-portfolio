@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Archivo } from "next/font/google";
 import Link from "next/link";
 import og from "@/lib/og.generated.json";
@@ -13,6 +13,14 @@ export const metadata: Metadata = {
   // Link previews (npm run og). Pages without their own inherit these.
   openGraph: { type: "website", siteName: site.name, title: `${site.name}, ${site.role.toLowerCase()}`, description: site.description, images: [{ url: og.home, width: 1200, height: 630, alt: "Exploded view of the micro-vibration canceller" }] },
   twitter: { card: "summary_large_image" },
+};
+
+// Phone status bar and browser chrome take the page color in each scheme (the stock, or the night sheet).
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4e3a8" },
+    { media: "(prefers-color-scheme: dark)", color: "#19160e" },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
