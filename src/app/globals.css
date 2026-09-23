@@ -293,6 +293,166 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* Schedule bars: section-view hatching inside an ink outline. The job still running is stamp blue
+     with an open end, because it hasn't finished. */
+  .bar {
+    border: 1.5px solid var(--ink);
+    background: repeating-linear-gradient(-45deg, var(--ink) 0 1px, transparent 1px 7px);
+    transform-origin: left center;
+  }
+  .bar-live {
+    border-color: var(--stamp);
+    border-right-style: dashed;
+    background: repeating-linear-gradient(-45deg, var(--stamp) 0 1.5px, transparent 1.5px 6px);
+  }
+  /* Bars are struck left to right as the schedule crosses the screen, one row after another. */
+  @media screen and (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .bar {
+        animation: draw-rule linear both;
+        animation-timeline: view();
+        animation-range: entry calc(20% + var(--n, 0) * 8%) cover calc(40% + var(--n, 0) * 6%);
+      }
+    }
+  }
+
+  /* Case-study figures are numbered like a report's: only captioned figures count, so the numbers never skip. */
+  .case-body {
+    counter-reset: fig;
+  }
+  .case-body figure:has(> figcaption) {
+    counter-increment: fig;
+  }
+  .case-body figure > figcaption::before {
+    content: "Fig. " counter(fig) ". ";
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  /* Work index. The row being read is shaded like an active legend row, and its render is wiped onto the
+     sheet from the left, over the last one, like a drawing pulled across a board. */
+  .index-row:focus-visible {
+    background: var(--stock-2);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .index-row:hover,
+    .index-row[data-on] {
+      background: var(--stock-2);
+    }
+  }
+  .index-plate {
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 260ms var(--ease-out);
+  }
+  .index-plate[data-on] {
+    z-index: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .index-plate {
+      transition: none;
+    }
+  }
+
+  /* Case-study sheet bar: slides down from the top edge once the title has gone, back up when it returns. */
+  .sheet-bar {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 30;
+    background: var(--stock);
+    border-bottom: 1.5px solid var(--ink);
+    transform: translateY(calc(-100% - 3px));
+    transition: transform 220ms var(--ease-out);
+  }
+  .sheet-bar[data-shown] {
+    transform: translateY(0);
+  }
+  .sheet-link {
+    display: inline-block;
+    color: var(--ink-2);
+    transition: color 160ms ease;
+  }
+  .sheet-link:hover,
+  .sheet-link[aria-current] {
+    color: var(--stamp);
+  }
+  .sheet-link[aria-current] {
+    font-weight: 700;
+  }
+  /* Reading progress as a dimension line along the bar's bottom edge, driven by the scrollbar itself. */
+  .sheet-progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1.5px;
+    height: 2.5px;
+    background: var(--stamp);
+    transform-origin: left center;
+    display: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+      .sheet-progress {
+        display: block;
+        animation: draw-rule linear both;
+        animation-timeline: scroll(root block);
+      }
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sheet-bar {
+      transition: none;
+    }
+  }
+
+  /* Pressable controls give under the finger. */
+  .press {
+    transition:
+      transform 160ms var(--ease-out),
+      background-color 160ms ease,
+      color 160ms ease;
+  }
+  .press:active {
+    transform: scale(0.97);
+  }
+  /* Two labels in one cell (Copy / Copied): the outgoing one blurs away as the new one arrives. */
+  .press:has(.swap) {
+    display: inline-grid;
+  }
+  .swap {
+    grid-area: 1 / 1;
+    text-align: center;
+    opacity: 0;
+    filter: blur(3px);
+    transition:
+      opacity 200ms var(--ease-out),
+      filter 200ms var(--ease-out);
+  }
+  .swap[data-on] {
+    opacity: 1;
+    filter: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .press,
+    .swap {
+      transition: none;
+    }
+    .press:active {
+      transform: none;
+    }
+  }
+  .contact-mail {
+    text-decoration: underline;
+    text-decoration-thickness: 0.06em;
+    text-underline-offset: 0.12em;
+    overflow-wrap: anywhere;
+    transition: color 160ms ease;
+  }
+  .contact-mail:hover,
+  .contact-mail:focus-visible {
+    color: var(--stamp);
+  }
+
   /* Chips fill from the side the pointer entered, and lean toward it. */
   .chip-fill {
     position: relative;
@@ -419,20 +579,27 @@ html[data-flipping]::view-transition-new(root) {
   }
 }
 
-/* A slow band of the tools he actually uses. Paused for anyone who asked for less motion. */
+/* The tools he actually uses, as a band that slides with the scrollbar. It never moves on its own, so
+   nothing on the page runs without the visitor (WCAG 2.2.2), and it holds still under reduced motion. */
 .marquee {
   display: flex;
   gap: 0;
   width: max-content;
-  animation: marquee 48s linear infinite;
 }
-@media (prefers-reduced-motion: reduce) {
-  .marquee {
-    animation: none;
+@media screen and (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .marquee {
+      animation: marquee linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
   }
 }
 @keyframes marquee {
+  from {
+    transform: translateX(4%);
+  }
   to {
-    transform: translateX(-50%);
+    transform: translateX(-38%);
   }
 }

@@ -1,10 +1,13 @@
+import { Contact } from "@/components/contact";
 import { HeroModel } from "@/components/hero-model";
 import { KineticName } from "@/components/kinetic-name";
 import { MediaImage } from "@/components/media-image";
 import { PartsFigure } from "@/components/parts-figure";
+import { Schedule } from "@/components/schedule";
 import { SiteNav } from "@/components/site-nav";
 import { Stamp, tiltFor } from "@/components/stamp";
 import { Tilt } from "@/components/tilt";
+import { WorkIndex } from "@/components/work-index";
 import { resume } from "@/lib/resume";
 import { site } from "@/lib/site";
 
@@ -27,7 +30,7 @@ import { allWork, still, type Work } from "@/lib/work";
 
 const titleLink = "hover:text-stamp hover:underline";
 
-// The shop and software he works in, run as a slow band. Decorative: the real list lives on /about.
+// The shop and software he works in, as a band that slides with the scroll. Decorative: the real list lives on /about.
 const tools = [
   "SolidWorks", "Fusion 360", "Solid Edge", "ANSYS Mechanical", "Fluent CFD", "MATLAB", "Simulink",
   "Arduino", "GD&T ASME Y14.5", "Tolerance stack-ups", "Manual mill", "Lathe", "Welding", "3D printing",
@@ -86,15 +89,26 @@ function Band({ w }: { w: Work }) {
       </article>
     );
 
-  if (ratio < 0.8)
+  // A tall render leaves the text column mostly empty, so the real hardware (the project's hero photo) fills it.
+  if (ratio < 0.8) {
+    const photo = w.cover && w.cover !== w.hero ? still(w.media[w.hero]) : null;
     return (
-      <article className="rise mt-20 grid gap-10 border-t-[1.5px] border-ink pt-5 md:grid-cols-2 md:items-center">
-        {text}
+      <article className="rise mt-20 grid gap-10 border-t-[1.5px] border-ink pt-5 md:grid-cols-[1.3fr_1fr] md:items-center">
+        <div>
+          {text}
+          {photo && (
+            <figure className="mt-10">
+              <MediaImage m={photo} sizes="(min-width: 768px) 40vw, 100vw" className="wipe" imgClassName="max-w-[min(100%,30rem)]" />
+              {photo.alt && <figcaption aria-hidden className="mt-2 text-sm text-ink-2">{photo.alt.split(":")[0]}.</figcaption>}
+            </figure>
+          )}
+        </div>
         <Tilt className="mx-auto w-fit">
-          <MediaImage m={m} sizes="20rem" className="wipe" imgClassName="h-[28rem] w-auto md:h-[38rem]" style={vt} />
+          <MediaImage m={m} sizes="20rem" className="wipe" imgClassName="h-[28rem] w-auto md:h-[40rem]" style={vt} />
         </Tilt>
       </article>
     );
+  }
 
   return (
     <article className="rise mt-20 grid gap-10 border-t-[1.5px] border-ink pt-5 md:grid-cols-[1.1fr_1fr] md:items-center">
@@ -177,8 +191,20 @@ export default async function Home() {
         </div>
       </section>
 
-      <section id="work" aria-labelledby="work-title" data-rail="Selected work" className="scroll-mt-6">
-        <h2 id="work-title" className="sr-only">More work</h2>
+      <section id="work" aria-labelledby="work-title" data-rail="Work" className="mt-20 scroll-mt-6">
+        <h2 id="work-title" className="text-3xl font-extrabold tracking-[-0.02em] [font-stretch:108%]">All work</h2>
+        <div className="rise mt-6">
+          <WorkIndex
+            rows={all.map((w) => ({
+              slug: w.slug,
+              title: w.title,
+              context: w.context,
+              year: w.year,
+              status: w.status,
+              still: still(w.media[w.cover ?? w.hero]),
+            }))}
+          />
+        </div>
         {cases.map((w) => <Band key={w.slug} w={w} />)}
         <div className="mt-20 grid gap-x-8 gap-y-14 border-t-[1.5px] border-ink pt-8 sm:grid-cols-2 lg:grid-cols-4">
           {shorts.map((w) => <ShortEntry key={w.slug} w={w} />)}
@@ -202,25 +228,14 @@ export default async function Home() {
 
       <section id="experience" aria-labelledby="exp-title" data-rail="Experience" className="rise mt-24 scroll-mt-6 border-t-[1.5px] border-ink pt-5">
         <h2 id="exp-title" className="text-3xl font-extrabold tracking-[-0.02em] [font-stretch:108%]">Experience</h2>
-        <dl className="mt-6 grid gap-x-10 gap-y-6 md:grid-cols-2">
-          {resume.jobs.map((e) => (
-            <div key={e.org}>
-              <dt className="font-bold">{e.org}</dt>
-              <dd className="text-ink-2">{e.title}, {e.place}. <span className="whitespace-nowrap tabular-nums">{e.dates}</span></dd>
-            </div>
-          ))}
-          <div>
-            <dt className="font-bold">{resume.education.school}</dt>
-            <dd className="text-ink-2">{resume.education.degree}, <span className="tabular-nums">{resume.education.year}</span></dd>
-          </div>
-        </dl>
+        <Schedule jobs={resume.jobs} />
+        <p className="mt-8">
+          <span className="font-bold">{resume.education.school}</span>
+          <span className="text-ink-2">, {resume.education.degree}, <span className="tabular-nums">{resume.education.year}</span></span>
+        </p>
       </section>
 
-      <p data-rail="Contact" className="rise mt-20 max-w-[62ch] text-xl leading-snug">
-        Want to talk about any of this? Email{" "}
-        <a href={`mailto:${site.email}`} className="font-semibold underline hover:text-stamp">{site.email}</a> or find me on{" "}
-        <a href={site.linkedin} className="font-semibold underline hover:text-stamp">LinkedIn</a>.
-      </p>
+      <Contact />
     </main>
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo } from "next/font/google";
 import { ScrollRail } from "@/components/scroll-rail";
+import { SiteFooter } from "@/components/site-footer";
 import { preview } from "@/lib/og";
 import { site } from "@/lib/site";
 import "./globals.css";
@@ -47,16 +48,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         <ScrollRail />
         {children}
-        <footer className="mx-auto mt-28 max-w-[1400px] px-4 pb-10 md:px-10">
-          <div className="flex flex-col gap-3 border-t-[1.5px] border-ink pt-5 text-sm md:flex-row md:justify-between">
-            <p>{site.name}. Views are my own and don&apos;t represent any employer.</p>
-            <p className="flex flex-wrap gap-x-6 gap-y-2">
-              <a href="/privacy" className="underline hover:text-stamp">Privacy and accessibility</a>
-              <a href={`mailto:${site.email}`} className="underline hover:text-stamp">{site.email}</a>
-              <a href={site.linkedin} className="underline hover:text-stamp">LinkedIn</a>
-            </p>
-          </div>
-        </footer>
+        <SiteFooter />
       </body>
     </html>
   );

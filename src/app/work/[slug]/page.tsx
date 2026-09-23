@@ -3,6 +3,7 @@ import { Tilt } from "@/components/tilt";
 import { Clips, Figure, Model, Strip, Video } from "@/components/figure";
 import { MediaImage } from "@/components/media-image";
 import { PartsFigure } from "@/components/parts-figure";
+import { SheetBar } from "@/components/sheet-bar";
 import { SiteHeader } from "@/components/site-nav";
 import { Stamp, tiltFor } from "@/components/stamp";
 import { preview, projectImage } from "@/lib/og";
@@ -40,6 +41,7 @@ export default async function WorkPage({ params }: PageProps<"/work/[slug]">) {
   return (
     <>
       <SiteHeader />
+      <SheetBar title={w.title} />
       <main id="main" className="mx-auto max-w-[1400px] overflow-x-clip px-4 md:px-10">
         {/* The thing leads: the hero sits beside the title on wide screens and right after the summary on phones.
             Pages with a parts figure show it full width below instead, because its legend needs the room. */}
@@ -81,7 +83,7 @@ export default async function WorkPage({ params }: PageProps<"/work/[slug]">) {
           </div>
         )}
 
-        <article className="mt-6">
+        <article className="case-body mt-6">
           <w.Body
             components={{
               Figure: (p: Omit<Parameters<typeof Figure>[0], "media">) => <Figure media={w.media} {...p} />,
