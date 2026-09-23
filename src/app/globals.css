@@ -341,12 +341,19 @@
     }
   }
   .index-plate {
+    background: var(--stock);
     clip-path: inset(0 100% 0 0);
-    transition: clip-path 260ms var(--ease-out);
+    /* The outgoing render stays put under the incoming one until it's covered, then drops out. */
+    transition: clip-path 0s 260ms;
   }
   .index-plate[data-on] {
     z-index: 1;
     clip-path: inset(0 0 0 0);
+    transition: clip-path 260ms var(--ease-out);
+  }
+  /* Keyboard moves through the list snap: motion on a key press only slows the reader down. */
+  :has(.index-row:focus-visible) .index-plate {
+    transition: none;
   }
   @media (prefers-reduced-motion: reduce) {
     .index-plate {
@@ -370,11 +377,19 @@
   .sheet-link {
     display: inline-block;
     color: var(--ink-2);
-    transition: color 160ms ease;
   }
-  .sheet-link:hover,
+  .sheet-link:focus-visible,
   .sheet-link[aria-current] {
     color: var(--stamp);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .sheet-link:hover {
+      color: var(--stamp);
+    }
+  }
+  /* The pinned bar is about 46px tall: anything scrolled to (a jump link, keyboard focus) stops below it. */
+  html:has(.sheet-bar) {
+    scroll-padding-top: 4rem;
   }
   .sheet-link[aria-current] {
     font-weight: 700;
@@ -407,15 +422,12 @@
 
   /* Pressable controls give under the finger. */
   .press {
-    transition:
-      transform 160ms var(--ease-out),
-      background-color 160ms ease,
-      color 160ms ease;
+    transition: transform 160ms var(--ease-out);
   }
   .press:active {
     transform: scale(0.97);
   }
-  /* Two labels in one cell (Copy / Copied): the outgoing one blurs away as the new one arrives. */
+  /* Two labels in one cell (Copy / Copied): the new one rises into place as the old one fades. */
   .press:has(.swap) {
     display: inline-grid;
   }
@@ -423,14 +435,14 @@
     grid-area: 1 / 1;
     text-align: center;
     opacity: 0;
-    filter: blur(3px);
+    transform: translateY(3px);
     transition:
       opacity 200ms var(--ease-out),
-      filter 200ms var(--ease-out);
+      transform 200ms var(--ease-out);
   }
   .swap[data-on] {
     opacity: 1;
-    filter: none;
+    transform: none;
   }
   @media (prefers-reduced-motion: reduce) {
     .press,
@@ -446,11 +458,14 @@
     text-decoration-thickness: 0.06em;
     text-underline-offset: 0.12em;
     overflow-wrap: anywhere;
-    transition: color 160ms ease;
   }
-  .contact-mail:hover,
   .contact-mail:focus-visible {
     color: var(--stamp);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .contact-mail:hover {
+      color: var(--stamp);
+    }
   }
 
   /* Chips fill from the side the pointer entered, and lean toward it. */

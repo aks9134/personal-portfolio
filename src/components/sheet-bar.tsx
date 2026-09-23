@@ -19,28 +19,33 @@ export function SheetBar({ title }: { title: string }) {
     const pin = new IntersectionObserver(([e]) => setShown(!e.isIntersecting && e.boundingClientRect.top < 0));
     if (h1) pin.observe(h1);
 
-    const seen = new Map<Element, boolean>();
-    const read = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) seen.set(e.target, e.isIntersecting);
-        // The section being read is the last heading that has passed the reading line.
-        const line = window.innerHeight * 0.3;
-        const passed = heads.filter((h) => h.getBoundingClientRect().top < line);
-        setActive(passed.at(-1)?.id ?? null);
-      },
-      { rootMargin: "0px 0px -70% 0px" },
-    );
-    heads.forEach((h) => read.observe(h));
+    // The section being read is the last heading above the reading line, or the last one once the page bottoms
+    // out (a short final section never reaches the line). Recomputed once per frame while scrolling, so End,
+    // a scrollbar drag or a find-in-page jump can't leave it stale.
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      const line = window.innerHeight * 0.3;
+      const atEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      const passed = heads.filter((h) => h.getBoundingClientRect().top < line);
+      setActive((atEnd && passed.length ? heads.at(-1) : passed.at(-1))?.id ?? null);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(read);
+    };
+    read();
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       pin.disconnect();
-      read.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      if (frame) cancelAnimationFrame(frame);
     };
   }, []);
 
   if (sections.length < 3) return null;
 
   return (
-    <nav aria-label="Sections" inert={!shown} data-shown={shown || undefined} className="sheet-bar print:hidden">
+    <nav aria-label="Case study sections" inert={!shown} data-shown={shown || undefined} className="sheet-bar print:hidden">
       <div className="mx-auto flex max-w-[1400px] items-center gap-6 px-4 md:px-10">
         <a href="#main" className="min-w-0 truncate py-2.5 lg:shrink-0 font-extrabold tracking-[-0.01em] [font-stretch:110%] hover:text-stamp">
           {title}

@@ -40,7 +40,7 @@ export function WorkIndex({ rows }: { rows: IndexRow[] }) {
           {rows.map((r, i) => (
             <div key={r.slug} data-on={on === i || undefined} className="index-plate col-start-1 row-start-1 grid place-items-center overflow-hidden">
               <MediaImage
-                m={{ ...r.still, alt: "" }}
+                m={r.still}
                 sizes="28rem"
                 imgClassName="max-h-[15rem] w-auto xl:max-h-[18rem]"
               />

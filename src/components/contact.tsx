@@ -33,8 +33,8 @@ export function Contact() {
           {site.email}
         </a>
         <button type="button" onClick={copy} className="press border-[1.5px] border-ink px-3 py-1.5 text-sm font-bold hover:bg-ink hover:text-stock">
-          <span className="swap" data-on={!copied || undefined}>Copy</span>
-          <span className="swap" data-on={copied || undefined}>Copied</span>
+          <span className="swap" data-on={!copied || undefined} aria-hidden={copied}>Copy</span>
+          <span className="swap" data-on={copied || undefined} aria-hidden={!copied}>Copied</span>
         </button>
         <span role="status" className="sr-only">{copied ? "Email address copied" : ""}</span>
       </div>

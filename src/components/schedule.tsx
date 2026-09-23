@@ -15,11 +15,12 @@ function month(s: string, fallbackYear?: number) {
 }
 
 // "Sep 2023 - Sep 2024", "Jan - May 2025", "Jun 2025 - present" -> [start, end) in months since year 0.
-export function span(dates: string, now = new Date()) {
+function span(dates: string, now = new Date()) {
   const [a, b] = dates.split(" - ");
   const live = b.trim() === "present";
   const end = live ? now.getFullYear() * 12 + now.getMonth() + 1 : month(b) + 1;
-  const start = month(a, live ? undefined : Math.floor((end - 1) / 12));
+  let start = month(a, live ? undefined : Math.floor((end - 1) / 12));
+  if (start >= end) start -= 12; // "Nov - Feb 2025" starts the year before
   return { start, end, live };
 }
 
