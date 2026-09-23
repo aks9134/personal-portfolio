@@ -22,7 +22,8 @@ for (const [width, height] of [[1440, 900], [390, 844]]) {
       window.scrollTo(0, 0);
     });
     await page.waitForLoadState("networkidle");
-    await page.evaluate(() => Promise.all([...document.images].map((i) => i.decode().catch(() => {}))));
+    // decode() never settles for a lazy image that is never requested (e.g. one in a hidden panel), so cap the wait.
+    await page.evaluate(() => Promise.all([...document.images].map((i) => Promise.race([i.decode().catch(() => {}), new Promise((r) => setTimeout(r, 3000))]))));
     const name = route === "/" ? "home" : route.replace(/^\//, "").replaceAll("/", "-");
     const file = `${out}/${name}-${width}.png`;
     await page.screenshot({ path: file, fullPage: true });

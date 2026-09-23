@@ -20,7 +20,7 @@ await page.evaluate(async () => {
 if (sel === "top") await page.evaluate(() => window.scrollTo(0, 0));
 else await page.locator(sel).first().evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - innerHeight * 0.12));
 await page.waitForTimeout(1600);
-await page.evaluate(() => Promise.all([...document.images].map((i) => i.decode().catch(() => {}))));
+await page.evaluate(() => Promise.all([...document.images].map((i) => Promise.race([i.decode().catch(() => {}), new Promise((r) => setTimeout(r, 3000))]))));
 await page.screenshot({ path: out });
 await browser.close();
 console.log(out);
