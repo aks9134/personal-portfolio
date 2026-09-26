@@ -47,13 +47,21 @@ export function HeroModel({ m, label }: { m: Media; label: string }) {
     let onScreen = true;
     let frame = 0;
     let lastY = window.scrollY;
+    // Our own running angle, not the camera's mid-glide position, so a fast scroll loses no turn and scrolling
+    // back up returns to the same view. A drag re-bases it on wherever the visitor left the camera.
+    let theta = el.getCameraOrbit().theta;
+    const onCamera = (e: Event) => {
+      if ((e as CustomEvent<{ source: string }>).detail?.source === "user-interaction") theta = el.getCameraOrbit().theta;
+    };
+    el.addEventListener("camera-change", onCamera);
     const turn = () => {
       frame = 0;
       const dy = window.scrollY - lastY;
       lastY = window.scrollY;
       if (!onScreen || !motionOk.matches || !dy) return;
+      theta -= (dy * 0.25 * Math.PI) / 180;
       const o = el.getCameraOrbit();
-      el.cameraOrbit = `${o.theta - (dy * 0.25 * Math.PI) / 180}rad ${o.phi}rad ${o.radius}m`;
+      el.cameraOrbit = `${theta}rad ${o.phi}rad ${o.radius}m`;
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(turn);
@@ -63,6 +71,7 @@ export function HeroModel({ m, label }: { m: Media; label: string }) {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       io.disconnect();
+      el.removeEventListener("camera-change", onCamera);
       window.removeEventListener("scroll", onScroll);
       if (frame) cancelAnimationFrame(frame);
     };
@@ -102,7 +111,7 @@ export function HeroModel({ m, label }: { m: Media; label: string }) {
           className={`pointer-events-none absolute inset-0 h-full w-full object-contain transition-opacity duration-500 ease-(--ease-out) motion-reduce:transition-none ${state === "ready" ? "opacity-0" : ""}`}
         />
       )}
-      <p className="absolute -bottom-1 left-0 text-xs font-bold uppercase tracking-[0.08em] text-ink-2">{label}</p>
+      <p className="absolute -bottom-1 left-0 text-sm text-ink-2">{label}</p>
     </div>
   );
 }

@@ -134,11 +134,12 @@ async function model(item, slug, outDir) {
   }
   await MeshoptEncoder.ready;
   await doc.transform(dedup(), weld(), quantize(), meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
-  if (item.explode) explodeAnimation(doc, centres, item.explode);
+  const span = item.explode ? explodeAnimation(doc, centres, item.explode) : 0;
   const file = path.join(tmp, "out.glb");
   await new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.encoder': MeshoptEncoder }).write(file, doc);
   const bytes = fs.statSync(file).size;
-  const poster = await modelPoster(file, item.orbit, Boolean(item.explode));
+  const frame = item.explode?.frame ?? 1; // camera distance as a share of model-viewer's auto framing
+  const poster = await modelPoster(file, item.orbit, Boolean(item.explode), frame);
   return {
     src: publish(file, slug, outDir, item.out, "glb"),
     poster: publish(poster.file, slug, outDir, `${item.out}-poster`, "webp"),
@@ -147,7 +148,7 @@ async function model(item, slug, outDir) {
     parts: res.meshes.length,
     bytes,
     ...(item.orbit && { orbit: item.orbit }),
-    ...(item.explode && { explode: true }),
+    ...(item.explode && { explode: Math.round(span), frame }), // mm the farthest part travels at 100%; framing
   };
 }
 
@@ -173,21 +174,24 @@ function explodeAnimation(doc, centres, { along = 0.8, across = 0.35 }) {
   const buffer = doc.getRoot().listBuffers()[0];
   const times = doc.createAccessor().setType('SCALAR').setArray(new Float32Array([0, 1])).setBuffer(buffer);
   const anim = doc.createAnimation('explode');
+  let span = 0;
   for (const [node, c] of centres) {
     const t0 = node.getTranslation();
     const t1 = t0.map((v, k) => v + (c[k] - mid[k]) * (k === axis ? along : across));
     const out = doc.createAccessor().setType('VEC3').setArray(new Float32Array([...t0, ...t1])).setBuffer(buffer);
     node.setTranslation(t1); // resting pose = fully exploded, so the viewer's auto-framing leaves room for it
+    span = Math.max(span, Math.hypot(...t1.map((v, k) => v - t0[k])));
     const sampler = doc.createAnimationSampler().setInput(times).setOutput(out).setInterpolation('LINEAR');
     anim.addSampler(sampler).addChannel(doc.createAnimationChannel().setTargetNode(node).setTargetPath('translation').setSampler(sampler));
   }
+  return span; // CAD units (mm), for the page readout
 }
 
 // GLB -> see-through WebP poster, rendered by the same <model-viewer> the page loads, in the viewer's 4:3 frame,
 // so the swap from poster to live model doesn't jump. Headless Chromium draws WebGL in software (SwiftShader).
-async function modelPoster(glb, orbit, exploded = false) {
+async function modelPoster(glb, orbit, exploded = false, frame = 1) {
   const { chromium } = await import('@playwright/test');
-  const [w, h] = [1200, 900];
+  const [w, h] = exploded ? [1600, 900] : [1200, 900]; // long exploded assemblies get a 16:9 frame
   const files = {
     '/mv.js': 'node_modules/@google/model-viewer/dist/model-viewer.min.js',
     '/decoder.js': 'public/vendor/meshopt_decoder.js',
@@ -206,15 +210,22 @@ async function modelPoster(glb, orbit, exploded = false) {
       return files[p] ? r.fulfill({ path: files[p] }) : r.abort();
     });
     await page.goto('http://poster.local/');
-    const dataUrl = await page.evaluate(async () => {
+    const dataUrl = await page.evaluate(async (frame) => {
       const mv = document.querySelector('model-viewer');
       await customElements.whenDefined('model-viewer');
       if (!mv.loaded) await new Promise((ok, fail) => { mv.addEventListener('load', ok); mv.addEventListener('error', fail); });
       if (mv.animationName) { mv.pause(); mv.currentTime = 0; } // exploded models: the poster shows them assembled
+      if (frame !== 1) { // same pull-in as the page viewer (model-viewer.tsx), so the swap doesn't jump
+        const o = mv.getCameraOrbit();
+        mv.setAttribute('min-camera-orbit', 'auto auto 0m');
+        mv.cameraOrbit = `${o.theta}rad ${o.phi}rad ${o.radius * frame}m`;
+        mv.jumpCameraToGoal();
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      }
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       const blob = await mv.toBlob({ mimeType: 'image/png', idealAspect: false });
       return new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
-    });
+    }, frame);
     const file = path.join(tmp, 'poster.webp');
     const info = await sharp(Buffer.from(dataUrl.split(',')[1], 'base64')).webp({ quality: 85, alphaQuality: 100 }).toFile(file);
     return { file, width: info.width, height: info.height };

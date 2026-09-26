@@ -80,15 +80,16 @@ function Band({ w }: { w: Work }) {
   if (showpiece) {
     const photo = still(w.media[w.hero]);
     return (
-      <article className="sheet-invert rise mt-20 grid gap-10 border-[1.5px] border-ink p-5 md:p-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-12">
-        <div>
-          {text}
-          <figure className="mt-10 max-w-[26rem]">
-            <MediaImage m={photo} sizes="(min-width: 1024px) 26rem, 100vw" className="wipe" style={vt} />
-            {photo.alt && <figcaption aria-hidden className="mt-2 text-sm text-ink-2">{photo.alt.split(":")[0]}.</figcaption>}
-          </figure>
+      <article className="sheet-invert rise mt-20 grid gap-8 border-[1.5px] border-ink p-5 md:p-8 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:grid-rows-[auto_1fr] lg:gap-x-12">
+        {/* Reading order and phone order: the story, the model, then the photo of the real hardware. */}
+        <div className="lg:col-start-1 lg:row-start-1">{text}</div>
+        <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-center">
+          <ModelViewer m={showpiece} explode />
         </div>
-        <ModelViewer m={showpiece} explode />
+        <figure className="max-w-[24rem] lg:col-start-1 lg:row-start-2">
+          <MediaImage m={photo} sizes="(min-width: 1024px) 24rem, 100vw" className="wipe" style={vt} />
+          {photo.alt && <figcaption aria-hidden className="mt-2 text-sm text-ink-2">{photo.alt.split(":")[0]}.</figcaption>}
+        </figure>
       </article>
     );
   }

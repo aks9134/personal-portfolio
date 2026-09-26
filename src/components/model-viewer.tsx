@@ -36,14 +36,23 @@ declare module "react" {
 
 const size = (bytes = 0) => (bytes < 1e6 ? `${Math.round(bytes / 1e3)} KB` : `${(bytes / 1e6).toFixed(1)} MB`);
 
-type MV = HTMLElement & { currentTime: number; pause: () => void };
-const FIGURE_SPACE = " "; // as wide as a digit, so "5% apart" and "60% apart" line up
-const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2); // ease-in-out: on-screen movement
+type MV = HTMLElement & {
+  currentTime: number;
+  pause: () => void;
+  cameraOrbit: string;
+  getCameraOrbit: () => { theta: number; phi: number; radius: number };
+  jumpCameraToGoal: () => void;
+};
+const FIGURE_SPACE = "\u2007"; // as wide as a digit, so "5 mm apart" and "60 mm apart" line up
+const easeOut = (t: number) => 1 - (1 - t) ** 4; // strong ease-out: the parts move at once, then settle
+const DEMO = 60; // % apart the one-time demo settles at
 
 // A 3D model that costs nothing until asked for: poster and a load button first, then <model-viewer>
 // (self-hosted, meshopt decoder from /vendor). Rotate only: zoom and pan are off so the page scroll is never trapped.
 // `explode`: the GLB carries a one-second "explode" animation (scripts/media/build.mjs), and a slider scrubs it,
-// so the assembly comes apart like an exploded drawing. model-viewer only redraws when the time changes.
+// so the assembly comes apart like an exploded drawing. The readout gives the farthest part's travel in CAD
+// millimetres. model-viewer only redraws when the time changes. The frame takes the poster's shape (16:9 for
+// long assemblies), so poster and live model line up.
 export function ModelViewer({ m, explode = Boolean(m.explode) }: { m: Media; explode?: boolean }) {
   const [state, setState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [apart, setApart] = useState(0);
@@ -52,9 +61,11 @@ export function ModelViewer({ m, explode = Boolean(m.explode) }: { m: Media; exp
   const slider = useRef<HTMLInputElement>(null);
   const demo = useRef(0);
   const focusSlider = useRef(false);
+  const viaKeyboard = useRef(false);
 
-  async function load() {
+  async function load(e: React.MouseEvent) {
     if (state === "loading") return; // aria-disabled, not disabled, so keyboard focus stays on the button while it loads
+    viaKeyboard.current = e.detail === 0; // Enter or Space on a button fires a click with no pointer detail
     setState("loading");
     const w = window as unknown as { ModelViewerElement?: { meshoptDecoderLocation?: string } };
     w.ModelViewerElement = { ...w.ModelViewerElement, meshoptDecoderLocation: "/vendor/meshopt_decoder.js" };
@@ -78,15 +89,17 @@ export function ModelViewer({ m, explode = Boolean(m.explode) }: { m: Media; exp
         // only if focus is still on this viewer.
         const at = document.activeElement;
         focusSlider.current = !at || at === document.body || Boolean(frame.current?.contains(at));
-        // Once, just after loading: the drive comes apart to 60% and settles, so the slider's job is obvious.
-        // Only the model moves (the slider value is set once at the end), any touch stops it, reduced motion skips it.
-        if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
+        // Once, just after a pointer load: the assembly comes apart to 60% in a second, slider and readout moving
+        // with it, so the slider's job is obvious. Any touch stops it where it is. Skipped under reduced motion, and
+        // for a keyboard load: that visitor is already on the slider, and a moving value would be read out.
+        if (!viaKeyboard.current && window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
           const t0 = performance.now();
           const step = (now: number) => {
-            const k = Math.min(1, (now - t0) / 1400);
-            (el as MV).currentTime = ease(k) * 0.6 * 0.999;
+            const k = Math.min(1, (now - t0) / 1000);
+            const v = easeOut(k) * DEMO;
+            (el as MV).currentTime = (v / 100) * 0.999;
+            setApart(Math.round(v));
             demo.current = k < 1 ? requestAnimationFrame(step) : 0;
-            if (k === 1) setApart(60);
           };
           demo.current = requestAnimationFrame(step);
         }
@@ -100,13 +113,25 @@ export function ModelViewer({ m, explode = Boolean(m.explode) }: { m: Media; exp
       }
     };
     const failed = () => setState("error");
+    // A long exploded assembly is framed by model-viewer for its full explode, so the camera is pulled in by the
+    // same factor the poster was rendered with (m.frame), before the model is revealed.
+    const framed = () => {
+      if (!m.frame || m.frame === 1) return;
+      const mv = el as MV;
+      const o = mv.getCameraOrbit();
+      mv.setAttribute("min-camera-orbit", "auto auto 0m");
+      mv.cameraOrbit = `${o.theta}rad ${o.phi}rad ${o.radius * m.frame}m`;
+      mv.jumpCameraToGoal();
+    };
+    el.addEventListener("load", framed);
     el.addEventListener("poster-dismissed", ready);
     el.addEventListener("error", failed);
     return () => {
+      el.removeEventListener("load", framed);
       el.removeEventListener("poster-dismissed", ready);
       el.removeEventListener("error", failed);
     };
-  }, [state, explode]);
+  }, [state, explode, m.frame]);
 
   useEffect(() => {
     if (state === "ready" && focusSlider.current) {
@@ -115,9 +140,13 @@ export function ModelViewer({ m, explode = Boolean(m.explode) }: { m: Media; exp
     }
   }, [state]);
 
+  // Stopping leaves the slider where the model is, so the next nudge carries on from there.
   const stopDemo = () => {
-    if (demo.current) cancelAnimationFrame(demo.current);
+    if (!demo.current) return;
+    cancelAnimationFrame(demo.current);
     demo.current = 0;
+    const el = viewer.current as MV | null;
+    if (el) setApart(Math.round((el.currentTime / 0.999) * 100));
   };
   useEffect(() => stopDemo, []);
 
@@ -129,9 +158,10 @@ export function ModelViewer({ m, explode = Boolean(m.explode) }: { m: Media; exp
   }, [apart, state, explode]);
 
   const live = state === "loading" || state === "ready";
+  const mm = Math.round((apart / 100) * (m.explode ?? 0));
   return (
     <div>
-      <div ref={frame} className="plate relative aspect-[4/3] w-full border-[1.5px] border-ink">
+      <div ref={frame} className="plate relative w-full border-[1.5px] border-ink" style={{ aspectRatio: `${m.width} / ${m.height}` }}>
         {live && (
           <model-viewer
             ref={viewer}
@@ -179,7 +209,7 @@ export function ModelViewer({ m, explode = Boolean(m.explode) }: { m: Media; exp
         )}
       </div>
       {explode && state === "ready" && (
-        <div className="mt-4 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-4">
+        <div className="mt-3 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
           <label htmlFor={`${m.src}-apart`} className="text-sm font-bold">Explode</label>
           <input
             ref={slider}
@@ -189,15 +219,16 @@ export function ModelViewer({ m, explode = Boolean(m.explode) }: { m: Media; exp
             max={100}
             step={1}
             value={apart}
-            aria-valuetext={`${apart}% apart`}
+            aria-valuetext={`${mm} millimetres apart`}
             onChange={(e) => {
               stopDemo();
               setApart(Number(e.target.value));
             }}
             className="explode-range"
           />
-          <output htmlFor={`${m.src}-apart`} className="font-mono text-sm tabular-nums">
-            {m.parts} parts, {String(apart).padStart(3, FIGURE_SPACE)}% apart
+          {/* aria-live off: the slider already speaks its value, so the readout would say every step twice. */}
+          <output htmlFor={`${m.src}-apart`} aria-live="off" className="col-span-2 font-mono text-sm tabular-nums sm:col-span-1">
+            {m.parts} parts, {String(mm).padStart(String(m.explode ?? 0).length, FIGURE_SPACE)} mm apart
           </output>
         </div>
       )}

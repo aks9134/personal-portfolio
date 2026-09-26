@@ -157,6 +157,9 @@ Square corners on everything: frames, buttons, stamps, the 3D viewport. The only
 ### Take-apart viewer (the vitrine's signature)
 A model whose GLB carries a baked "explode" animation (media pipeline option `explode: { along, across }`) opens assembled; after loading, a native range slider labelled "Explode" scrubs it from 0 to 100% apart, drawn as a dimension line with a square Stamp Blue handle (24px), and a Martian Mono readout says "248 parts, 60% apart". Keyboard focus lands on the slider. Once, just after loading, the parts come apart to 60% over 1.4s (ease-in-out) and settle; any touch stops it and reduced motion skips it. The model file's resting pose is the exploded one, so the camera framing always has room for it.
 
+### Hero model
+The robotic hand beside the name loads on idle and never spins on its own. Scrolling turns the camera around it, a quarter degree per pixel, only while it is on screen; a drag re-bases the turn. Reduced motion keeps it still. It redraws only on scroll or drag.
+
 ### 3D viewer (signature component)
 A 4:3 ink-framed viewport showing a see-through poster rendered from the model itself at the same camera angle. On click, the viewer loads (self-hosted model-viewer), the poster fades out over 200ms as the model appears, and keyboard focus moves to the model. Rotate only: zoom and pan are off so the page scroll is never trapped. A "Drag to rotate, or use the arrow keys" hint appears once it's live.
 

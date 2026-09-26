@@ -54,7 +54,8 @@ test('home: the drive module comes apart on the slider', async ({ page }, testIn
   const slider = page.getByLabel('Explode');
   await expect(slider).toBeFocused({ timeout: 60_000 });
   await slider.fill('100');
-  await expect(page.locator('output')).toContainText('100% apart');
+  await expect(page.locator('output')).toContainText(/[1-9]\d* mm apart/);
+  await expect(slider).toHaveAttribute('aria-valuetext', /millimetres apart/);
   const t = await page.locator('article.sheet-invert model-viewer').evaluate((el) => (el as MV).currentTime);
   expect(t).toBeGreaterThan(0.99);
   expect(problems).toEqual([]);

@@ -14,7 +14,8 @@ export type Media = {
   parts?: number;
   bytes?: number;
   orbit?: string; // 3D models: camera angle shared by the poster and the viewer
-  explode?: boolean; // 3D models: the GLB carries an "explode" animation the viewer can scrub
+  explode?: number; // 3D models: the GLB carries an "explode" animation; value = mm the farthest part travels
+  frame?: number; // 3D models: camera distance as a share of model-viewer's auto framing (poster matches)
 };
 
 export type Part = { n: number; name: string; note: string; x: number; y: number };

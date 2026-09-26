@@ -658,7 +658,7 @@ html[data-flipping]::view-transition-new(root) {
   appearance: none;
   -webkit-appearance: none;
   width: 100%;
-  height: 28px;
+  height: 44px; /* a comfortable thumb target; the drawn line stays thin */
   background:
     linear-gradient(var(--ink), var(--ink)) left center / 1.5px 12px no-repeat,
     linear-gradient(var(--ink), var(--ink)) right center / 1.5px 12px no-repeat,
