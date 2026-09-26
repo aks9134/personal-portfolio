@@ -93,7 +93,7 @@ Two inks on card stock, like a risograph print.
 
 ### Neutral
 - **Goldenrod Stock** (`stock`): the page ground, and the fill of buttons that sit on images.
-- **The vitrine** (`.sheet-invert`): the one inverted sheet on the home page, where the take-apart model sits. It swaps ink and stock (ink ground by day, goldenrod by night) and swaps Stamp Blue with them so focus rings keep 3:1.
+- **The vitrine** (`.vitrine`): the one framed display sheet on the home page, where the take-apart model sits. Deep Stock ground inside a 1.5px ink frame, in the day or night sheet alike. (Allen, 2026-09-26: not dark by day.)
 - **Deep Stock** (`stock-2`): hover and focus fill on legend rows.
 - **Print Ink** (`ink`): text, rules, frames, button borders; the hover fill of the 3D load button.
 - **Faded Ink** (`ink-2`): secondary text (context lines, captions, dates).
@@ -158,7 +158,7 @@ Square corners on everything: frames, buttons, stamps, the 3D viewport. The only
 A model whose GLB carries a baked "explode" animation (media pipeline option `explode: { along, across }`) opens assembled; after loading, a native range slider labelled "Explode" scrubs it from 0 to 100% apart, drawn as a dimension line with a square Stamp Blue handle (24px), and a Martian Mono readout says "248 parts, 60% apart". Keyboard focus lands on the slider. Once, just after loading, the parts come apart to 60% over 1.4s (ease-in-out) and settle; any touch stops it and reduced motion skips it. The model file's resting pose is the exploded one, so the camera framing always has room for it.
 
 ### Hero model
-The robotic hand beside the name loads on idle and never spins on its own. Scrolling turns the camera around it, a quarter degree per pixel, only while it is on screen; a drag re-bases the turn. Reduced motion keeps it still. It redraws only on scroll or drag.
+The robotic hand beside the name loads on idle and makes one slow turn by itself (18 degrees a second, about 20 seconds, paused off screen). After that, scrolling turns the camera around it, a quarter degree per pixel, only while it is on screen; a drag re-bases the turn. Reduced motion keeps it still.
 
 ### 3D viewer (signature component)
 A 4:3 ink-framed viewport showing a see-through poster rendered from the model itself at the same camera angle. On click, the viewer loads (self-hosted model-viewer), the poster fades out over 200ms as the model appears, and keyboard focus moves to the model. Rotate only: zoom and pan are off so the page scroll is never trapped. A "Drag to rotate, or use the arrow keys" hint appears once it's live.
@@ -171,7 +171,7 @@ A 4:3 ink-framed viewport showing a see-through poster rendered from the model i
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep the whole ground Goldenrod Stock and separate sections with a 1.5px ink rule. The vitrine is the single exception, one per page.
+- **Do** keep the whole ground Goldenrod Stock and separate sections with a 1.5px ink rule. The vitrine's Deep Stock sheet is the single exception, one per page.
 - **Do** show see-through images straight on the stock and frame opaque ones in 1.5px ink.
 - **Do** reserve Stamp Blue for state: status, award, active part, focus.
 - **Do** keep one authored motion per page and honor reduced motion.

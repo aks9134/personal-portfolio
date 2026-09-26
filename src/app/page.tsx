@@ -73,14 +73,14 @@ function Band({ w }: { w: Work }) {
     </div>
   );
 
-  // The vitrine: a project whose CAD carries an exploded-view animation gets the page's one inverted sheet, with the
+  // The vitrine: a project whose CAD carries an exploded-view animation gets the page's one framed display sheet, with the
   // real hardware photo beside the model you can take apart. It replaces the band's cover render, so the project
   // shows up once.
   const showpiece = Object.values(w.media).find((x) => x.explode);
   if (showpiece) {
     const photo = still(w.media[w.hero]);
     return (
-      <article className="sheet-invert rise mt-20 grid gap-8 border-[1.5px] border-ink p-5 md:p-8 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:grid-rows-[auto_1fr] lg:gap-x-12">
+      <article className="vitrine rise mt-20 grid gap-8 border-[1.5px] border-ink p-5 md:p-8 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:grid-rows-[auto_1fr] lg:gap-x-12">
         {/* Reading order and phone order: the story, the model, then the photo of the real hardware. */}
         <div className="lg:col-start-1 lg:row-start-1">{text}</div>
         <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-center">

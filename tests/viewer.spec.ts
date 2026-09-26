@@ -56,7 +56,7 @@ test('home: the drive module comes apart on the slider', async ({ page }, testIn
   await slider.fill('100');
   await expect(page.locator('output')).toContainText(/[1-9]\d* mm apart/);
   await expect(slider).toHaveAttribute('aria-valuetext', /millimetres apart/);
-  const t = await page.locator('article.sheet-invert model-viewer').evaluate((el) => (el as MV).currentTime);
+  const t = await page.locator('article.vitrine model-viewer').evaluate((el) => (el as MV).currentTime);
   expect(t).toBeGreaterThan(0.99);
   expect(problems).toEqual([]);
 });
@@ -70,6 +70,8 @@ test('reduced motion: nothing moves on its own (3D)', async ({ page }, testInfo)
   await page.goto('/', { waitUntil: 'networkidle' });
   const hand = page.locator('header model-viewer');
   await expect.poll(() => hand.evaluate((el) => (el as MV).loaded), { timeout: 60_000 }).toBe(true);
+  await expect(page.locator('header img')).toHaveCSS('opacity', '0', { timeout: 10_000 });
+  await expect(hand).not.toHaveAttribute('auto-rotate');
   const before = await hand.evaluate((el) => (el as MV).getCameraOrbit().theta);
   await page.mouse.wheel(0, 300);
   await page.waitForTimeout(600);
@@ -78,7 +80,19 @@ test('reduced motion: nothing moves on its own (3D)', async ({ page }, testInfo)
   await page.getByRole('button', { name: /^Take it apart/ }).click();
   await expect(page.getByLabel('Explode')).toBeFocused({ timeout: 60_000 });
   await page.waitForTimeout(1800);
-  const t = await page.locator('article.sheet-invert model-viewer').evaluate((el) => (el as MV).currentTime);
+  const t = await page.locator('article.vitrine model-viewer').evaluate((el) => (el as MV).currentTime);
   expect(t).toBe(0);
   await expect(page.getByLabel('Explode')).toHaveValue('0');
+});
+
+// The hero hand: once the live model is revealed its poster is gone (a poster left behind shows as a frozen second
+// hand under the one you drag), and it makes its slow first turn on arrival.
+test('home: the hero hand replaces its poster and turns on arrival', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'runs once');
+  test.slow();
+  await page.goto('/', { waitUntil: 'networkidle' });
+  const hand = page.locator('header model-viewer');
+  await expect.poll(() => hand.evaluate((el) => (el as MV).loaded), { timeout: 60_000 }).toBe(true);
+  await expect(page.locator('header img')).toHaveCSS('opacity', '0', { timeout: 10_000 });
+  await expect(hand).toHaveAttribute('auto-rotate', '');
 });

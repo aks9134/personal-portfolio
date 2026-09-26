@@ -620,36 +620,17 @@ html[data-flipping]::view-transition-new(root) {
   }
 }
 
-/* The vitrine: the page's one inverted sheet, where the take-apart model sits. It swaps ink and stock, so it is
-   ink by day and goldenrod by night, and the stamp blue swaps with them so focus rings keep their contrast. */
-.sheet-invert {
-  --stock: oklch(0.2 0.016 85);
-  --stock-2: oklch(0.25 0.02 85);
-  --ink: oklch(0.93 0.06 94);
-  --ink-2: oklch(0.8 0.05 92);
-  --rule-soft: oklch(0.93 0.06 94 / 0.3);
-  --stamp: oklch(0.76 0.11 258);
-  --plate: transparent;
-  background: var(--stock);
-  color: var(--ink);
+/* The vitrine: the framed sheet where the take-apart model sits. A shade deeper than the page, in whichever
+   sheet is showing (day or night), so it reads as a display case without leaving the page's colors. */
+.vitrine {
+  background: var(--stock-2);
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .sheet-invert {
-    --stock: oklch(0.915 0.078 94);
-    --stock-2: oklch(0.875 0.088 91);
-    --ink: oklch(0.21 0.02 80);
-    --ink-2: oklch(0.37 0.035 80);
-    --rule-soft: oklch(0.21 0.02 80 / 0.3);
-    --stamp: oklch(0.44 0.15 262);
+
+/* In-page jumps (Work, the case-study section links) glide instead of cutting, unless motion is reduced. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
   }
-}
-:root[data-theme="dark"] .sheet-invert {
-  --stock: oklch(0.915 0.078 94);
-  --stock-2: oklch(0.875 0.088 91);
-  --ink: oklch(0.21 0.02 80);
-  --ink-2: oklch(0.37 0.035 80);
-  --rule-soft: oklch(0.21 0.02 80 / 0.3);
-  --stamp: oklch(0.44 0.15 262);
 }
 
 /* The explode slider reads as a dimension line: a thin ink rule with end ticks, and a square stamp-blue handle

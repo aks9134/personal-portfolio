@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { srcSet } from "@/lib/image-widths";
 import type { Media } from "@/lib/work";
 
-// The one model that loads without being asked: it sits beside the name, turns as the page scrolls past it,
-// and you can grab it. It only draws when something changes (scroll or drag), never on a loop, so an idle page
-// costs nothing. The rendered poster holds the space until the mesh arrives, so nothing jumps. Reduced motion
-// keeps the model but never turns it, and a slow connection just keeps the poster.
+// The one model that loads without being asked: it sits beside the name, makes one slow turn when it arrives,
+// then turns as the page scrolls past it, and you can grab it. After the first turn it only draws when something
+// changes (scroll or drag), so an idle page costs nothing. The rendered poster holds the space until the mesh
+// arrives, so nothing jumps. Reduced motion keeps the model still, and a slow connection just keeps the poster.
 export function HeroModel({ m, label }: { m: Media; label: string }) {
   const [state, setState] = useState<"idle" | "loading" | "ready">("idle");
   const viewer = useRef<HTMLElement>(null);
@@ -35,6 +35,39 @@ export function HeroModel({ m, label }: { m: Media; label: string }) {
       cancelled = true;
     };
   }, []);
+
+  // model-viewer fires poster-dismissed the moment it reveals the model: fade our poster out on the same frame.
+  useEffect(() => {
+    const el = viewer.current;
+    if (!el) return;
+    const ready = () => setState("ready");
+    el.addEventListener("poster-dismissed", ready);
+    return () => el.removeEventListener("poster-dismissed", ready);
+  }, [state]);
+
+  // On arrival the hand makes one slow turn by itself (18 degrees a second, about 20 seconds), paused while it is
+  // off screen; after that it only moves when scrolled or dragged. Reduced motion skips the turn.
+  useEffect(() => {
+    const el = viewer.current;
+    const wrap = box.current;
+    if (state !== "ready" || !el || !wrap || !window.matchMedia("(prefers-reduced-motion: no-preference)").matches) return;
+    const spin = (on: boolean) => {
+      if (on) {
+        el.setAttribute("rotation-per-second", "18deg");
+        el.setAttribute("auto-rotate", "");
+      } else el.removeAttribute("auto-rotate");
+    };
+    const io = new IntersectionObserver(([e]) => spin(e.isIntersecting));
+    io.observe(wrap);
+    const done = window.setTimeout(() => {
+      io.disconnect();
+      spin(false);
+    }, 20_000);
+    return () => {
+      io.disconnect();
+      window.clearTimeout(done);
+    };
+  }, [state]);
 
   // Scroll turns the camera around the hand, a quarter degree per pixel scrolled, while the hero is on screen.
   // It adds to wherever the camera is, so a turn made by dragging is kept. (Not the `orientation` attribute:
