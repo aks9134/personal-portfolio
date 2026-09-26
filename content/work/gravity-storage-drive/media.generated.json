@@ -23,15 +23,16 @@
     "hash": "1239eabb2a"
   },
   "geared-module": {
-    "src": "/work/gravity-storage-drive/geared-module.e113c582.glb",
-    "poster": "/work/gravity-storage-drive/geared-module-poster.aacff5ad.webp",
+    "src": "/work/gravity-storage-drive/geared-module.08e74f97.glb",
+    "poster": "/work/gravity-storage-drive/geared-module-poster.47e9158c.webp",
     "width": 1200,
     "height": 900,
     "parts": 248,
-    "bytes": 3125968,
+    "bytes": 3186004,
     "orbit": "60deg 65deg auto",
+    "explode": true,
     "alt": "3D model of the geared drive module with cycloidal reduction",
-    "hash": "274f049c29"
+    "hash": "0df0a8a656"
   },
   "pin-concept": {
     "src": "/work/gravity-storage-drive/pin-concept.2d79e610.glb",

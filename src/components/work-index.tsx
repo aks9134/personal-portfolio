@@ -24,7 +24,7 @@ export function WorkIndex({ rows }: { rows: IndexRow[] }) {
               data-on={on === i || undefined}
               className="index-row grid grid-cols-[1.75rem_minmax(0,1fr)] items-baseline gap-x-2 py-3 sm:grid-cols-[1.75rem_minmax(0,1fr)_auto] md:grid-cols-[1.75rem_minmax(0,1.1fr)_minmax(0,1fr)_4.5rem_10rem]"
             >
-              <span className="font-bold tabular-nums">{i + 1}</span>
+              <span className="font-mono text-sm tabular-nums">{i + 1}</span>
               <span className="text-lg font-bold leading-tight [font-stretch:106%]">{r.title}</span>
               <span className="col-start-2 text-sm text-ink-2 md:col-start-auto">{r.context}</span>
               <span className="hidden text-sm tabular-nums text-ink-2 md:block">{r.year}</span>

@@ -115,6 +115,7 @@ async function model(item, slug, outDir) {
   const scene = doc.createScene();
   const materials = new Map();
   const accessor = (type, array) => doc.createAccessor().setType(type).setArray(array).setBuffer(buffer);
+  const centres = new Map(); // node -> world centre of its mesh, for the exploded-view animation
   for (const m of res.meshes) {
     const rgb = item.color ? hexToRgb(item.color) : (m.color ?? [0.7, 0.7, 0.72]);
     if (!materials.has(rgb.join())) {
@@ -126,14 +127,18 @@ async function model(item, slug, outDir) {
       .setIndices(accessor('SCALAR', new Uint32Array(m.index.array)))
       .setMaterial(materials.get(rgb.join()));
     if (m.attributes.normal) prim.setAttribute('NORMAL', accessor('VEC3', new Float32Array(m.attributes.normal.array)));
-    scene.addChild(doc.createNode(m.name).setMesh(doc.createMesh(m.name).addPrimitive(prim)));
+    const node = doc.createNode(m.name).setMesh(doc.createMesh(m.name).addPrimitive(prim));
+    scene.addChild(node);
+    // A solid with no triangles has no centre; it stays put rather than turning the whole assembly's centre into NaN.
+    if (item.explode && m.attributes.position.array.length) centres.set(node, boxCentre(m.attributes.position.array));
   }
   await MeshoptEncoder.ready;
   await doc.transform(dedup(), weld(), quantize(), meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
+  if (item.explode) explodeAnimation(doc, centres, item.explode);
   const file = path.join(tmp, "out.glb");
   await new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.encoder': MeshoptEncoder }).write(file, doc);
   const bytes = fs.statSync(file).size;
-  const poster = await modelPoster(file, item.orbit);
+  const poster = await modelPoster(file, item.orbit, Boolean(item.explode));
   return {
     src: publish(file, slug, outDir, item.out, "glb"),
     poster: publish(poster.file, slug, outDir, `${item.out}-poster`, "webp"),
@@ -142,12 +147,45 @@ async function model(item, slug, outDir) {
     parts: res.meshes.length,
     bytes,
     ...(item.orbit && { orbit: item.orbit }),
+    ...(item.explode && { explode: true }),
   };
+}
+
+function boxCentre(p) {
+  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (let i = 0; i < p.length; i += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], p[i + k]); hi[k] = Math.max(hi[k], p[i + k]); }
+  return lo.map((v, k) => (v + hi[k]) / 2);
+}
+
+// Optional `explode: { along, across }`: bakes an animation named "explode" into the GLB, one second long, that
+// moves every part away from the assembly's centre, like an exploded drawing: `along` scales its distance along
+// the assembly's longest axis (the shaft on a drive), `across` its distance off that axis. A part on the centre
+// stays put, so shafts hold still while bearings slide off them and blocks drop away. The page scrubs it with
+// model-viewer's currentTime. The file's resting pose is the exploded one, because model-viewer frames the camera
+// on the resting pose; the page and the poster set time 0 to show it assembled. Added last, after meshopt(): quantize() and meshopt() both rewrite node translations,
+// and each keyframe starts from the node's final translation. The two small animation accessors stay uncompressed.
+function explodeAnimation(doc, centres, { along = 0.8, across = 0.35 }) {
+  const all = [...centres.values()];
+  const lo = [0, 1, 2].map((k) => Math.min(...all.map((c) => c[k])));
+  const hi = [0, 1, 2].map((k) => Math.max(...all.map((c) => c[k])));
+  const mid = lo.map((v, k) => (v + hi[k]) / 2);
+  const axis = [0, 1, 2].reduce((a, k) => (hi[k] - lo[k] > hi[a] - lo[a] ? k : a), 0);
+  const buffer = doc.getRoot().listBuffers()[0];
+  const times = doc.createAccessor().setType('SCALAR').setArray(new Float32Array([0, 1])).setBuffer(buffer);
+  const anim = doc.createAnimation('explode');
+  for (const [node, c] of centres) {
+    const t0 = node.getTranslation();
+    const t1 = t0.map((v, k) => v + (c[k] - mid[k]) * (k === axis ? along : across));
+    const out = doc.createAccessor().setType('VEC3').setArray(new Float32Array([...t0, ...t1])).setBuffer(buffer);
+    node.setTranslation(t1); // resting pose = fully exploded, so the viewer's auto-framing leaves room for it
+    const sampler = doc.createAnimationSampler().setInput(times).setOutput(out).setInterpolation('LINEAR');
+    anim.addSampler(sampler).addChannel(doc.createAnimationChannel().setTargetNode(node).setTargetPath('translation').setSampler(sampler));
+  }
 }
 
 // GLB -> see-through WebP poster, rendered by the same <model-viewer> the page loads, in the viewer's 4:3 frame,
 // so the swap from poster to live model doesn't jump. Headless Chromium draws WebGL in software (SwiftShader).
-async function modelPoster(glb, orbit) {
+async function modelPoster(glb, orbit, exploded = false) {
   const { chromium } = await import('@playwright/test');
   const [w, h] = [1200, 900];
   const files = {
@@ -158,7 +196,7 @@ async function modelPoster(glb, orbit) {
   const html = `<!doctype html><style>html,body{margin:0;background:transparent}model-viewer{width:${w}px;height:${h}px}</style>
 <script>self.ModelViewerElement = { meshoptDecoderLocation: '/decoder.js' };</script>
 <script type="module" src="/mv.js"></script>
-<model-viewer src="/model.glb" interaction-prompt="none"${orbit ? ` camera-orbit="${orbit}"` : ""}></model-viewer>`;
+<model-viewer src="/model.glb" interaction-prompt="none"${orbit ? ` camera-orbit="${orbit}"` : ""}${exploded ? ' animation-name="explode"' : ""}></model-viewer>`;
   const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   try {
     const page = await browser.newPage({ viewport: { width: w, height: h } });
@@ -172,6 +210,7 @@ async function modelPoster(glb, orbit) {
       const mv = document.querySelector('model-viewer');
       await customElements.whenDefined('model-viewer');
       if (!mv.loaded) await new Promise((ok, fail) => { mv.addEventListener('load', ok); mv.addEventListener('error', fail); });
+      if (mv.animationName) { mv.pause(); mv.currentTime = 0; } // exploded models: the poster shows them assembled
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       const blob = await mv.toBlob({ mimeType: 'image/png', idealAspect: false });
       return new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });

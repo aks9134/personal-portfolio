@@ -2,6 +2,7 @@ import { Contact } from "@/components/contact";
 import { HeroModel } from "@/components/hero-model";
 import { KineticName } from "@/components/kinetic-name";
 import { MediaImage } from "@/components/media-image";
+import { ModelViewer } from "@/components/model-viewer";
 import { PartsFigure } from "@/components/parts-figure";
 import { Schedule } from "@/components/schedule";
 import { SiteNav } from "@/components/site-nav";
@@ -71,6 +72,26 @@ function Band({ w }: { w: Work }) {
       <div className="mt-6"><Stamp tilt={tiltFor(w.title)}>{w.status}</Stamp></div>
     </div>
   );
+
+  // The vitrine: a project whose CAD carries an exploded-view animation gets the page's one inverted sheet, with the
+  // real hardware photo beside the model you can take apart. It replaces the band's cover render, so the project
+  // shows up once.
+  const showpiece = Object.values(w.media).find((x) => x.explode);
+  if (showpiece) {
+    const photo = still(w.media[w.hero]);
+    return (
+      <article className="sheet-invert rise mt-20 grid gap-10 border-[1.5px] border-ink p-5 md:p-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-12">
+        <div>
+          {text}
+          <figure className="mt-10 max-w-[26rem]">
+            <MediaImage m={photo} sizes="(min-width: 1024px) 26rem, 100vw" className="wipe" style={vt} />
+            {photo.alt && <figcaption aria-hidden className="mt-2 text-sm text-ink-2">{photo.alt.split(":")[0]}.</figcaption>}
+          </figure>
+        </div>
+        <ModelViewer m={showpiece} explode />
+      </article>
+    );
+  }
 
   if (ratio > 1.6)
     return (

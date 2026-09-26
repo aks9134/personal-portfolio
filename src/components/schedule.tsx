@@ -79,7 +79,7 @@ export function Schedule({ jobs }: { jobs: readonly Job[] }) {
           ))}
           {years.map((y) => (
             <span key={y} className="absolute top-0 flex h-3 w-[1.5px] bg-ink" style={{ left: at(y * 12) }}>
-              <span className="absolute left-1.5 top-2 text-xs font-bold tabular-nums">{y}</span>
+              <span className="absolute left-1.5 top-2 font-mono text-xs tabular-nums">{y}</span>
             </span>
           ))}
         </div>

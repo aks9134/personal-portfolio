@@ -82,7 +82,7 @@ Dark mode is the same sheet at night: near-black ground, text in the stock's col
 - Archivo throughout, wide and extra-bold for display and stamps
 - 1.5px ink rules and frames; square corners; flat
 - True-color images, never tinted by the page
-- One authored motion: status stamps land as they scroll into view
+- One authored motion: status stamps land as they scroll into view. The home page adds one more, asked for: the take-apart model in the vitrine
 
 ## Colors
 
@@ -93,6 +93,7 @@ Two inks on card stock, like a risograph print.
 
 ### Neutral
 - **Goldenrod Stock** (`stock`): the page ground, and the fill of buttons that sit on images.
+- **The vitrine** (`.sheet-invert`): the one inverted sheet on the home page, where the take-apart model sits. It swaps ink and stock (ink ground by day, goldenrod by night) and swaps Stamp Blue with them so focus rings keep 3:1.
 - **Deep Stock** (`stock-2`): hover and focus fill on legend rows.
 - **Print Ink** (`ink`): text, rules, frames, button borders; the hover fill of the 3D load button.
 - **Faded Ink** (`ink-2`): secondary text (context lines, captions, dates).
@@ -108,6 +109,7 @@ Two inks on card stock, like a risograph print.
 **Display Font:** Archivo (self-hosted variable font with a width axis), fallback ui-sans-serif, system-ui
 **Body Font:** Archivo
 **Label Font:** Archivo, expanded
+**Figure Font:** Martian Mono (self-hosted, width axis 75 to 112.5), for numbers that act as measurements only: the explode readout, the schedule's year axis, the work index numbers. Never for text or headings.
 
 **Character:** One family doing every job. The width axis carries the voice: headings and stamps run expanded and extra-bold like stamped lettering, body text stays at normal width for reading.
 
@@ -152,6 +154,9 @@ Square corners on everything: frames, buttons, stamps, the 3D viewport. The only
 ### Navigation
 - **Style:** Work, About, Resume, Email, LinkedIn as semibold text links, slightly expanded; underline on hover; wraps on narrow phones with a tighter gap. The site name leads on inner pages.
 
+### Take-apart viewer (the vitrine's signature)
+A model whose GLB carries a baked "explode" animation (media pipeline option `explode: { along, across }`) opens assembled; after loading, a native range slider labelled "Explode" scrubs it from 0 to 100% apart, drawn as a dimension line with a square Stamp Blue handle (24px), and a Martian Mono readout says "248 parts, 60% apart". Keyboard focus lands on the slider. Once, just after loading, the parts come apart to 60% over 1.4s (ease-in-out) and settle; any touch stops it and reduced motion skips it. The model file's resting pose is the exploded one, so the camera framing always has room for it.
+
 ### 3D viewer (signature component)
 A 4:3 ink-framed viewport showing a see-through poster rendered from the model itself at the same camera angle. On click, the viewer loads (self-hosted model-viewer), the poster fades out over 200ms as the model appears, and keyboard focus moves to the model. Rotate only: zoom and pan are off so the page scroll is never trapped. A "Drag to rotate, or use the arrow keys" hint appears once it's live.
 
@@ -163,7 +168,7 @@ A 4:3 ink-framed viewport showing a see-through poster rendered from the model i
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep the whole ground Goldenrod Stock and separate sections with a 1.5px ink rule.
+- **Do** keep the whole ground Goldenrod Stock and separate sections with a 1.5px ink rule. The vitrine is the single exception, one per page.
 - **Do** show see-through images straight on the stock and frame opaque ones in 1.5px ink.
 - **Do** reserve Stamp Blue for state: status, award, active part, focus.
 - **Do** keep one authored motion per page and honor reduced motion.
@@ -173,3 +178,12 @@ A 4:3 ink-framed viewport showing a see-through poster rendered from the model i
 - **Don't** use shadows, rounded cards, or a dark hero over a grid of same-size thumbnails.
 - **Don't** add a second accent color or use blue for decoration.
 - **Don't** use uppercase outside stamps.
+
+## Sources
+
+Style cards used for prototype v3 (2026-09-25), read through `knowledge\design-sources.md` in the website framework. Taken: the idea, never the brand's fonts, colors, imagery or copy.
+- Refero Styles, Superlative (https://styles.refero.design/style/10ab6120-3d03-48ff-aebe-0b4910edc046): the product vitrine, a dark plate for one object.
+- Refero Styles, Moving Parts (https://styles.refero.design/style/fb459c9d-c089-4d0b-b5b0-d147b1c4ebd7): a semi-mono face for measurements beside a grotesk.
+- Refero Styles, teenage engineering (https://styles.refero.design/style/aecf9dda-5cba-4dc7-9e73-59b65d895cdf): hairline precision, 0 radius (already the house rule).
+- MotionSites, veyra-electric (https://motionsites.ai/?prompt=veyra-electric): an engineering cutaway as the showpiece (idea only).
+- Interaction reference: PYC weblog's exploded-assembly slider (https://www.pycheung.com/weblog/post/1703), found in the 2026-09-22 inspiration research.

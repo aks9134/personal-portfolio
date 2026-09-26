@@ -54,6 +54,7 @@
   --color-stamp: var(--stamp);
   --color-plate: var(--plate);
   --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-martian), ui-monospace, monospace;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
@@ -617,4 +618,66 @@ html[data-flipping]::view-transition-new(root) {
   to {
     transform: translateX(-38%);
   }
+}
+
+/* The vitrine: the page's one inverted sheet, where the take-apart model sits. It swaps ink and stock, so it is
+   ink by day and goldenrod by night, and the stamp blue swaps with them so focus rings keep their contrast. */
+.sheet-invert {
+  --stock: oklch(0.2 0.016 85);
+  --stock-2: oklch(0.25 0.02 85);
+  --ink: oklch(0.93 0.06 94);
+  --ink-2: oklch(0.8 0.05 92);
+  --rule-soft: oklch(0.93 0.06 94 / 0.3);
+  --stamp: oklch(0.76 0.11 258);
+  --plate: transparent;
+  background: var(--stock);
+  color: var(--ink);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .sheet-invert {
+    --stock: oklch(0.915 0.078 94);
+    --stock-2: oklch(0.875 0.088 91);
+    --ink: oklch(0.21 0.02 80);
+    --ink-2: oklch(0.37 0.035 80);
+    --rule-soft: oklch(0.21 0.02 80 / 0.3);
+    --stamp: oklch(0.44 0.15 262);
+  }
+}
+:root[data-theme="dark"] .sheet-invert {
+  --stock: oklch(0.915 0.078 94);
+  --stock-2: oklch(0.875 0.088 91);
+  --ink: oklch(0.21 0.02 80);
+  --ink-2: oklch(0.37 0.035 80);
+  --rule-soft: oklch(0.21 0.02 80 / 0.3);
+  --stamp: oklch(0.44 0.15 262);
+}
+
+/* The explode slider reads as a dimension line: a thin ink rule with end ticks, and a square stamp-blue handle
+   big enough for a thumb (24px, WCAG 2.5.8). */
+.explode-range {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 28px;
+  background:
+    linear-gradient(var(--ink), var(--ink)) left center / 1.5px 12px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) right center / 1.5px 12px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) center / 100% 1.5px no-repeat;
+  cursor: ew-resize;
+}
+.explode-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  background: var(--stamp);
+  border: 2px solid var(--stock);
+  border-radius: 0;
+}
+.explode-range::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background: var(--stamp);
+  border: 2px solid var(--stock);
+  border-radius: 0;
 }

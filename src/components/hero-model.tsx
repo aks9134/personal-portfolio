@@ -4,19 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import { srcSet } from "@/lib/image-widths";
 import type { Media } from "@/lib/work";
 
-// The one model that loads without being asked: it turns slowly beside the name, and you can grab it.
-// The rendered poster holds the space until the mesh arrives, so nothing jumps. Reduced motion keeps the
-// model but stops the rotation, and a slow connection just keeps the poster.
+// The one model that loads without being asked: it sits beside the name, turns as the page scrolls past it,
+// and you can grab it. It only draws when something changes (scroll or drag), never on a loop, so an idle page
+// costs nothing. The rendered poster holds the space until the mesh arrives, so nothing jumps. Reduced motion
+// keeps the model but never turns it, and a slow connection just keeps the poster.
 export function HeroModel({ m, label }: { m: Media; label: string }) {
   const [state, setState] = useState<"idle" | "loading" | "ready">("idle");
   const viewer = useRef<HTMLElement>(null);
-  const [spin, setSpin] = useState(true);
+  const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const sync = () => setSpin(!mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
 
     // Wait for the page to settle before pulling the mesh: the hero text and the lead drawing come first.
     const ric = (window as unknown as { requestIdleCallback?: (c: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
@@ -36,20 +33,43 @@ export function HeroModel({ m, label }: { m: Media; label: string }) {
     });
     return () => {
       cancelled = true;
-      mq.removeEventListener("change", sync);
     };
   }, []);
 
+  // Scroll turns the camera around the hand, a quarter degree per pixel scrolled, while the hero is on screen.
+  // It adds to wherever the camera is, so a turn made by dragging is kept. (Not the `orientation` attribute:
+  // in model-viewer 4.3.1 every orientation change throws inside its AR renderer.)
   useEffect(() => {
-    const el = viewer.current;
-    if (!el) return;
-    const ready = () => setState("ready");
-    el.addEventListener("poster-dismissed", ready);
-    return () => el.removeEventListener("poster-dismissed", ready);
+    const el = viewer.current as (HTMLElement & { getCameraOrbit: () => { theta: number; phi: number; radius: number }; cameraOrbit: string }) | null;
+    const wrap = box.current;
+    if (state !== "ready" || !el || !wrap) return;
+    const motionOk = window.matchMedia("(prefers-reduced-motion: no-preference)");
+    let onScreen = true;
+    let frame = 0;
+    let lastY = window.scrollY;
+    const turn = () => {
+      frame = 0;
+      const dy = window.scrollY - lastY;
+      lastY = window.scrollY;
+      if (!onScreen || !motionOk.matches || !dy) return;
+      const o = el.getCameraOrbit();
+      el.cameraOrbit = `${o.theta - (dy * 0.25 * Math.PI) / 180}rad ${o.phi}rad ${o.radius}m`;
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(turn);
+    };
+    const io = new IntersectionObserver(([e]) => (onScreen = e.isIntersecting));
+    io.observe(wrap);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      io.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, [state]);
 
   return (
-    <div className="relative aspect-square w-full">
+    <div ref={box} className="relative aspect-square w-full">
       {state !== "idle" && (
         <model-viewer
           ref={viewer}
@@ -63,7 +83,6 @@ export function HeroModel({ m, label }: { m: Media; label: string }) {
           exposure="1.05"
           shadow-intensity="0.35"
           shadow-softness="1"
-          {...(spin && { "auto-rotate": "", "auto-rotate-delay": "300", "rotation-per-second": "18deg" })}
           {...(m.orbit && { "camera-orbit": m.orbit })}
           style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
         >

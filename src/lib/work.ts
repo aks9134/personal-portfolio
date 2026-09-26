@@ -14,6 +14,7 @@ export type Media = {
   parts?: number;
   bytes?: number;
   orbit?: string; // 3D models: camera angle shared by the poster and the viewer
+  explode?: boolean; // 3D models: the GLB carries an "explode" animation the viewer can scrub
 };
 
 export type Part = { n: number; name: string; note: string; x: number; y: number };

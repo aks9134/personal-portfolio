@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo } from "next/font/google";
+import { Archivo, Martian_Mono } from "next/font/google";
 import { ScrollRail } from "@/components/scroll-rail";
 import { SiteFooter } from "@/components/site-footer";
 import { preview } from "@/lib/og";
@@ -7,6 +7,9 @@ import { site } from "@/lib/site";
 import "./globals.css";
 
 const archivo = Archivo({ subsets: ["latin"], axes: ["wdth"], variable: "--font-archivo", display: "swap" });
+// Figures and readouts only (the explode readout, spec figures): a mono with its own width axis, like Archivo's.
+// Not preloaded: nothing on the first screen uses it.
+const mono = Martian_Mono({ subsets: ["latin"], axes: ["wdth"], variable: "--font-martian", display: "swap", preload: false });
 
 // Link previews need absolute URLs, so the site has to know its own address. `site.url` is the canonical one
 // (Vercel hands a project several), and NEXT_PUBLIC_SITE_URL overrides it for a one-off build.
@@ -30,7 +33,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={archivo.variable}>
+    <html lang="en" className={`${archivo.variable} ${mono.variable}`}>
       <head>
         <script
           // Applies the saved sheet before paint, so a night reader never gets a flash of day.
