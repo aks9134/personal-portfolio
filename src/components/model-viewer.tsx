@@ -51,6 +51,7 @@ export function ModelViewer({ m, explode = Boolean(m.explode) }: { m: Media; exp
   const frame = useRef<HTMLDivElement>(null);
   const slider = useRef<HTMLInputElement>(null);
   const demo = useRef(0);
+  const focusSlider = useRef(false);
 
   async function load() {
     if (state === "loading") return; // aria-disabled, not disabled, so keyboard focus stays on the button while it loads
@@ -73,7 +74,10 @@ export function ModelViewer({ m, explode = Boolean(m.explode) }: { m: Media; exp
       if (explode) {
         (el as MV).pause();
         // Keyboard and screen-reader users land on the slider, the one control that does something new here.
-        slider.current?.focus({ preventScroll: true });
+        // It renders with the "ready" state, so the focus move waits for it (effect below). Same rule as the model:
+        // only if focus is still on this viewer.
+        const at = document.activeElement;
+        focusSlider.current = !at || at === document.body || Boolean(frame.current?.contains(at));
         // Once, just after loading: the drive comes apart to 60% and settles, so the slider's job is obvious.
         // Only the model moves (the slider value is set once at the end), any touch stops it, reduced motion skips it.
         if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
@@ -103,6 +107,13 @@ export function ModelViewer({ m, explode = Boolean(m.explode) }: { m: Media; exp
       el.removeEventListener("error", failed);
     };
   }, [state, explode]);
+
+  useEffect(() => {
+    if (state === "ready" && focusSlider.current) {
+      focusSlider.current = false;
+      slider.current?.focus({ preventScroll: true });
+    }
+  }, [state]);
 
   const stopDemo = () => {
     if (demo.current) cancelAnimationFrame(demo.current);
