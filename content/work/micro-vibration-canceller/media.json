@@ -75,5 +75,13 @@
     "src": "_notes/media/senior-design/report_image14.png",
     "alpha": "ink",
     "alt": "Wiring schematic: Arduino Uno reading the biased piezo signal and driving the voice coil motor through an L298 H-bridge from a 12 V battery"
+  },
+  {
+    "out": "shield-print",
+    "src": "Info Repository/Senior Design/Senior Design/CAD/Prints/MH-P03_02.04.25.3MF",
+    "alt": "3D model of an early printed shield for the canceller: an open two-post frame with a ring on top",
+    "orbit": "30deg 70deg auto",
+    "color": "#3a3d42",
+    "roughness": 0.7
   }
 ]

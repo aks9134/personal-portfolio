@@ -14,6 +14,7 @@ import ffmpeg from 'ffmpeg-static';
 import { MeshoptEncoder } from 'meshoptimizer';
 import occtimportjs from 'occt-import-js';
 import sharp from 'sharp';
+import zlib from 'node:zlib';
 
 sharp.cache(false); // on Windows a cached handle keeps files locked, so they could not be moved or deleted
 const args = process.argv.slice(2);
@@ -23,7 +24,7 @@ const PYTHON = path.join('.venv-media', 'Scripts', 'python.exe');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'media-'));
 let occt; // STEP reader, loaded on first use
 const WIDTHS = [640, 828, 1200]; // width copies of every WebP; keep in sync with src/lib/image-widths.ts
-const HANDLERS = { '.png': image, '.jpg': image, '.jpeg': image, '.pdf': image, '.step': model, '.stp': model, '.mov': video, '.mp4': video };
+const HANDLERS = { '.png': image, '.jpg': image, '.jpeg': image, '.pdf': image, '.step': model, '.stp': model, '.3mf': model, '.mov': video, '.mp4': video };
 
 try {
   for (const slug of fs.readdirSync('content/work')) {
@@ -98,39 +99,32 @@ function pdfJpeg(file, obj) {
   return buf.subarray(start, text.indexOf('endstream', start));
 }
 
-// STEP -> compressed GLB, one mesh per solid, CAD colors kept unless `color` overrides.
-// Optional: deflection (smaller = finer mesh), color "#rrggbb", metallic, roughness, orbit (camera angle for the
-// poster and the page viewer, model-viewer camera-orbit syntax, e.g. "60deg 65deg auto").
+// STEP or 3MF -> compressed GLB, one mesh per solid, CAD colors kept unless `color` overrides.
+// Optional: deflection (STEP only; smaller = finer mesh), color "#rrggbb", metallic, roughness, orbit (camera angle
+// for the poster and the page viewer, model-viewer camera-orbit syntax, e.g. "60deg 65deg auto").
 async function model(item, slug, outDir) {
-  occt ??= await occtimportjs();
-  const res = occt.ReadStepFile(new Uint8Array(fs.readFileSync(item.src)), {
-    linearUnit: 'millimeter',
-    linearDeflectionType: 'bounding_box_ratio',
-    linearDeflection: item.deflection ?? 0.002,
-    angularDeflection: 0.5,
-  });
-  if (!res.success) throw new Error(`${item.src}: STEP read failed`);
+  const meshes = path.extname(item.src).toLowerCase() === '.3mf' ? read3mf(item.src) : await readStep(item);
   const doc = new Document().setLogger(new Logger(Logger.Verbosity.WARN));
   const buffer = doc.createBuffer();
   const scene = doc.createScene();
   const materials = new Map();
   const accessor = (type, array) => doc.createAccessor().setType(type).setArray(array).setBuffer(buffer);
   const centres = new Map(); // node -> world centre of its mesh, for the exploded-view animation
-  for (const m of res.meshes) {
+  for (const m of meshes) {
     const rgb = item.color ? hexToRgb(item.color) : (m.color ?? [0.7, 0.7, 0.72]);
     if (!materials.has(rgb.join())) {
       materials.set(rgb.join(), doc.createMaterial().setBaseColorFactor([...rgb, 1])
         .setMetallicFactor(item.metallic ?? 0.2).setRoughnessFactor(item.roughness ?? 0.55));
     }
     const prim = doc.createPrimitive()
-      .setAttribute('POSITION', accessor('VEC3', new Float32Array(m.attributes.position.array)))
-      .setIndices(accessor('SCALAR', new Uint32Array(m.index.array)))
+      .setAttribute('POSITION', accessor('VEC3', m.position))
+      .setIndices(accessor('SCALAR', m.index))
       .setMaterial(materials.get(rgb.join()));
-    if (m.attributes.normal) prim.setAttribute('NORMAL', accessor('VEC3', new Float32Array(m.attributes.normal.array)));
+    if (m.normal) prim.setAttribute('NORMAL', accessor('VEC3', m.normal));
     const node = doc.createNode(m.name).setMesh(doc.createMesh(m.name).addPrimitive(prim));
     scene.addChild(node);
     // A solid with no triangles has no centre; it stays put rather than turning the whole assembly's centre into NaN.
-    if (item.explode && m.attributes.position.array.length) centres.set(node, boxCentre(m.attributes.position.array));
+    if (item.explode && m.position.length) centres.set(node, boxCentre(m.position));
   }
   await MeshoptEncoder.ready;
   await doc.transform(dedup(), weld(), quantize(), meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
@@ -145,11 +139,79 @@ async function model(item, slug, outDir) {
     poster: publish(poster.file, slug, outDir, `${item.out}-poster`, "webp"),
     width: poster.width,
     height: poster.height,
-    parts: res.meshes.length,
+    parts: meshes.length,
     bytes,
     ...(item.orbit && { orbit: item.orbit }),
     ...(item.explode && { explode: Math.round(span), frame }), // mm the farthest part travels at 100%; framing
   };
+}
+
+async function readStep(item) {
+  occt ??= await occtimportjs();
+  const res = occt.ReadStepFile(new Uint8Array(fs.readFileSync(item.src)), {
+    linearUnit: 'millimeter',
+    linearDeflectionType: 'bounding_box_ratio',
+    linearDeflection: item.deflection ?? 0.002,
+    angularDeflection: 0.5,
+  });
+  if (!res.success) throw new Error(`${item.src}: STEP read failed`);
+  return res.meshes.map((m) => ({
+    name: m.name,
+    color: m.color,
+    position: new Float32Array(m.attributes.position.array),
+    index: new Uint32Array(m.index.array),
+    normal: m.attributes.normal && new Float32Array(m.attributes.normal.array),
+  }));
+}
+
+// 3MF (a 3D-printing package: a zip holding XML meshes in millimetres). Faces are split per triangle with flat
+// normals, so printed parts keep their hard edges; weld() then merges what it can. The file's build transforms
+// are ignored (single-object prints place the part at the origin already).
+function read3mf(file) {
+  const xml = unzipEntry(fs.readFileSync(file), /3dmodel\.model$/i).toString('utf8');
+  const out = [];
+  for (const obj of xml.matchAll(/<object\b[^>]*?name="([^"]*)"[^>]*>([\s\S]*?)<\/object>/g)) {
+    const v = [...obj[2].matchAll(/<vertex x="([^"]+)" y="([^"]+)" z="([^"]+)"/g)].map((m) => [+m[1], +m[2], +m[3]]);
+    const t = [...obj[2].matchAll(/<triangle v1="(\d+)" v2="(\d+)" v3="(\d+)"/g)].map((m) => [+m[1], +m[2], +m[3]]);
+    if (!t.length) continue;
+    const position = new Float32Array(t.length * 9);
+    const normal = new Float32Array(t.length * 9);
+    t.forEach(([a, b, c], i) => {
+      const [p, q, r] = [v[a], v[b], v[c]];
+      const u = [q[0] - p[0], q[1] - p[1], q[2] - p[2]];
+      const w = [r[0] - p[0], r[1] - p[1], r[2] - p[2]];
+      const n = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]];
+      const len = Math.hypot(...n) || 1;
+      [p, q, r].forEach((pt, k) => {
+        position.set(pt, i * 9 + k * 3);
+        normal.set(n.map((x) => x / len), i * 9 + k * 3);
+      });
+    });
+    out.push({ name: obj[1], position, normal, index: Uint32Array.from({ length: t.length * 3 }, (_, i) => i) });
+  }
+  if (!out.length) throw new Error(`${file}: no meshes in 3MF`);
+  return out;
+}
+
+// One entry out of a zip file, found by name through the central directory (stored or deflated).
+function unzipEntry(buf, re) {
+  const eocd = buf.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
+  let at = buf.readUInt32LE(eocd + 16);
+  for (let i = 0, n = buf.readUInt16LE(eocd + 10); i < n; i++) {
+    const method = buf.readUInt16LE(at + 10);
+    const size = buf.readUInt32LE(at + 20);
+    const nameLen = buf.readUInt16LE(at + 28);
+    const extra = buf.readUInt16LE(at + 30) + buf.readUInt16LE(at + 32);
+    const local = buf.readUInt32LE(at + 42);
+    const name = buf.toString('utf8', at + 46, at + 46 + nameLen);
+    if (re.test(name)) {
+      const start = local + 30 + buf.readUInt16LE(local + 26) + buf.readUInt16LE(local + 28);
+      const data = buf.subarray(start, start + size);
+      return method === 8 ? zlib.inflateRawSync(data) : data;
+    }
+    at += 46 + nameLen + extra;
+  }
+  throw new Error(`zip entry ${re} not found`);
 }
 
 function boxCentre(p) {
