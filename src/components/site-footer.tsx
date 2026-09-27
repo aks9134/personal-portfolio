@@ -1,6 +1,7 @@
 import { site } from "@/lib/site";
 import { Contact } from "./contact";
 import { Switches } from "./controls";
+import { PaletteButton } from "./palette";
 import { Waveform } from "./waveform";
 
 // End of every page: the one action (email), the other ways to reach Allen, the bay's switches (the only place they
@@ -21,7 +22,10 @@ export function SiteFooter() {
           <p>
             <a href="/privacy" className="link">Privacy and accessibility</a>
           </p>
-          <Switches className="lg:justify-end" />
+          <div className="flex flex-wrap items-center gap-4 lg:justify-end">
+            <Switches />
+            <PaletteButton />
+          </div>
         </div>
         <p className="mt-8 text-sm text-muted">Views are my own and don&apos;t represent any employer.</p>
       </div>

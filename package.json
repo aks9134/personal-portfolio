@@ -14,15 +14,11 @@
     "og": "node scripts/og.mjs"
   },
   "dependencies": {
-    "@google/model-viewer": "^4.3.1",
-    "@gsap/react": "^2.1.2",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
     "@next/mdx": "^16.3.5",
     "@types/mdx": "^2.0.14",
-    "animejs": "^4.5.0",
     "cn": "^0.3.0",
-    "gsap": "^3.15.0",
     "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -33,6 +29,7 @@
     "@gltf-transform/core": "^4.5.0",
     "@gltf-transform/extensions": "^4.5.0",
     "@gltf-transform/functions": "^4.5.0",
+    "@google/model-viewer": "^4.3.1",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

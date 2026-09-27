@@ -356,7 +356,12 @@ html[data-motion="off"]::view-transition-new(*) {
 }
 .explode-stage {
   position: relative;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 4 / 5;
+}
+@media (min-width: 768px) {
+  .explode-stage {
+    aspect-ratio: 16 / 10;
+  }
 }
 @media (prefers-reduced-motion: no-preference) {
   html:not([data-motion="off"]) .explode-run {

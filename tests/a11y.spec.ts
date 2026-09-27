@@ -6,9 +6,10 @@ import { routes } from './site.config';
 // Passing this is required, and is not the same as being accessible:
 // the manual keyboard and screen-reader pass in TESTING.md still applies.
 for (const route of routes) {
-  for (const scheme of ['light', 'dark'] as const) {
-    test(`axe WCAG 2.2 AA: ${route} (${scheme})`, async ({ page }) => {
-      await page.emulateMedia({ colorScheme: scheme });
+  // The site is dark whatever the OS says; the Lights switch (saved in localStorage) gives the light sheet.
+  for (const sheet of ['dark', 'light'] as const) {
+    test(`axe WCAG 2.2 AA: ${route} (${sheet})`, async ({ page }) => {
+      if (sheet === 'light') await page.addInitScript(() => localStorage.setItem('pref-theme', 'light'));
       await page.goto(route, { waitUntil: 'networkidle' });
       const results = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])

@@ -1,14 +1,14 @@
 "use client";
 
-import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
 import { motionOk, useMotionOk } from "@/lib/motion";
 import type { Media } from "@/lib/work";
-import { type Finish, parseOrbit } from "./engine";
+import { type Finish, parseOrbit, type Stage } from "./engine";
 import { useStage } from "./use-stage";
 import { StageCanvas, TurnButtons } from "./view";
 
 type Readout = { p: number; mm: number; parts: number; ready: boolean };
-type Ctx = Readout & { slide: (v: number) => void; id: string };
+type Ctx = Readout & { slide: (v: number) => void; id: string; stage: RefObject<Stage | null> };
 const ExplodeContext = createContext<Ctx | null>(null);
 const useExplode = () => {
   const c = useContext(ExplodeContext);
@@ -106,7 +106,7 @@ export function ExplodeScrub({
     } else pose(v, false);
   };
 
-  const r: Ctx = { p, mm: Math.round(p * travel), parts: m.parts ?? 0, ready, slide, id };
+  const r: Ctx = { p, mm: Math.round(p * travel), parts: m.parts ?? 0, ready, slide, id, stage };
   return (
     <ExplodeContext.Provider value={r}>
       <section ref={section} id={anchor} className={`explode-run ${className}`} style={{ ["--run" as string]: `${length * 100}svh` }}>
@@ -116,7 +116,6 @@ export function ExplodeScrub({
             {overlay}
           </div>
           {children}
-          <TurnButtons stage={stage} className="absolute right-4 bottom-6 md:right-8" />
         </div>
       </section>
     </ExplodeContext.Provider>
@@ -146,6 +145,11 @@ export function ExplodeSlider({ className = "explode-control" }: { className?: s
       />
     </div>
   );
+}
+
+/** The Turn buttons for the model, placed wherever the page puts them. */
+export function ExplodeTurn({ className = "" }: { className?: string }) {
+  return <TurnButtons stage={useExplode().stage} className={className} />;
 }
 
 export function ExplodeValue({ kind, pad = 0, className }: { kind: "mm" | "pct" | "parts"; pad?: number; className?: string }) {

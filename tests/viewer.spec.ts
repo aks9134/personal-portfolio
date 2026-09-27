@@ -1,98 +1,153 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
-// 3D viewers: nothing loads until asked, every model loads from this site (decoder included),
-// and keyboard focus lands on the loaded model, or on the Explode slider for a model that comes apart.
-const pages = [
-  { route: '/work/gravity-storage-drive', models: 3 },
-  { route: '/work/robotic-arm', models: 1 },
-];
+// The three.js stage. Each canvas reports its state as data attributes (engine.ts): data-ready once the model is
+// drawn, data-theta (camera angle) and data-explode (0 to 1). Every "nothing moves" check has a twin that proves the
+// same thing does move when motion is allowed, so a broken feature can't pass as a restrained one.
+test.describe.configure({ mode: 'serial' });
+test.beforeEach(({}, testInfo) => test.skip(testInfo.project.name !== 'desktop', 'WebGL checks run on the desktop profile'));
+test.slow();
 
-for (const { route, models: count } of pages)
-test(`${route}: 3D viewers load on click with zero third-party requests`, async ({ page, baseURL }) => {
+const hero = (page: Page) => page.locator('section[aria-labelledby="name"] canvas');
+const drive = (page: Page) => page.locator('#terrament canvas');
+const theta = (page: Page, c = hero(page)) => c.getAttribute('data-theta').then(Number);
+const apart = (page: Page) => drive(page).getAttribute('data-explode').then(Number);
+
+async function motionOff(page: Page) {
+  await page.addInitScript(() => localStorage.setItem('pref-motion', 'off'));
+}
+
+async function toDrive(page: Page, at: number) {
+  await page.evaluate((at) => {
+    const s = document.getElementById('terrament')!;
+    const top = s.getBoundingClientRect().top + scrollY;
+    scrollTo({ top: top + at * (s.offsetHeight - innerHeight), behavior: 'instant' });
+  }, at);
+}
+
+test('home: every model loads from this site, and the hero replaces its poster', async ({ page, baseURL }) => {
   const origin = new URL(baseURL!).origin;
-  const thirdParty = new Set<string>();
+  const foreign = new Set<string>();
   const problems: string[] = [];
-  const models: string[] = [];
   page.on('request', (r) => {
     const u = new URL(r.url());
-    if (u.protocol.startsWith('http') && u.origin !== origin) thirdParty.add(u.origin);
-    if (u.pathname.endsWith('.glb')) models.push(u.pathname);
+    if (u.protocol.startsWith('http') && u.origin !== origin) foreign.add(u.origin);
   });
-  page.on('console', (m) => m.type() === 'error' && problems.push(`console: ${m.text()}`));
-  page.on('pageerror', (e) => problems.push(`pageerror: ${e.message}`));
-  page.on('requestfailed', (r) => problems.push(`failed: ${r.url()}`));
-
-  await page.goto(route, { waitUntil: 'networkidle' });
-  expect(models, 'models fetched before any click').toEqual([]);
-
-  const buttons = page.getByRole('button', { name: /^(Load 3D model|Take it apart)/ });
-  await expect(buttons).toHaveCount(count);
-  for (let i = 0; i < count; i++) {
-    await buttons.first().click();
-    const viewer = page.locator('model-viewer').nth(i);
-    await expect.poll(() => viewer.evaluate((el) => (el as HTMLElement & { loaded: boolean }).loaded), { timeout: 30_000 }).toBe(true);
-    const slider = viewer.locator('xpath=ancestor::div[2]').getByLabel('Explode');
-    if (await slider.count()) await expect(slider).toBeFocused();
-    else await expect(viewer).toBeFocused();
-  }
-
-  expect(models).toHaveLength(count);
-  expect(problems, 'console errors and failed requests').toEqual([]);
-  expect([...thirdParty], 'third-party origins contacted').toEqual([]);
-});
-
-type MV = HTMLElement & { loaded: boolean; currentTime: number; getCameraOrbit: () => { theta: number } };
-
-// The take-apart model on the home page: the slider scrubs the baked "explode" animation and the readout follows.
-test('home: the drive module comes apart on the slider', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'desktop', 'desktop only: 248 parts in software WebGL is slow');
-  test.slow();
-  const problems: string[] = [];
   page.on('pageerror', (e) => problems.push(e.message));
+  page.on('console', (m) => m.type() === 'error' && problems.push(m.text()));
   await page.goto('/', { waitUntil: 'networkidle' });
-  await page.getByRole('button', { name: /^Take it apart/ }).click();
-  const slider = page.getByLabel('Explode');
-  await expect(slider).toBeFocused({ timeout: 60_000 });
-  await slider.fill('100');
-  await expect(page.locator('output')).toContainText(/[1-9]\d* mm apart/);
-  await expect(slider).toHaveAttribute('aria-valuetext', /millimetres apart/);
-  const t = await page.locator('article.vitrine model-viewer').evaluate((el) => (el as MV).currentTime);
-  expect(t).toBeGreaterThan(0.99);
+  await expect(hero(page)).toHaveAttribute('data-ready', '', { timeout: 60_000 });
+  await expect(page.locator('section[aria-labelledby="name"] img')).toHaveCSS('opacity', '0');
+  expect([...foreign]).toEqual([]);
   expect(problems).toEqual([]);
 });
 
-// Reduced motion covers script-driven motion too, which getAnimations() cannot see: no demo explode after
-// loading, and the hero hand does not turn when the page scrolls.
-test('reduced motion: nothing moves on its own (3D)', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'desktop', 'runs once');
-  test.slow();
-  await page.emulateMedia({ reducedMotion: 'reduce' });
+test('home: scrolling through the drive takes it apart (motion allowed)', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
-  const hand = page.locator('header model-viewer');
-  await expect.poll(() => hand.evaluate((el) => (el as MV).loaded), { timeout: 60_000 }).toBe(true);
-  await expect(page.locator('header img')).toHaveCSS('opacity', '0', { timeout: 10_000 });
-  await expect(hand).not.toHaveAttribute('auto-rotate');
-  const before = await hand.evaluate((el) => (el as MV).getCameraOrbit().theta);
-  await page.mouse.wheel(0, 300);
-  await page.waitForTimeout(600);
-  expect(await hand.evaluate((el) => (el as MV).getCameraOrbit().theta)).toBeCloseTo(before, 5);
-
-  await page.getByRole('button', { name: /^Take it apart/ }).click();
-  await expect(page.getByLabel('Explode')).toBeFocused({ timeout: 60_000 });
-  await page.waitForTimeout(1800);
-  const t = await page.locator('article.vitrine model-viewer').evaluate((el) => (el as MV).currentTime);
-  expect(t).toBe(0);
-  await expect(page.getByLabel('Explode')).toHaveValue('0');
+  await toDrive(page, 0);
+  await expect(drive(page)).toHaveAttribute('data-ready', '', { timeout: 60_000 });
+  await toDrive(page, 0.8);
+  await expect.poll(() => apart(page)).toBeGreaterThan(0.6);
+  await expect(page.locator('#terrament')).toContainText(/[1-9]\d* mm/);
+  // The slider is the same control: moving it scrolls the page to the matching point.
+  const y = await page.evaluate(() => scrollY);
+  await page.getByRole('slider', { name: 'Explode' }).fill('200');
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(y);
+  await expect.poll(() => apart(page)).toBeLessThan(0.3);
 });
 
-// The hero hand: once the live model is revealed its poster is gone (a poster left behind shows as a frozen second
-// hand under the one you drag), and it makes its slow first turn on arrival.
-test('home: the hero hand replaces its poster and turns on arrival', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'desktop', 'runs once');
-  test.slow();
+test('home: the hero turns with scroll when motion is allowed', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
-  const hand = page.locator('header model-viewer');
-  await expect.poll(() => hand.evaluate((el) => (el as MV).loaded), { timeout: 60_000 }).toBe(true);
-  await expect(page.locator('header img')).toHaveCSS('opacity', '0', { timeout: 10_000 });
-  await expect(hand).toHaveAttribute('auto-rotate', '');
+  await expect(hero(page)).toHaveAttribute('data-ready', '', { timeout: 60_000 });
+  const before = await theta(page);
+  await page.mouse.wheel(0, 400);
+  await expect.poll(() => theta(page)).not.toBeCloseTo(before, 1);
+});
+
+for (const how of ['OS setting', 'site switch'] as const)
+  test(`motion off (${how}): hero, scope and drive hold still, and the controls still work`, async ({ page }) => {
+    if (how === 'OS setting') await page.emulateMedia({ reducedMotion: 'reduce' });
+    else await motionOff(page);
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await expect(hero(page)).toHaveAttribute('data-ready', '', { timeout: 60_000 });
+    const before = await theta(page);
+    await page.mouse.wheel(0, 400);
+    await page.waitForTimeout(800);
+    expect(await theta(page)).toBeCloseTo(before, 1);
+    // Turn buttons still turn it (the twin).
+    await page.locator('section[aria-labelledby="name"]').getByRole('button', { name: 'Turn left' }).click();
+    await expect.poll(() => theta(page)).toBeCloseTo(before + 30, 0);
+
+    // The scope shows one still frame.
+    const scope = page.locator('.scope-screen canvas');
+    await scope.scrollIntoViewIfNeeded();
+    const a = await scope.evaluate((c: HTMLCanvasElement) => c.toDataURL());
+    await page.waitForTimeout(500);
+    expect(await scope.evaluate((c: HTMLCanvasElement) => c.toDataURL())).toBe(a);
+
+    // The drive section is a normal figure: scrolling past it doesn't take it apart, the slider does.
+    const h = await page.locator('#terrament').evaluate((s) => s.getBoundingClientRect().height);
+    expect(h).toBeLessThan(await page.evaluate(() => innerHeight * 1.5));
+    await page.locator('#terrament').scrollIntoViewIfNeeded();
+    await expect(drive(page)).toHaveAttribute('data-ready', '', { timeout: 60_000 });
+    await page.mouse.wheel(0, 300);
+    await page.waitForTimeout(500);
+    expect(await apart(page)).toBe(0);
+    await page.getByRole('slider', { name: 'Explode' }).fill('900');
+    await expect.poll(() => apart(page)).toBeGreaterThan(0.85);
+  });
+
+test('home: the scope trace moves when motion is allowed, and Hold stops it', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+  const scope = page.locator('.scope-screen canvas');
+  await scope.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(300);
+  const a = await scope.evaluate((c: HTMLCanvasElement) => c.toDataURL());
+  await page.waitForTimeout(300);
+  expect(await scope.evaluate((c: HTMLCanvasElement) => c.toDataURL())).not.toBe(a);
+  await page.getByRole('button', { name: 'Hold' }).click();
+  await page.waitForTimeout(200);
+  const b = await scope.evaluate((c: HTMLCanvasElement) => c.toDataURL());
+  await page.waitForTimeout(400);
+  expect(await scope.evaluate((c: HTMLCanvasElement) => c.toDataURL())).toBe(b);
+});
+
+test('keyboard: a focused model turns with the arrow keys', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+  await expect(hero(page)).toHaveAttribute('data-ready', '', { timeout: 60_000 });
+  const before = await theta(page);
+  await hero(page).focus();
+  await page.keyboard.press('ArrowLeft');
+  await expect.poll(() => theta(page)).toBeCloseTo(before + 15, 0);
+});
+
+test('case study: small models load when near, the big one waits for its button', async ({ page }) => {
+  const glbs: string[] = [];
+  page.on('request', (r) => r.url().endsWith('.glb') && glbs.push(new URL(r.url()).pathname));
+  await page.goto('/work/gravity-storage-drive', { waitUntil: 'networkidle' });
+  expect(glbs.filter((g) => g.includes('geared-module')), 'the 3 MB model before asking').toEqual([]);
+  const load = page.getByRole('button', { name: /^Load 3D model \(3\.\d MB\)/ });
+  await expect(load).toHaveCount(1);
+  for (const c of await page.locator('figure canvas').all()) await c.scrollIntoViewIfNeeded();
+  await expect.poll(() => glbs.length).toBeGreaterThanOrEqual(2);
+  await load.scrollIntoViewIfNeeded();
+  await load.click();
+  const slider = page.getByRole('slider', { name: 'Explode' });
+  const fig = page.locator('figure').filter({ has: slider });
+  await expect(fig.locator('canvas')).toHaveAttribute('data-ready', '', { timeout: 90_000 });
+  await slider.fill('1000');
+  await expect(fig.locator('canvas')).toHaveAttribute('data-explode', /^0\.99|^1/);
+  await expect(fig).toContainText(/213 mm apart/);
+});
+
+test('phone: the hero model waits for the first touch', async ({ browser }) => {
+  const ctx = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+  const page = await ctx.newPage();
+  const glbs: string[] = [];
+  page.on('request', (r) => r.url().endsWith('.glb') && glbs.push(r.url()));
+  await page.goto('/', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1500);
+  expect(glbs, 'models fetched before any interaction').toEqual([]);
+  await page.mouse.wheel(0, 50);
+  await expect.poll(() => glbs.length, { timeout: 15_000 }).toBeGreaterThan(0);
+  await ctx.close();
 });

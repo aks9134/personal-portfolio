@@ -8,11 +8,11 @@ import { PaletteButton } from "./palette";
 export function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-rule bg-bg print:hidden">
-      <div className="mx-auto flex h-14 max-w-[1600px] items-center justify-between gap-4 px-4 md:px-8">
-        <a href="/" className="readout whitespace-nowrap text-fg">
+      <div className="mx-auto flex h-14 max-w-[1600px] items-center justify-between gap-3 px-4 md:px-8">
+        <a href="/" className="readout inline-flex min-h-6 items-center whitespace-nowrap text-fg max-[400px]:tracking-normal">
           {site.name}
         </a>
-        <nav aria-label="Primary" className="flex items-center gap-4 sm:gap-6">
+        <nav aria-label="Primary" className="flex items-center gap-3 sm:gap-6">
           <NavLink href="/#work">Work</NavLink>
           <NavLink href="/about">About</NavLink>
           <NavLink href="/resume">Resume</NavLink>

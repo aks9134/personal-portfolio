@@ -1,7 +1,7 @@
 import { MediaImage } from "@/components/media-image";
 import { Scope } from "@/components/scope";
 import { Shelf } from "@/components/shelf";
-import { ExplodeBeat, ExplodeScrub, ExplodeSlider, ExplodeValue } from "@/components/stage/explode-scrub";
+import { ExplodeBeat, ExplodeScrub, ExplodeSlider, ExplodeTurn, ExplodeValue } from "@/components/stage/explode-scrub";
 import { HeroStage } from "@/components/stage/hero-stage";
 import { WorkIndex } from "@/components/work-index";
 import { resume } from "@/lib/resume";
@@ -49,9 +49,9 @@ export default async function Home() {
     <main id="main">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profile).replace(/</g, "\\u003c") }} />
 
-      <section aria-labelledby="name" className="mx-auto grid max-w-[1600px] gap-6 px-4 pt-8 pb-16 md:min-h-[calc(100svh-3.5rem)] md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] md:items-end md:px-8">
+      <section aria-labelledby="name" className="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 px-4 pt-8 pb-16 md:min-h-[calc(100svh-3.5rem)] md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] md:items-end md:px-8">
         <div className="md:pb-6">
-          <h1 id="name" className="display text-[clamp(5.5rem,17vw,15.5rem)]">
+          <h1 id="name" className="display text-[clamp(5rem,17vw,15.5rem)]">
             Allen<br />Sun
           </h1>
           <p className="mt-6 max-w-[38ch] text-xl leading-snug text-muted">
@@ -119,7 +119,7 @@ export default async function Home() {
           </div>
         }
       >
-        <div className="absolute inset-x-4 bottom-20 max-w-xl md:left-8">
+        <div className="mx-4 mt-4 max-w-xl md:mx-8 motion-safe:absolute motion-safe:inset-x-4 motion-safe:bottom-28 motion-safe:m-0 md:motion-safe:bottom-20 md:motion-safe:left-8">
           <div className="relative min-h-[5.5rem]">
             {beats.map((b, i) => (
               <ExplodeBeat key={b} from={i / beats.length} to={(i + 1) / beats.length} className="absolute inset-x-0 bottom-0">
@@ -128,9 +128,10 @@ export default async function Home() {
             ))}
           </div>
         </div>
-        <div className="absolute inset-x-4 bottom-6 flex max-w-xl items-center gap-6 md:left-8">
-          <ExplodeSlider className="explode-control flex-1" />
-          <a href={`/work/${drive.slug}`} className="link whitespace-nowrap">Case study</a>
+        <div className="mx-4 mt-2 flex flex-wrap items-center gap-x-6 gap-y-1 md:mx-8 motion-safe:absolute motion-safe:inset-x-4 motion-safe:bottom-4 motion-safe:m-0 md:motion-safe:inset-x-8 md:motion-safe:bottom-6">
+          <ExplodeSlider className="explode-control min-w-[16rem] flex-1 md:max-w-xl" />
+          <a href={`/work/${drive.slug}`} className="link inline-flex min-h-6 items-center whitespace-nowrap">Case study</a>
+          <ExplodeTurn className="ml-auto" />
         </div>
       </ExplodeScrub>
 
@@ -184,7 +185,7 @@ export default async function Home() {
           <h2 id="exp-title" className="display text-[clamp(3rem,7vw,6.5rem)]">Experience</h2>
           <ol className="mt-10">
             {resume.jobs.map((j) => (
-              <li key={j.org} className="grid gap-x-10 gap-y-2 border-t border-rule py-8 md:grid-cols-[14rem_minmax(0,22rem)_minmax(0,1fr)]">
+              <li key={j.org} className="grid grid-cols-1 gap-x-10 gap-y-2 border-t border-rule py-8 lg:grid-cols-[12rem_minmax(0,20rem)_minmax(0,1fr)]">
                 <p className="readout text-muted">{j.dates}</p>
                 <div>
                   <h3 className="text-xl font-semibold leading-snug">{j.org}</h3>

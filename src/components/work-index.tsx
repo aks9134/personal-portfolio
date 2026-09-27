@@ -78,10 +78,11 @@ export function WorkIndex({ rows }: { rows: IndexRow[] }) {
         ))}
       </ol>
       {fine && moving && (
+        // A viewport-sized clip layer, so the picture can never widen the page.
+        <div aria-hidden className="pointer-events-none fixed inset-0 z-20 overflow-hidden">
         <div
           ref={plate}
-          aria-hidden
-          className={`pointer-events-none fixed top-0 left-0 z-20 w-[22rem] border border-rule bg-bg-2 p-3 transition-opacity duration-200 ${on === null ? "opacity-0" : "opacity-100"}`}
+          className={`absolute top-0 left-0 w-[22rem] border border-rule bg-bg-2 p-3 transition-opacity duration-200 ${on === null ? "opacity-0" : "opacity-100"}`}
         >
           {rows.map((r, i) => (
             // eslint-disable-next-line @next/next/no-img-element
@@ -98,6 +99,7 @@ export function WorkIndex({ rows }: { rows: IndexRow[] }) {
               className={`mx-auto max-h-64 w-auto object-contain ${on === i ? "block" : "hidden"}`}
             />
           ))}
+        </div>
         </div>
       )}
     </div>

@@ -38,7 +38,6 @@ for (const route of routes) {
       for (let i = 1; i < levels.length; i++) {
         expect(levels[i] - levels[i - 1], `heading jump at index ${i}: ${levels.join(',')}`).toBeLessThanOrEqual(1);
       }
-      // Light DOM only: Playwright locators pierce shadow roots, and model-viewer ships its own AR anchors.
       const authored = await page.evaluate(() => ({
         noAlt: document.querySelectorAll('img:not([alt])').length,
         dead: document.querySelectorAll('a:not([href]), a[href="#"], a[href=""]').length,
@@ -55,7 +54,7 @@ for (const route of routes) {
         expect(overflow, `horizontal overflow at ${width}px`).toBeLessThanOrEqual(1);
         // Pages clip sideways overflow, so a too-wide image is cut off silently instead of scrolling. Catch it here.
         const cut = await page.evaluate(() =>
-          [...document.querySelectorAll('img, video, model-viewer')]
+          [...document.querySelectorAll('img, video, canvas')]
             .filter((el) => el.getBoundingClientRect().right > document.documentElement.clientWidth + 1)
             .map((el) => el.getAttribute('src') ?? el.tagName),
         );
@@ -96,7 +95,8 @@ for (const route of routes) {
         await page.setViewportSize({ width, height: 900 });
         await page.goto(route, { waitUntil: 'networkidle' });
         const name = `${route === '/' ? 'home' : route.replace(/\W+/g, '-').replace(/^-|-$/g, '')}-${width}.png`;
-        await page.screenshot({ path: `test-results/review/${name}`, fullPage: true });
+        // Not under test-results/: Playwright empties that folder at the start of every run.
+        await page.screenshot({ path: `review-shots/suite/${name}`, fullPage: true });
       }
     });
   });

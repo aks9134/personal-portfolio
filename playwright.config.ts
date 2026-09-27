@@ -13,7 +13,8 @@ export default defineConfig({
   reporter: [['list'], ['html', { open: 'never' }]],
   use: { baseURL, trace: 'retain-on-failure', screenshot: 'only-on-failure' },
   projects: [
-    { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
+    // On Windows the D3D11 backend gives headless Chrome the real GPU; software WebGL is too slow for the 3D checks.
+    { name: 'desktop', use: { ...devices['Desktop Chrome'], launchOptions: { args: process.platform === 'win32' ? ['--use-angle=d3d11'] : [] } } },
     { name: 'phone', use: { ...devices['Pixel 7'] } },
   ],
   // Skipped when BASE_URL is set (for example when testing the live site after launch).
