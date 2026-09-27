@@ -1,0 +1,255 @@
+/* Phase 4 direction variants. Each variant is scoped by its wrapper class; nothing here leaks into the live site. */
+body:has(.lab) > footer,
+body:has(.lab) > .rail {
+  display: none;
+}
+.lab {
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--fg);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+.lab a:focus-visible,
+.lab button:focus-visible,
+.lab input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Shared: explode slider */
+.explode-control {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+}
+.explode-control label {
+  font: 600 0.8125rem/1 var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.explode-control input {
+  appearance: none;
+  height: 2rem;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+}
+.explode-control input::-webkit-slider-runnable-track {
+  height: 2px;
+  background: var(--rule);
+}
+.explode-control input::-moz-range-track {
+  height: 2px;
+  background: var(--rule);
+}
+.explode-control input::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 22px;
+  margin-top: -10px;
+  background: var(--accent);
+  border: 0;
+}
+.explode-control input::-moz-range-thumb {
+  width: 14px;
+  height: 22px;
+  background: var(--accent);
+  border: 0;
+  border-radius: 0;
+}
+
+/* Shared: scope */
+.scope-screen {
+  aspect-ratio: 10 / 8;
+  background: var(--scope-bg);
+  border: 1px solid var(--rule);
+}
+.scope-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.75rem;
+}
+.scope-btn {
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--rule);
+  font: 600 0.8125rem/1 var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: background-color 150ms ease, color 150ms ease, transform 120ms var(--ease-out);
+}
+.scope-btn[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+.scope-btn:active {
+  transform: scale(0.97);
+}
+.scope-scale {
+  margin-left: auto;
+  font: 500 0.8125rem/1 var(--mono);
+  color: var(--muted);
+}
+.scope-cap {
+  margin-top: 0.75rem;
+  max-width: 60ch;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* ---------- A: test cell at night ---------- */
+.va {
+  --bg: oklch(0.17 0.006 70);
+  --bg-2: oklch(0.21 0.007 70);
+  --fg: oklch(0.93 0.015 85);
+  --muted: oklch(0.72 0.015 80);
+  --rule: oklch(0.93 0.015 85 / 0.18);
+  --accent: oklch(0.78 0.14 70);
+  --on-accent: oklch(0.17 0.006 70);
+  --scope-bg: oklch(0.13 0.005 70);
+  --scope-ink: oklch(0.8 0.14 72);
+  --scope-grid: oklch(0.93 0.015 85 / 0.1);
+  --scope-ref: oklch(0.93 0.015 85 / 0.35);
+  --mono: var(--font-azeret), ui-monospace, monospace;
+  font-family: var(--font-azeret), ui-monospace, monospace;
+}
+.va .display {
+  font-family: var(--font-shoulders), sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 0.82;
+  letter-spacing: -0.01em;
+}
+.va .readout {
+  font: 500 0.8125rem/1.2 var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+.va .val {
+  color: var(--accent);
+}
+.va .bay {
+  background: var(--bg);
+}
+
+/* ---------- B: hardware launch ---------- */
+.vb {
+  --bg: oklch(0.145 0.003 250);
+  --bg-2: oklch(0.19 0.004 250);
+  --fg: oklch(0.95 0.003 250);
+  --muted: oklch(0.7 0.006 250);
+  --rule: oklch(0.95 0.003 250 / 0.16);
+  --accent: oklch(0.68 0.2 38);
+  --on-accent: oklch(0.145 0.003 250);
+  --scope-bg: oklch(0.11 0.003 250);
+  --scope-ink: oklch(0.95 0.003 250);
+  --scope-grid: oklch(0.95 0.003 250 / 0.09);
+  --scope-ref: oklch(0.68 0.2 38 / 0.8);
+  --mono: var(--font-mona), ui-sans-serif, sans-serif;
+  font-family: var(--font-mona), ui-sans-serif, sans-serif;
+}
+.vb .display {
+  font-family: var(--font-anybody), sans-serif;
+  font-weight: 800;
+  line-height: 0.86;
+  letter-spacing: -0.03em;
+}
+.vb .stretch {
+  font-variation-settings: "wdth" var(--w, 60);
+}
+.vb .readout {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- C: machined ---------- */
+.vc {
+  --bg: oklch(0.89 0.005 240);
+  --bg-2: oklch(0.84 0.006 240);
+  --fg: oklch(0.2 0.01 250);
+  --muted: oklch(0.42 0.012 250);
+  --rule: oklch(0.2 0.01 250 / 0.22);
+  --accent: oklch(0.52 0.2 28);
+  --on-accent: oklch(0.97 0.004 240);
+  --scope-bg: oklch(0.2 0.01 250);
+  --scope-ink: oklch(0.92 0.005 240);
+  --scope-grid: oklch(0.92 0.005 240 / 0.12);
+  --scope-ref: oklch(0.7 0.15 28);
+  --mono: var(--font-sometype), ui-monospace, monospace;
+  font-family: var(--font-saira), sans-serif;
+}
+.vc .display {
+  font-family: var(--font-saira), sans-serif;
+  font-weight: 800;
+  font-stretch: 125%;
+  text-transform: uppercase;
+  line-height: 0.86;
+  letter-spacing: -0.02em;
+}
+.vc .readout {
+  font: 500 0.8125rem/1.2 var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.vc .mill {
+  clip-path: inset(0 100% 0 0);
+  animation: mill 1400ms cubic-bezier(0.77, 0, 0.175, 1) 200ms forwards;
+}
+.vc .cutter {
+  animation: cutter 1400ms cubic-bezier(0.77, 0, 0.175, 1) 200ms forwards;
+}
+@keyframes mill {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes cutter {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(var(--run));
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vc .mill {
+    animation: none;
+    clip-path: none;
+  }
+  .vc .cutter {
+    display: none;
+  }
+}
+.vb .stretch-hero {
+  font-variation-settings: "wdth" 100;
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .vb .stretch-hero {
+      animation: squeeze linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 90vh;
+    }
+  }
+}
+@keyframes squeeze {
+  from {
+    font-variation-settings: "wdth" 100;
+  }
+  to {
+    font-variation-settings: "wdth" 50;
+    opacity: 0.15;
+  }
+}

@@ -1,0 +1,14 @@
+import { chromium } from "@playwright/test";
+const b = await chromium.launch({ args: ["--enable-unsafe-swiftshader", "--use-angle=swiftshader", "--ignore-gpu-blocklist"] });
+const p = await b.newPage({ viewport: { width: 1200, height: 800 } });
+p.on("console", (m) => console.log("console:", m.type(), m.text()));
+p.on("pageerror", (e) => console.log("pageerror", e.message));
+await p.goto("http://localhost:3300/lab/explode", { waitUntil: "networkidle" });
+await p.waitForTimeout(4000);
+await p.evaluate(() => window.scrollTo(0, 1500));
+await p.waitForTimeout(1500);
+const r = await p.evaluate(() => { const c = document.querySelector("canvas"); const gl = c.getContext("webgl2"); return { w: c.width, h: c.height, gl: !!gl, url: c.toDataURL().length }; });
+console.log(r);
+const data = await p.evaluate(() => document.querySelector("canvas").toDataURL("image/png"));
+(await import("node:fs")).writeFileSync("review-shots/spike-canvas.png", Buffer.from(data.split(",")[1], "base64"));
+await b.close();
