@@ -20,6 +20,9 @@ export function useStage(
   const [gen, setGen] = useState(0);
   const [ready, setReady] = useState(false);
   const [loaded, setLoaded] = useState(0);
+  // A lost GPU context is rebuilt once (it can be passing, like a tab switch); a second loss means memory pressure,
+  // and rebuilding would loop load, lose, reload, so the view keeps its poster from then on.
+  const losses = useRef(0);
   // Options that don't need a rebuild are read at build time from here.
   const optsRef = useRef(opts);
   useEffect(() => {
@@ -42,11 +45,15 @@ export function useStage(
       setGen((g) => g + 1);
     };
     const build = async () => {
-      if (!enabled || !near || !gate || stage.current || loading || !canvas.current) return;
+      if (!enabled || !near || !gate || stage.current || loading || !canvas.current || losses.current > 1) return;
       loading = true;
       try {
         const onProgress = progress ? (l: number, t: number) => setLoaded(t ? Math.round((l / t) * 100) / 100 : 0) : undefined;
-        const s = await createStage(canvas.current, { ...optsRef.current, onProgress, onLost: drop });
+        const onLost = () => {
+          losses.current += 1;
+          drop();
+        };
+        const s = await createStage(canvas.current, { ...optsRef.current, onProgress, onLost });
         if (!alive) return s.dispose();
         stage.current = s;
         setReady(true);

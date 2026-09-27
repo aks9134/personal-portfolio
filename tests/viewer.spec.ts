@@ -162,6 +162,18 @@ test('Turn buttons glide to the new angle when motion is allowed', async ({ page
   await expect.poll(() => theta(page)).toBeCloseTo(before + 30, 0);
 });
 
+test('a model that keeps losing its GPU memory stops reloading and keeps its poster', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+  const lose = () => hero(page).evaluate((c: HTMLCanvasElement) => (c.getContext('webgl2') ?? c.getContext('webgl'))?.getExtension('WEBGL_lose_context')?.loseContext());
+  await ready(hero(page));
+  await lose();
+  await ready(hero(page)); // one loss can be passing (a tab switch): it rebuilds once
+  await lose();
+  await page.waitForTimeout(3000);
+  await expect(hero(page)).not.toHaveAttribute('data-ready');
+  await expect(page.locator('section[aria-labelledby="name"] img')).toHaveCSS('opacity', '1');
+});
+
 test('case study: small models load when near, the big one waits for its button', async ({ page }) => {
   const glbs: string[] = [];
   page.on('request', (r) => r.url().endsWith('.glb') && glbs.push(new URL(r.url()).pathname));

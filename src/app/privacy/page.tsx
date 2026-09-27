@@ -51,8 +51,8 @@ export default function PrivacyPage() {
             <p>
               The site is built to WCAG 2.2 AA. It works by keyboard, and every 3D model turns with the arrow keys or its Turn buttons
               as well as by dragging. It follows your device&apos;s reduced-motion setting, and the Motion switch stops every animation
-              on the site whatever that setting is. Every image, 3D model and video has a text description. The larger 3D models and
-              the videos load only when you ask for them.
+              on the site whatever that setting is. Every image, 3D model and video has a text description. On the case studies, the larger
+              3D models and the videos load only when you ask for them.
             </p>
             <p>
               If something doesn&apos;t work with the way you browse, email {email} and tell me what you ran into. I&apos;ll fix it, or
