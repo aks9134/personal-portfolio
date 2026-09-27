@@ -1,7 +1,7 @@
+import { widthCopy } from "@/lib/image-widths";
 import type { Media } from "@/lib/work";
 import { MediaImage } from "./media-image";
-import { ModelViewer } from "./model-viewer";
-import { widthCopy } from "@/lib/image-widths";
+import { CaseModel } from "./stage/case-model";
 
 type Item = { name: string; label: string };
 
@@ -11,40 +11,41 @@ function get(media: Record<string, Media>, name: string) {
   return m;
 }
 
-// One image with a caption.
-// `narrow` figures sit in the right margin beside the text on wide screens, like a sheet clipped to the traveler.
+const cap = "mt-3 max-w-[65ch] text-sm leading-relaxed text-muted";
+
+// One image with a caption. `narrow` figures sit beside the text on wide screens.
 export function Figure({ media, name, caption, narrow = false }: { media: Record<string, Media>; name: string; caption?: string; narrow?: boolean }) {
   return (
-    <figure className={narrow ? "my-12 max-w-md lg:float-right lg:clear-right lg:mb-8 lg:ml-12 lg:mt-6 lg:w-[38%] lg:max-w-lg" : "clear-both my-12 max-w-4xl"}>
-      <MediaImage m={get(media, name)} sizes={narrow ? "28rem" : "(min-width: 1100px) 1100px, 100vw"} className="w-fit max-w-full" />
-      {caption && <figcaption className="mt-3 max-w-[65ch] text-sm text-ink-2">{caption}</figcaption>}
+    <figure className={narrow ? "my-12 max-w-md lg:float-right lg:clear-right lg:mt-2 lg:mb-8 lg:ml-12 lg:w-[40%] lg:max-w-lg" : "clear-both my-14 max-w-4xl"}>
+      <MediaImage m={get(media, name)} sizes={narrow ? "28rem" : "(min-width: 1100px) 900px, 100vw"} className="w-fit max-w-full" />
+      {caption && <figcaption className={cap}>{caption}</figcaption>}
     </figure>
   );
 }
 
-// Versions side by side, like test strips: how a design changed from one build to the next.
+// Versions side by side: how a design changed from one build to the next.
 export function Strip({ media, items, caption }: { media: Record<string, Media>; items: Item[]; caption?: string }) {
   return (
-    <figure className="clear-both my-12">
-      <div className="grid gap-6 border-y-[1.5px] border-ink py-6 sm:grid-cols-2">
+    <figure className="clear-both my-14">
+      <div className="grid gap-6 border-y border-rule py-6 sm:grid-cols-2">
         {items.map((it, i) => (
-          <div key={it.name} className={i > 0 ? "sm:border-l-[1.5px] sm:border-ink sm:pl-6" : ""}>
+          <div key={it.name} className={i > 0 ? "sm:border-l sm:border-rule sm:pl-6" : ""}>
             <MediaImage m={get(media, it.name)} sizes="(min-width: 640px) 50vw, 100vw" className="w-fit max-w-full" />
             <p className="mt-3 text-sm font-semibold">{it.label}</p>
           </div>
         ))}
       </div>
-      {caption && <figcaption className="mt-3 max-w-[65ch] text-sm text-ink-2">{caption}</figcaption>}
+      {caption && <figcaption className={cap}>{caption}</figcaption>}
     </figure>
   );
 }
 
-// A design generation as a rotatable 3D model, loaded only when the visitor asks for it.
+// A design generation as a live 3D model.
 export function Model({ media, name, caption }: { media: Record<string, Media>; name: string; caption?: string }) {
   return (
-    <figure className="clear-both my-12 max-w-3xl">
-      <ModelViewer m={get(media, name)} />
-      {caption && <figcaption className="mt-3 max-w-[65ch] text-sm text-ink-2">{caption}</figcaption>}
+    <figure className="clear-both my-14 max-w-4xl">
+      <CaseModel m={get(media, name)} />
+      {caption && <figcaption className={cap}>{caption}</figcaption>}
     </figure>
   );
 }
@@ -54,7 +55,7 @@ export function Model({ media, name, caption }: { media: Record<string, Media>; 
 function Player({ m, label, shown }: { m: Media; label?: string; shown: 828 | 1200 }) {
   const poster = m.poster && m.width > shown ? widthCopy(m.poster, shown) : m.poster;
   return (
-    <video controls muted playsInline preload="none" poster={poster} width={m.width} height={m.height} aria-label={m.alt ?? label} className="h-auto w-full border-[1.5px] border-ink bg-ink">
+    <video controls muted playsInline preload="none" poster={poster} width={m.width} height={m.height} aria-label={m.alt ?? label} className="h-auto w-full border border-rule bg-bg-2">
       <source src={m.src} type="video/mp4" />
     </video>
   );
@@ -62,9 +63,9 @@ function Player({ m, label, shown }: { m: Media; label?: string; shown: 828 | 12
 
 export function Video({ media, name, caption }: { media: Record<string, Media>; name: string; caption?: string }) {
   return (
-    <figure className="clear-both my-12 max-w-4xl">
+    <figure className="clear-both my-14 max-w-4xl">
       <Player m={get(media, name)} shown={1200} />
-      {caption && <figcaption className="mt-3 max-w-[65ch] text-sm text-ink-2">{caption}</figcaption>}
+      {caption && <figcaption className={cap}>{caption}</figcaption>}
     </figure>
   );
 }
@@ -72,7 +73,7 @@ export function Video({ media, name, caption }: { media: Record<string, Media>; 
 // Several clips in a grid, each titled.
 export function Clips({ media, items, caption }: { media: Record<string, Media>; items: Item[]; caption?: string }) {
   return (
-    <figure className="clear-both my-12">
+    <figure className="clear-both my-14">
       <div className="grid gap-x-6 gap-y-8 sm:grid-cols-2">
         {items.map((it) => (
           <div key={it.name}>
@@ -81,7 +82,7 @@ export function Clips({ media, items, caption }: { media: Record<string, Media>;
           </div>
         ))}
       </div>
-      {caption && <figcaption className="mt-4 max-w-[65ch] text-sm text-ink-2">{caption}</figcaption>}
+      {caption && <figcaption className={cap}>{caption}</figcaption>}
     </figure>
   );
 }

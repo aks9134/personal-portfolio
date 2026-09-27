@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
-import { Tilt } from "@/components/tilt";
 import { Clips, Figure, Model, Strip, Video } from "@/components/figure";
 import { MediaImage } from "@/components/media-image";
 import { PartsFigure } from "@/components/parts-figure";
-import { SheetBar } from "@/components/sheet-bar";
-import { SiteHeader } from "@/components/site-nav";
-import { Stamp, tiltFor } from "@/components/stamp";
+import { SectionIndex } from "@/components/section-index";
 import { preview, projectImage } from "@/lib/og";
 import { site } from "@/lib/site";
 import { allWork, getWork, still, workSlugs } from "@/lib/work";
@@ -39,51 +36,46 @@ export default async function WorkPage({ params }: PageProps<"/work/[slug]">) {
   ];
 
   return (
-    <>
-      <SiteHeader />
-      <SheetBar title={w.title} />
-      <main id="main" className="mx-auto max-w-[1400px] overflow-x-clip px-4 md:px-10">
-        {/* The thing leads: the hero sits beside the title on wide screens and right after the summary on phones.
-            Pages with a parts figure show it full width below instead, because its legend needs the room. */}
-        <div className={`mt-10 border-t-[1.5px] border-ink pt-6 md:mt-14 ${w.figure ? "" : "lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center lg:gap-14"}`}>
-          <div>
-            <h1 className={`text-5xl font-extrabold leading-[0.98] tracking-[-0.03em] [font-stretch:110%] md:text-7xl ${w.figure ? "" : "lg:text-6xl xl:text-7xl"}`} style={{ viewTransitionName: `t-${w.slug}` }}>{w.title}</h1>
-            <p className="mt-3 text-ink-2">{w.context}, {w.year}</p>
-            <div className="mt-7 flex flex-wrap items-center gap-x-10 gap-y-6">
-              <Stamp tilt={tiltFor(w.title)}>{w.status}</Stamp>
-              {w.award && <Stamp large tilt={-3}>{w.award}</Stamp>}
-            </div>
-            <p className="mt-8 max-w-[62ch] text-xl leading-snug">{w.summary}</p>
-          </div>
-          {!w.figure && (
-            <Tilt className="mx-auto mt-10 w-fit max-w-full lg:mt-0" max={5}>
-              <MediaImage
-                m={still(w.media[w.hero])}
-                priority
-                sizes="(min-width: 1024px) 45vw, 100vw"
-                imgClassName="mx-auto max-h-[70vh] w-auto"
-                style={{ viewTransitionName: `m-${w.slug}` } as React.CSSProperties}
-              />
-            </Tilt>
-          )}
+    <main id="main" className="mx-auto max-w-[1600px] px-4 md:px-8">
+      {/* Title block: what it is, where and when, what state it reached. The thing itself follows at once. */}
+      <header className={`grid gap-10 pt-12 md:pt-16 ${w.figure ? "" : "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end"}`}>
+        <div>
+          <h1 className="display text-[clamp(3.75rem,10vw,9.5rem)]" style={{ viewTransitionName: `t-${w.slug}` }}>
+            {w.title}
+          </h1>
+          <p className="readout mt-5 text-muted">
+            {w.context}, {w.year}
+          </p>
+          <p className="readout mt-2">
+            Status <span className="val">{w.status}</span>
+          </p>
+          {w.award && <p className="readout val mt-2">{w.award}</p>}
+          <p className="mt-8 max-w-[60ch] text-xl leading-snug">{w.summary}</p>
         </div>
-
-        <dl className="rise mt-10 grid border-t-[1.5px] border-ink sm:grid-cols-2 lg:grid-cols-4">
-          {facts.map(([k, v]) => (
-            <div key={k} className="border-b border-rule-soft py-4 sm:pr-6 lg:border-b-0">
-              <dt className="text-sm font-bold">{k}</dt>
-              <dd className="mt-1 leading-snug">{v}</dd>
-            </div>
-          ))}
-        </dl>
-
-        {w.figure && (
-          <div className="mt-12">
-            <PartsFigure m={w.media[w.figure.name]} parts={w.figure.parts} priority vt={`m-${w.slug}`} />
+        {!w.figure && (
+          <div className="bg-bg-2 p-4">
+            <MediaImage m={still(w.media[w.hero])} priority sizes="(min-width: 1024px) 45vw, 100vw" imgClassName="mx-auto max-h-[70svh] w-auto object-contain" className="mx-auto w-fit" />
           </div>
         )}
+      </header>
 
-        <article className="case-body mt-6">
+      <dl className="mt-14 grid border-t border-rule-strong sm:grid-cols-2 lg:grid-cols-4">
+        {facts.map(([k, v]) => (
+          <div key={k} className="border-b border-rule py-5 sm:pr-8 lg:border-b-0">
+            <dt className="readout text-muted">{k}</dt>
+            <dd className="mt-2 leading-snug">{v}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {w.figure && (
+        <div className="mt-14">
+          <PartsFigure m={w.media[w.figure.name]} parts={w.figure.parts} priority />
+        </div>
+      )}
+
+      <div className="mt-6 xl:grid xl:grid-cols-[minmax(0,1fr)_15rem] xl:gap-16">
+        <article className="case-body">
           <w.Body
             components={{
               Figure: (p: Omit<Parameters<typeof Figure>[0], "media">) => <Figure media={w.media} {...p} />,
@@ -93,25 +85,24 @@ export default async function WorkPage({ params }: PageProps<"/work/[slug]">) {
               Clips: (p: Omit<Parameters<typeof Clips>[0], "media">) => <Clips media={w.media} {...p} />,
             }}
           />
+          <p className="clear-both mt-20 text-lg">
+            Questions about this project? Email <a href={`mailto:${site.email}`} className="link">{site.email}</a>.
+          </p>
         </article>
+        <aside className="hidden xl:block">
+          <SectionIndex within=".case-body" />
+        </aside>
+      </div>
 
-        <p className="clear-both mt-20 text-lg">
-          Questions about this project? Email{" "}
-          <a href={`mailto:${site.email}`} className="font-semibold underline hover:text-stamp">{site.email}</a>.
-        </p>
-
-        <nav aria-label="Next project" className="mt-10 border-t-[1.5px] border-ink pt-5">
-          <a href={`/work/${next.slug}`} className="group block">
-            <span className="text-sm text-ink-2">Next project</span>
-            <span
-              className="mt-1 block text-3xl font-extrabold tracking-[-0.02em] [font-stretch:108%] group-hover:text-stamp group-hover:underline"
-              style={{ viewTransitionName: `t-${next.slug}` }}
-            >
-              {next.title}
-            </span>
-          </a>
-        </nav>
-      </main>
-    </>
+      <nav aria-label="Next project" className="mt-24 border-t border-rule-strong pt-8">
+        <a href={`/work/${next.slug}`} className="group block">
+          <span className="readout text-muted">Next project</span>
+          <span className="display mt-3 block text-[clamp(3rem,8vw,7.5rem)] transition-colors duration-150 group-hover:text-accent" style={{ viewTransitionName: `t-${next.slug}` }}>
+            {next.title}
+          </span>
+          <span className="mt-2 block max-w-[60ch] text-muted">{next.line}</span>
+        </a>
+      </nav>
+    </main>
   );
 }

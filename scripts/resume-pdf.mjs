@@ -7,7 +7,8 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import { chromium } from '@playwright/test';
 
-const SOURCES = ['src/lib/resume.ts', 'src/lib/site.ts', 'src/app/resume/page.tsx', 'src/app/globals.css'];
+// layout.tsx picks the fonts the PDF is set in, so a font change counts as a resume change too.
+const SOURCES = ['src/lib/resume.ts', 'src/lib/site.ts', 'src/app/resume/page.tsx', 'src/app/globals.css', 'src/app/layout.tsx'];
 const OUT = 'public/allen-sun-resume.pdf';
 const hash = createHash('sha1').update(SOURCES.map((f) => fs.readFileSync(f, 'utf8').replace(/\r\n/g, '\n')).join('\0')).digest('hex').slice(0, 12);
 
@@ -36,9 +37,10 @@ try {
   const pdf = await page.pdf({ path: OUT, format: 'Letter', preferCSSPageSize: true, printBackground: false });
   await browser.close();
   const pages = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) ?? []).length;
-  fs.writeFileSync(OUT + '.json', JSON.stringify({ sources: SOURCES, hash }, null, 2) + '\n');
   console.log(`${OUT}: ${pages} page(s), ${pdf.length} bytes, sources ${hash}`);
-  if (pages > 1) console.warn('The resume runs past one page. Tighten src/lib/resume.ts or the print styles.');
+  // The fingerprint is only written for a good print, so the drift test keeps failing until the resume fits.
+  if (pages > 1) throw new Error('The resume runs past one page. Tighten src/lib/resume.ts or the print styles.');
+  fs.writeFileSync(OUT + '.json', JSON.stringify({ sources: SOURCES, hash }, null, 2) + '\n');
 } finally {
   if (server) execSync(process.platform === 'win32' ? `taskkill /PID ${server.pid} /T /F` : `kill ${server.pid}`, { stdio: 'ignore' });
 }

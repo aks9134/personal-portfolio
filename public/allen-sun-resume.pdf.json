@@ -3,7 +3,8 @@
     "src/lib/resume.ts",
     "src/lib/site.ts",
     "src/app/resume/page.tsx",
-    "src/app/globals.css"
+    "src/app/globals.css",
+    "src/app/layout.tsx"
   ],
-  "hash": "9add2367bd11"
+  "hash": "9dd5834e5dc7"
 }

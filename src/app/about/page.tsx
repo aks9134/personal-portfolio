@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { preview } from "@/lib/og";
-import { SiteHeader } from "@/components/site-nav";
 import { resume } from "@/lib/resume";
 import { site } from "@/lib/site";
 
@@ -13,16 +12,15 @@ export const metadata: Metadata = {
   openGraph: preview("About | Allen Sun", description),
 };
 
-const h2 = "mt-16 border-t-[1.5px] border-ink pt-5 text-3xl font-extrabold tracking-[-0.02em] [font-stretch:108%]";
+const h2 = "display mt-20 border-t border-rule-strong pt-6 text-[clamp(2.5rem,5vw,4.25rem)]";
 const caseStudy: Record<string, string> = { Terrament: "gravity-storage-drive", "Ergami Endoscopy": "tpu-weld-rig" };
 
 export default function AboutPage() {
   return (
     <>
-      <SiteHeader />
-      <main id="main" className="mx-auto max-w-[1400px] px-4 md:px-10">
-        <div className="mt-10 border-t-[1.5px] border-ink pt-6 md:mt-14">
-          <h1 className="text-5xl font-extrabold leading-[0.98] tracking-[-0.03em] [font-stretch:110%] md:text-7xl">About</h1>
+      <main id="main" className="mx-auto max-w-[1600px] px-4 md:px-8">
+        <div className="pt-12 md:pt-16">
+          <h1 className="display text-[clamp(4rem,11vw,9.5rem)]">About</h1>
           <div className="mt-8 max-w-[62ch] space-y-5 text-xl leading-snug">
             <p>
               I&apos;m a mechanical design engineer at Curtiss-Wright in Pittsburgh, where I design and analyze canned induction motor assemblies for marine propulsion. I
@@ -45,18 +43,18 @@ export default function AboutPage() {
           <h2 id="experience" className={h2}>Experience</h2>
           <div className="mt-2">
             {resume.jobs.map((j) => (
-              <article key={j.org} className="grid gap-x-10 gap-y-2 border-b border-rule-soft py-6 md:grid-cols-[18rem_1fr]">
+              <article key={j.org} className="grid gap-x-10 gap-y-2 border-b border-rule py-6 md:grid-cols-[18rem_1fr]">
                 <div>
                   <h3 className="font-bold">{j.org}</h3>
-                  <p className="text-ink-2">{j.title}</p>
-                  <p className="text-sm text-ink-2"><span className="whitespace-nowrap tabular-nums">{j.dates}</span>, {j.place}</p>
+                  <p className="text-muted">{j.title}</p>
+                  <p className="text-sm text-muted"><span className="whitespace-nowrap tabular-nums">{j.dates}</span>, {j.place}</p>
                 </div>
                 <div className="max-w-[65ch] space-y-3 leading-snug">
                   {/* The resume's short version, or the longer About version where one exists. */}
                   {(j.detail ?? [j.text]).map((d) => <p key={d.slice(0, 40)}>{d}</p>)}
                   {caseStudy[j.org] && (
                     <p className="mt-3">
-                      <a href={`/work/${caseStudy[j.org]}`} className="font-semibold underline hover:text-stamp">Read the case study</a>
+                      <a href={`/work/${caseStudy[j.org]}`} className="link font-semibold">Read the case study</a>
                     </p>
                   )}
                 </div>
@@ -87,9 +85,9 @@ export default function AboutPage() {
         <section aria-labelledby="contact">
           <h2 id="contact" className={h2}>Contact</h2>
           <p className="mt-6 text-xl">
-            Email <a href={`mailto:${site.email}`} className="font-semibold underline hover:text-stamp">{site.email}</a>, find me on{" "}
-            <a href={site.linkedin} className="font-semibold underline hover:text-stamp">LinkedIn</a>, or see the{" "}
-            <a href="/resume" className="font-semibold underline hover:text-stamp">resume</a>.
+            Email <a href={`mailto:${site.email}`} className="link font-semibold">{site.email}</a>, find me on{" "}
+            <a href={site.linkedin} className="link font-semibold">LinkedIn</a>, or see the{" "}
+            <a href="/resume" className="link font-semibold">resume</a>.
           </p>
         </section>
       </main>

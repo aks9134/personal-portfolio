@@ -82,7 +82,7 @@ export default async function Home() {
       <section aria-labelledby="canceller" className="border-t border-rule">
         <div className="mx-auto grid max-w-[1600px] gap-12 px-4 py-24 md:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-center">
           <div>
-            <h2 id="canceller" className="display text-[clamp(3.25rem,8vw,7.5rem)]" style={{ viewTransitionName: `t-${canceller.slug}` }}>
+            <h2 id="canceller" className="display text-[clamp(3.25rem,8vw,7.5rem)]">
               Micro-vibration canceller
             </h2>
             <p className="readout val mt-5">{canceller.award}</p>
