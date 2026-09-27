@@ -35,14 +35,14 @@ Architecture decisions
 
 | # | Slice | Delivers | Verify | Status |
 |---|---|---|---|---|
-| v4-1 | Shell | New tokens and fonts, header with nav, footer, skip link, motion/sound/lights prefs (applied before paint), 404; home hero with the live hand and hero readouts | build; smoke desktop; screenshots 390/768/1440 looked at; tells | todo |
-| v4-2 | Home instruments | Canceller band with the scope; Terrament pinned explode with readouts and slider; specimen shelf (six-pin concept, harmonic drive, canceller shield) with shaded / wireframe / x-ray modes | as above, plus reduced-motion twin tests: explode moves with scroll when allowed, stays put (slider still works) when reduced | todo |
-| v4-3 | Home index | Work index with hover preview (fine pointer only), experience as a test log, contact | as above | todo |
-| CP-1 | Checkpoint | /simplify, /code-review on the diff; Allen sees the home page at localhost | review findings fixed | todo |
-| v4-4 | Case study template | `/work/[slug]` rebuilt: title block, instrument readouts for role/team/when/tools, hero, MDX prose, Figure/Strip/Video/Clips/Model/PartsFigure restyled, Model on the new stage, next project | all 8 case pages render; viewer tests rewritten | todo |
-| v4-5 | Other pages | About, resume screen style (print stays white paper; PDF reprinted), privacy | resume drift test passes | todo |
-| v4-6 | Bells | Ctrl/Cmd-K command palette (jump, toggles), opt-in WebAudio sound, cross-document view transitions, live waveform strip that answers scroll speed, section readout rail, text scramble | each has a keyboard path and a reduced-motion state; interaction tests | todo |
-| CP-2 | Checkpoint | /simplify, /code-review, /security-review | findings fixed | todo |
-| v4-7 | Cleanup and tests | Remove lab pages and dead components, model-viewer runtime dependency, update smoke/a11y/finish tests | full suite green both profiles | todo |
+| v4-1 | Shell | New tokens and fonts, header with nav, footer, skip link, motion/sound/lights prefs (applied before paint), 404; home hero with the live hand and hero readouts | build; smoke desktop; screenshots 390/768/1440 looked at; tells | done |
+| v4-2 | Home instruments | Canceller band with the scope; Terrament pinned explode with readouts and slider; specimen shelf (six-pin concept, harmonic drive, canceller shield) with shaded / wireframe / x-ray modes | as above, plus reduced-motion twin tests: explode moves with scroll when allowed, stays put (slider still works) when reduced | done |
+| v4-3 | Home index | Work index with hover preview (fine pointer only), experience as a test log, contact | as above | done |
+| CP-1 | Checkpoint | /simplify, /code-review on the diff; Allen sees the home page at localhost | review findings fixed | done: /simplify applied; /code-review reported 10 findings, fixes pending (HANDOFF section 4) |
+| v4-4 | Case study template | `/work/[slug]` rebuilt: title block, instrument readouts for role/team/when/tools, hero, MDX prose, Figure/Strip/Video/Clips/Model/PartsFigure restyled, Model on the new stage, next project | all 8 case pages render; viewer tests rewritten | done |
+| v4-5 | Other pages | About, resume screen style (print stays white paper; PDF reprinted), privacy | resume drift test passes | done |
+| v4-6 | Bells | Ctrl/Cmd-K command palette (jump, toggles), opt-in WebAudio sound, cross-document view transitions, live waveform strip that answers scroll speed, section readout rail, text scramble | each has a keyboard path and a reduced-motion state; interaction tests | done (palette, sound, view transitions, waveform, section index, scramble) |
+| CP-2 | Checkpoint | /simplify, /code-review, /security-review | findings fixed | todo (/security-review) |
+| v4-7 | Cleanup and tests | Remove lab pages and dead components, model-viewer runtime dependency, update smoke/a11y/finish tests | full suite green both profiles | done (177 passed) |
 | v4-R | Review gauntlet | Impeccable critique + audit, tells, detect, axe, Lighthouse median of 3, Emil review-animations, mobile-native | gates green or listed for Allen | todo |
-| v4-P | Preview | Production build served on :3200 for Allen; DESIGN.md, DECISIONS-LOG, HANDOFF updated | Allen looks; publishing stays his yes | todo |
+| v4-P | Preview | Production build served on :3200 for Allen; DESIGN.md, DECISIONS-LOG, HANDOFF updated | Allen looks; publishing stays his yes | partly: preview on :3200 |
