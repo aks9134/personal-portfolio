@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useRef, type ElementType } from "react";
-import { motionOk } from "@/lib/motion";
+import { useEffect, useRef } from "react";
+import { motionOk } from "@/lib/prefs";
 
 const GLYPHS = "ABCDEFGHJKLMNPRSTUVWXYZ0123456789/#+=<>";
 
 // Text that decodes into place: each character cycles through glyphs and settles left to right (about 500 ms).
 // Runs when it first scrolls into view and again on hover or focus of the nearest link. Screen readers get the
 // real text; the flicker is aria-hidden. Nothing runs under reduced motion.
-export function Scramble({ text, as: Tag = "span", className = "", ms = 520 }: { text: string; as?: ElementType; className?: string; ms?: number }) {
+const MS = 520;
+
+export function Scramble({ text }: { text: string }) {
   const out = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
@@ -20,7 +22,7 @@ export function Scramble({ text, as: Tag = "span", className = "", ms = 520 }: {
       if (!motionOk()) return;
       const t0 = performance.now();
       const step = (now: number) => {
-        const k = (now - t0) / ms;
+        const k = (now - t0) / MS;
         let s = "";
         for (let i = 0; i < text.length; i++) {
           const ch = text[i];
@@ -49,18 +51,18 @@ export function Scramble({ text, as: Tag = "span", className = "", ms = 520 }: {
       host.removeEventListener("pointerenter", play);
       host.removeEventListener("focus", play);
     };
-  }, [text, ms]);
+  }, [text]);
 
   return (
-    <Tag className={className}>
+    <span>
       <span className="sr-only">{text}</span>
-      {/* The invisible copy holds the final width, so the line doesn't jitter while glyphs change. */}
+      {/* The invisible copy holds the final size, so the line doesn't jitter while glyphs change. */}
       <span aria-hidden className="inline-grid">
         <span className="invisible col-start-1 row-start-1">{text}</span>
-        <span ref={out} className="col-start-1 row-start-1 overflow-hidden whitespace-nowrap">
+        <span ref={out} className="col-start-1 row-start-1 overflow-hidden">
           {text}
         </span>
       </span>
-    </Tag>
+    </span>
   );
 }

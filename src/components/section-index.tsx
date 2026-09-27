@@ -3,18 +3,14 @@
 import { useEffect, useState } from "react";
 
 // The case study's sections as a sticky list beside the text on wide screens, with the one you're reading lit amber
-// and a depth readout (how far through the write-up you are). It reads the headings from the page after load, so
-// the MDX stays plain.
-export function SectionIndex({ within }: { within: string }) {
-  const [heads, setHeads] = useState<{ id: string; text: string }[]>([]);
+// and a depth readout (how far through the write-up you are). The sections come from the write-up at build time.
+export function SectionIndex({ within, sections }: { within: string; sections: { id: string; text: string }[] }) {
   const [at, setAt] = useState<string | null>(null);
   const [depth, setDepth] = useState(0);
 
   useEffect(() => {
     const root = document.querySelector(within);
     if (!root) return;
-    const hs = [...root.querySelectorAll<HTMLHeadingElement>("h2[id]")];
-    setHeads(hs.map((h) => ({ id: h.id, text: h.textContent ?? "" })));
     const io = new IntersectionObserver(
       (es) => {
         const shown = es.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
@@ -22,7 +18,10 @@ export function SectionIndex({ within }: { within: string }) {
       },
       { rootMargin: "0px 0px -70% 0px" },
     );
-    hs.forEach((h) => io.observe(h));
+    sections.forEach((s) => {
+      const h = document.getElementById(s.id);
+      if (h) io.observe(h);
+    });
     let raf = 0;
     const onScroll = () => {
       if (raf) return;
@@ -39,16 +38,16 @@ export function SectionIndex({ within }: { within: string }) {
       window.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(raf);
     };
-  }, [within]);
+  }, [within, sections]);
 
-  if (!heads.length) return null;
+  if (!sections.length) return null;
   return (
     <nav aria-label="Sections" className="sticky top-24">
       <p className="readout text-muted">
         Read <span className="val">{String(depth).padStart(3, "0")} %</span>
       </p>
       <ol className="mt-4 border-l border-rule">
-        {heads.map((h) => (
+        {sections.map((h) => (
           <li key={h.id}>
             <a
               href={`#${h.id}`}

@@ -1,52 +1,56 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { srcSet } from "@/lib/image-widths";
-import { motionOk, useMotionOk } from "@/lib/motion";
+import { useMotionOk } from "@/lib/prefs";
 import { sound } from "@/lib/sound";
 import type { Media } from "@/lib/work";
 import { Scramble } from "./scramble";
 
+const mouse = () => window.matchMedia("(hover: hover) and (pointer: fine)");
+const onPointerChange = (cb: () => void) => {
+  const q = mouse();
+  q.addEventListener("change", cb);
+  return () => q.removeEventListener("change", cb);
+};
+
 export type IndexRow = { slug: string; title: string; context: string; year: string; status: string; line: string; still: Media };
 
 // The case studies as a list set large. With a mouse, the project's picture rides beside the pointer while a row is
-// hovered (it never covers the row's text, and it isn't needed: every row says what it is). Touch and keyboard
-// visitors get the same rows without it, and so does anyone with motion off.
+// hovered, flipping to the pointer's left near the right edge so it never leaves the screen (it isn't needed: every
+// row says what it is). Touch and keyboard visitors get the same rows without it, and so does anyone with motion off.
 export function WorkIndex({ rows }: { rows: IndexRow[] }) {
   const [on, setOn] = useState<number | null>(null);
-  const plate = useRef<HTMLDivElement>(null);
-  const [fine, setFine] = useState(false);
+  const fine = useSyncExternalStore(onPointerChange, () => mouse().matches, () => false);
   const moving = useMotionOk();
+  const plate = useRef<HTMLDivElement>(null);
 
+  // Follows the pointer only while a row is hovered.
+  const hovering = on !== null;
   useEffect(() => {
-    const q = window.matchMedia("(hover: hover) and (pointer: fine)");
-    const set = () => setFine(q.matches);
-    set();
-    q.addEventListener("change", set);
-    return () => q.removeEventListener("change", set);
-  }, []);
-
-  useEffect(() => {
-    if (!fine) return;
+    const el = plate.current;
+    if (!hovering || !el) return;
     let raf = 0;
     let x = 0;
     let y = 0;
+    const place = () => {
+      raf = 0;
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      const left = x + 28 + w > innerWidth ? x - 28 - w : x + 28;
+      el.style.transform = `translate3d(${left}px, ${Math.min(Math.max(8, y - h / 2), innerHeight - h - 8)}px, 0)`;
+    };
     const move = (e: PointerEvent) => {
       x = e.clientX;
       y = e.clientY;
-      if (!raf)
-        raf = requestAnimationFrame(() => {
-          raf = 0;
-          const el = plate.current;
-          if (el && motionOk()) el.style.transform = `translate3d(${x + 28}px, ${y - el.offsetHeight / 2}px, 0)`;
-        });
+      if (!raf) raf = requestAnimationFrame(place);
     };
     window.addEventListener("pointermove", move, { passive: true });
     return () => {
       window.removeEventListener("pointermove", move);
       cancelAnimationFrame(raf);
     };
-  }, [fine]);
+  }, [hovering]);
 
   return (
     <div onPointerLeave={() => setOn(null)}>
@@ -78,11 +82,10 @@ export function WorkIndex({ rows }: { rows: IndexRow[] }) {
         ))}
       </ol>
       {fine && moving && (
-        // A viewport-sized clip layer, so the picture can never widen the page.
-        <div aria-hidden className="pointer-events-none fixed inset-0 z-20 overflow-hidden">
         <div
           ref={plate}
-          className={`absolute top-0 left-0 w-[22rem] border border-rule bg-bg-2 p-3 transition-opacity duration-200 ${on === null ? "opacity-0" : "opacity-100"}`}
+          aria-hidden
+          className={`pointer-events-none fixed top-0 left-0 z-20 w-[min(22rem,40vw)] border border-rule bg-bg-2 p-3 transition-opacity duration-200 ${hovering ? "opacity-100" : "invisible opacity-0"}`}
         >
           {rows.map((r, i) => (
             // eslint-disable-next-line @next/next/no-img-element
@@ -99,7 +102,6 @@ export function WorkIndex({ rows }: { rows: IndexRow[] }) {
               className={`mx-auto max-h-64 w-auto object-contain ${on === i ? "block" : "hidden"}`}
             />
           ))}
-        </div>
         </div>
       )}
     </div>

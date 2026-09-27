@@ -98,7 +98,6 @@ export default async function Home() {
       <ExplodeScrub
         id="terrament"
         m={geared}
-        finish="anodized"
         className="border-t border-rule"
         overlay={
           <div className="pointer-events-none absolute inset-x-4 top-6 flex flex-wrap items-start justify-between gap-6 md:inset-x-8">

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motionOk, useMotionOk } from "@/lib/motion";
+import { cssVars, fitCanvas } from "@/lib/canvas";
+import { motionOk, subscribe, useMotionOk } from "@/lib/prefs";
 import { sound } from "@/lib/sound";
 
 // A scope face that replays the canceller's Test 2 from the numbers in the write-up: the beam held at 54 Hz with a
@@ -16,6 +17,7 @@ const WINDOW = 0.045; // s the cancellation holds (40 to 50 ms)
 const CYCLE = 0.32; // s between re-phasing: illustrative spacing, not from the test
 const SPAN = 0.2; // s across the screen (20 ms/div, 10 div)
 const VDIV = 0.05; // V per division, 8 divisions tall
+const COLOURS = { ink: "--scope-ink", grid: "--scope-grid", ref: "--scope-ref" };
 
 export function Scope({ className = "" }: { className?: string }) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -23,7 +25,6 @@ export function Scope({ className = "" }: { className?: string }) {
   const [held, setHeld] = useState(false);
   const moving = useMotionOk();
   const state = useRef({ on, held });
-  state.current = { on, held };
   const redraw = useRef<() => void>(() => {});
 
   useEffect(() => {
@@ -33,6 +34,7 @@ export function Scope({ className = "" }: { className?: string }) {
     let raf = 0;
     let t0 = performance.now();
     let at = 0.05; // seconds into the replay: a frame inside a good window, for the still view
+    let colours = cssVars(c, COLOURS);
 
     const amp = (t: number) => {
       if (!state.current.on) return PEAK;
@@ -46,43 +48,33 @@ export function Scope({ className = "" }: { className?: string }) {
       raf = 0;
       const running = motionOk() && !state.current.held;
       if (running) at = (now - t0) / 1000;
-      const css = getComputedStyle(c);
-      const ink = css.getPropertyValue("--scope-ink").trim() || "#ddd";
-      const grid = css.getPropertyValue("--scope-grid").trim() || "#444";
-      const ref = css.getPropertyValue("--scope-ref").trim() || "#888";
-      const dpr = Math.min(devicePixelRatio, 2);
-      const w = c.clientWidth;
-      const h = c.clientHeight;
-      if (c.width !== Math.floor(w * dpr) || c.height !== Math.floor(h * dpr)) {
-        c.width = Math.floor(w * dpr);
-        c.height = Math.floor(h * dpr);
-      }
-      ctx.setTransform(c.width / w, 0, 0, c.height / h, 0, 0);
+      const { w, h } = fitCanvas(c, ctx);
       ctx.clearRect(0, 0, w, h);
       // Graticule: 10 x 8 divisions, with ticks along the centre line.
-      ctx.strokeStyle = grid;
+      ctx.strokeStyle = colours.grid;
       ctx.lineWidth = 1;
       ctx.beginPath();
-      for (let i = 0; i <= 10; i++) ctx.moveTo(Math.round((w * i) / 10) + 0.5, 0), ctx.lineTo(Math.round((w * i) / 10) + 0.5, h);
-      for (let j = 0; j <= 8; j++) ctx.moveTo(0, Math.round((h * j) / 8) + 0.5), ctx.lineTo(w, Math.round((h * j) / 8) + 0.5);
-      for (let i = 0; i <= 50; i++) {
-        const x = Math.round((w * i) / 50) + 0.5;
-        ctx.moveTo(x, h / 2 - 3), ctx.lineTo(x, h / 2 + 3);
-      }
+      const line = (x1: number, y1: number, x2: number, y2: number) => {
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+      };
+      for (let i = 0; i <= 10; i++) line(Math.round((w * i) / 10) + 0.5, 0, Math.round((w * i) / 10) + 0.5, h);
+      for (let j = 0; j <= 8; j++) line(0, Math.round((h * j) / 8) + 0.5, w, Math.round((h * j) / 8) + 0.5);
+      for (let i = 0; i <= 50; i++) line(Math.round((w * i) / 50) + 0.5, h / 2 - 3, Math.round((w * i) / 50) + 0.5, h / 2 + 3);
       ctx.stroke();
 
       const yOf = (v: number) => h / 2 - (v / (VDIV * 4)) * (h / 2);
       if (state.current.on) {
         // The uncancelled peak, dashed, for comparison.
         ctx.setLineDash([3, 4]);
-        ctx.strokeStyle = ref;
+        ctx.strokeStyle = colours.ref;
         ctx.beginPath();
-        ctx.moveTo(0, yOf(PEAK)), ctx.lineTo(w, yOf(PEAK));
-        ctx.moveTo(0, yOf(-PEAK)), ctx.lineTo(w, yOf(-PEAK));
+        line(0, yOf(PEAK), w, yOf(PEAK));
+        line(0, yOf(-PEAK), w, yOf(-PEAK));
         ctx.stroke();
         ctx.setLineDash([]);
       }
-      ctx.strokeStyle = ink;
+      ctx.strokeStyle = colours.ink;
       ctx.lineWidth = 2;
       ctx.lineJoin = "round";
       ctx.beginPath();
@@ -110,17 +102,23 @@ export function Scope({ className = "" }: { className?: string }) {
     io.observe(c);
     const ro = new ResizeObserver(kick);
     ro.observe(c);
-    const mo = new MutationObserver(kick); // lights: redraw in the new colours even while held
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-motion"] });
+    // Lights or motion switched: new colours, and a redraw even while held.
+    const off = subscribe(() => {
+      colours = cssVars(c, COLOURS);
+      redraw.current();
+    });
     return () => {
       io.disconnect();
       ro.disconnect();
-      mo.disconnect();
+      off();
       cancelAnimationFrame(raf);
     };
   }, []);
 
-  useEffect(() => redraw.current(), [on, held, moving]);
+  useEffect(() => {
+    state.current = { on, held };
+    redraw.current();
+  }, [on, held, moving]);
 
   return (
     <figure className={`scope ${className}`}>

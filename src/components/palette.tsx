@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { sound } from "@/lib/sound";
-import { setPref } from "./controls";
+import { togglePref } from "@/lib/prefs";
 
 export type PaletteItem = { label: string; hint: string; href?: string; action?: "lights" | "motion" | "sound" | "copy-email" };
 
@@ -48,10 +48,9 @@ export function Palette({ items, email }: { items: PaletteItem[]; email: string 
       window.location.href = i.href;
       return;
     }
-    const html = document.documentElement.dataset;
-    if (i.action === "lights") setPref("theme", html.theme !== "light");
-    if (i.action === "motion") setPref("motion", html.motion === "off");
-    if (i.action === "sound") setPref("sound", html.sound !== "on");
+    if (i.action === "lights") togglePref("theme");
+    if (i.action === "motion") togglePref("motion");
+    if (i.action === "sound") togglePref("sound");
     if (i.action === "copy-email") void navigator.clipboard?.writeText(email).catch(() => {});
   };
 
@@ -124,7 +123,7 @@ export function PaletteButton() {
       type="button"
       onClick={() => window.dispatchEvent(new Event("palette:open"))}
       aria-keyshortcuts="Control+K Meta+K"
-      className="readout inline-flex min-h-6 items-center gap-2 border border-rule-strong px-2 py-1 text-muted transition-colors duration-150 hover:text-fg"
+      className="readout-btn gap-2 border border-rule-strong px-2 py-1"
     >
       Jump to <kbd className="text-fg">Ctrl K</kbd>
     </button>

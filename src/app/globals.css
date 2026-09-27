@@ -158,6 +158,31 @@
       text-decoration-color: currentColor;
     }
   }
+  /* Small text buttons on instruments: switches, Turn, Jump to. At least 24 px tall (WCAG 2.5.8). */
+  .readout-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.5rem;
+    padding-inline: 0.25rem;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    line-height: 1.25;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    transition: color 150ms ease;
+  }
+  .readout-btn:hover {
+    color: var(--fg);
+  }
+  /* The header fits a 320 px screen when its lettering drops the tracking. */
+  @media (max-width: 400px) {
+    header .readout,
+    header .readout-btn {
+      letter-spacing: 0;
+    }
+  }
   .press {
     transition: transform 140ms var(--ease-out);
   }

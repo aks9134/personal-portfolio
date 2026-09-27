@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { MDXContent } from "mdx/types";
+import { anchor } from "./anchor";
 
 export type Media = {
   src: string;
@@ -39,7 +40,7 @@ export type WorkMeta = {
   award?: string;
 };
 
-export type Work = WorkMeta & { slug: string; media: Record<string, Media>; Body: MDXContent };
+export type Work = WorkMeta & { slug: string; media: Record<string, Media>; Body: MDXContent; sections: { id: string; text: string }[] };
 
 const root = path.join(process.cwd(), "content", "work");
 
@@ -50,7 +51,10 @@ export function workSlugs(): string[] {
 export async function getWork(slug: string): Promise<Work> {
   const mod = await import(`@content/work/${slug}/index.mdx`);
   const media = (await import(`@content/work/${slug}/media.generated.json`)).default as Record<string, Media>;
-  return { slug, ...(mod as { meta: WorkMeta }).meta, media, Body: mod.default };
+  // The write-up's "## " headings, for the section index (same anchors the MDX renderer gives them).
+  const source = fs.readFileSync(path.join(root, slug, "index.mdx"), "utf8");
+  const sections = [...source.matchAll(/^## (.+)$/gm)].map((m) => ({ id: anchor(m[1].trim()), text: m[1].trim() }));
+  return { slug, ...(mod as { meta: WorkMeta }).meta, media, Body: mod.default, sections };
 }
 
 // A still for listing: videos use their poster frame.

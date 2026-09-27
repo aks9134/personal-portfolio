@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { motionOk } from "@/lib/motion";
+import { cssVars, fitCanvas } from "@/lib/canvas";
+import { motionOk, subscribe } from "@/lib/prefs";
 
 // A trace that answers the page: scrolling excites it (amplitude follows scroll speed), and it rings down like a
 // damped beam when you stop, then the loop goes idle. It only runs while on screen. With motion off it is a flat
@@ -18,6 +19,7 @@ export function Waveform({ className = "" }: { className?: string }) {
     let last = performance.now();
     let lastY = window.scrollY;
     let visible = false;
+    let ink = cssVars(c, { accent: "--accent" }).accent;
 
     const draw = (now: number) => {
       raf = 0;
@@ -28,17 +30,9 @@ export function Waveform({ className = "" }: { className?: string }) {
         phase += dt * 9;
         amp *= Math.exp(-dt * 2.2); // ring-down
       }
-      const dpr = Math.min(devicePixelRatio, 2);
-      const w = c.clientWidth;
-      const h = c.clientHeight;
-      if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) {
-        c.width = Math.round(w * dpr);
-        c.height = Math.round(h * dpr);
-      }
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const { w, h } = fitCanvas(c, ctx);
       ctx.clearRect(0, 0, w, h);
-      const css = getComputedStyle(c);
-      ctx.strokeStyle = css.getPropertyValue("--accent").trim() || "orange";
+      ctx.strokeStyle = ink;
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       const a = moving ? Math.max(amp, 0.04) : 0;
@@ -73,10 +67,15 @@ export function Waveform({ className = "" }: { className?: string }) {
     io.observe(c);
     const ro = new ResizeObserver(kick);
     ro.observe(c);
+    const off = subscribe(() => {
+      ink = cssVars(c, { accent: "--accent" }).accent;
+      kick();
+    });
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       io.disconnect();
       ro.disconnect();
+      off();
       window.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(raf);
     };

@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
 
 // The three.js stage. Each canvas reports its state as data attributes (engine.ts): data-ready once the model is
 // drawn, data-theta (camera angle) and data-explode (0 to 1). Every "nothing moves" check has a twin that proves the
@@ -9,7 +9,9 @@ test.slow();
 
 const hero = (page: Page) => page.locator('section[aria-labelledby="name"] canvas');
 const drive = (page: Page) => page.locator('#terrament canvas');
-const theta = (page: Page, c = hero(page)) => c.getAttribute('data-theta').then(Number);
+const theta = (page: Page) => hero(page).getAttribute('data-theta').then(Number);
+/** The stage has drawn its model (engine.ts sets data-ready). */
+const ready = (c: Locator, timeout = 60_000) => expect(c).toHaveAttribute('data-ready', '', { timeout });
 const apart = (page: Page) => drive(page).getAttribute('data-explode').then(Number);
 
 async function motionOff(page: Page) {
@@ -35,7 +37,7 @@ test('home: every model loads from this site, and the hero replaces its poster',
   page.on('pageerror', (e) => problems.push(e.message));
   page.on('console', (m) => m.type() === 'error' && problems.push(m.text()));
   await page.goto('/', { waitUntil: 'networkidle' });
-  await expect(hero(page)).toHaveAttribute('data-ready', '', { timeout: 60_000 });
+  await ready(hero(page));
   await expect(page.locator('section[aria-labelledby="name"] img')).toHaveCSS('opacity', '0');
   expect([...foreign]).toEqual([]);
   expect(problems).toEqual([]);
@@ -44,7 +46,7 @@ test('home: every model loads from this site, and the hero replaces its poster',
 test('home: scrolling through the drive takes it apart (motion allowed)', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
   await toDrive(page, 0);
-  await expect(drive(page)).toHaveAttribute('data-ready', '', { timeout: 60_000 });
+  await ready(drive(page));
   await toDrive(page, 0.8);
   await expect.poll(() => apart(page)).toBeGreaterThan(0.6);
   await expect(page.locator('#terrament')).toContainText(/[1-9]\d* mm/);
@@ -57,7 +59,7 @@ test('home: scrolling through the drive takes it apart (motion allowed)', async 
 
 test('home: the hero turns with scroll when motion is allowed', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
-  await expect(hero(page)).toHaveAttribute('data-ready', '', { timeout: 60_000 });
+  await ready(hero(page));
   const before = await theta(page);
   await page.mouse.wheel(0, 400);
   await expect.poll(() => theta(page)).not.toBeCloseTo(before, 1);
@@ -68,7 +70,7 @@ for (const how of ['OS setting', 'site switch'] as const)
     if (how === 'OS setting') await page.emulateMedia({ reducedMotion: 'reduce' });
     else await motionOff(page);
     await page.goto('/', { waitUntil: 'networkidle' });
-    await expect(hero(page)).toHaveAttribute('data-ready', '', { timeout: 60_000 });
+    await ready(hero(page));
     const before = await theta(page);
     await page.mouse.wheel(0, 400);
     await page.waitForTimeout(800);
@@ -88,7 +90,7 @@ for (const how of ['OS setting', 'site switch'] as const)
     const h = await page.locator('#terrament').evaluate((s) => s.getBoundingClientRect().height);
     expect(h).toBeLessThan(await page.evaluate(() => innerHeight * 1.5));
     await page.locator('#terrament').scrollIntoViewIfNeeded();
-    await expect(drive(page)).toHaveAttribute('data-ready', '', { timeout: 60_000 });
+    await ready(drive(page));
     await page.mouse.wheel(0, 300);
     await page.waitForTimeout(500);
     expect(await apart(page)).toBe(0);
@@ -113,7 +115,7 @@ test('home: the scope trace moves when motion is allowed, and Hold stops it', as
 
 test('keyboard: a focused model turns with the arrow keys', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
-  await expect(hero(page)).toHaveAttribute('data-ready', '', { timeout: 60_000 });
+  await ready(hero(page));
   const before = await theta(page);
   await hero(page).focus();
   await page.keyboard.press('ArrowLeft');
@@ -133,7 +135,7 @@ test('case study: small models load when near, the big one waits for its button'
   await load.click();
   const slider = page.getByRole('slider', { name: 'Explode' });
   const fig = page.locator('figure').filter({ has: slider });
-  await expect(fig.locator('canvas')).toHaveAttribute('data-ready', '', { timeout: 90_000 });
+  await ready(fig.locator('canvas'), 90_000);
   await slider.fill('1000');
   await expect(fig.locator('canvas')).toHaveAttribute('data-explode', /^0\.99|^1/);
   await expect(fig).toContainText(/213 mm apart/);

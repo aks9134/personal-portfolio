@@ -1,9 +1,9 @@
 import type { MDXComponents } from "mdx/types";
 import type { ReactNode } from "react";
+import { anchor } from "@/lib/anchor";
 
 // Section headings carry an id from their text, so the section index and a shared link can jump straight to them.
-const slug = (c: ReactNode) =>
-  typeof c === "string" ? c.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : undefined;
+const slug = (c: ReactNode) => (typeof c === "string" ? anchor(c) : undefined);
 
 // Prose styles for every content/work/*/index.mdx. Figures come in per page (they need that project's media).
 const components: MDXComponents = {

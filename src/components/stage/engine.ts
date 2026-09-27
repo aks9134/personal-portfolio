@@ -4,7 +4,7 @@
 // the critical path. The canvas carries its state as data attributes (data-ready, data-explode, data-theta) for tests.
 import type * as T from "three";
 
-export type Finish = "cad" | "graphite" | "aluminium" | "anodized";
+export type Finish = "aluminium" | "anodized";
 export type Mode = "solid" | "edges" | "xray";
 
 export type StageOptions = {
@@ -12,12 +12,10 @@ export type StageOptions = {
   /** Camera angles in degrees, model-viewer's convention: theta around the vertical axis, phi down from the top. */
   theta?: number;
   phi?: number;
-  /** Distance as a share of the auto framing; below 1 pulls in. */
+  /** Distance as a share of the fitted distance; below 1 pulls in. */
   frame?: number;
   finish?: Finish;
   exposure?: number;
-  /** Frame the camera on the exploded pose (long assemblies grow a lot). */
-  frameExploded?: boolean;
   /** Drag to turn (zoom and pan stay off, so the page scroll is never trapped) and arrow keys on the focused canvas. */
   drag?: boolean;
   onProgress?: (loaded: number, total: number) => void;
@@ -26,22 +24,20 @@ export type StageOptions = {
 };
 
 export type Stage = {
-  /** 0 = assembled, 1 = fully apart. No-op for models without an "explode" clip. */
+  /** 0 = assembled, 1 = fully apart; the framing follows, so the model fills the view at both ends. */
   setExplode: (p: number) => void;
   setAngles: (theta: number, phi?: number) => void;
   /** A turn made by the visitor (buttons): moves the camera and fires "stage:turn" on the canvas, like a drag does. */
   turnBy: (dTheta: number, dPhi?: number) => void;
-  /** Camera distance as a share of the fitted distance (1 = the whole framed pose fits). */
-  setZoom: (k: number) => void;
   /** Solid shading, feature edges only (like a line drawing), or see-through with edges. */
-  setMode: (mode: Mode, line?: string) => void;
+  setMode: (mode: Mode, line: string) => void;
   angles: () => { theta: number; phi: number };
-  hasExplode: boolean;
-  parts: number;
   dispose: () => void;
 };
 
 const deg = Math.PI / 180;
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+const PHI = [20, 95] as const; // how far the camera may tilt: never straight down, never below the floor
 
 export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): Promise<Stage> {
   const THREE = await import("three");
@@ -53,9 +49,9 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
 
   // Load before creating the renderer, so a failed download never leaves a GPU context behind.
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
-  const gltf = await loader.loadAsync(o.src, (e) => o.onProgress?.(e.loaded, e.total));
+  const gltf = await loader.loadAsync(o.src, o.onProgress && ((e) => o.onProgress!(e.loaded, e.total)));
 
-  // Phones: standard materials, a lower pixel ratio, no clearcoat. Desktop: physical materials at up to 2x.
+  // Phones: standard materials and a lower pixel ratio. Desktop: physical materials at up to 2x.
   const coarse = window.matchMedia("(pointer: coarse)").matches;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "default" });
   renderer.debug.checkShaderErrors = process.env.NODE_ENV !== "production";
@@ -79,10 +75,8 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
   const camera = new THREE.PerspectiveCamera(28, 1, 0.01, 100);
 
   const model = gltf.scene;
-  const replaced = applyFinish(THREE, model, o.finish ?? "cad", !coarse);
-  const pivot = new THREE.Group();
-  pivot.add(model);
-  scene.add(pivot);
+  const replaced = applyFinish(THREE, model, o.finish ?? "aluminium", !coarse);
+  scene.add(model);
 
   const clip = gltf.animations.find((a) => a.name === "explode");
   const mixer = clip ? new THREE.AnimationMixer(model) : null;
@@ -91,26 +85,31 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
     action.play();
     action.paused = true;
   }
+  const at = (p: number) => clip && mixer?.setTime(clip.duration * 0.999 * clamp(p, 0, 1));
+
+  // Framing: the bounding spheres of the assembled and the fully exploded pose. The camera distance blends between
+  // them as the parts spread, centred on the exploded pose so nothing drifts out of view.
+  const sphereOf = (p: number) => {
+    at(p);
+    return new THREE.Box3().setFromObject(model).getBoundingSphere(new THREE.Sphere());
+  };
+  const apart = sphereOf(1);
+  const together = clip ? sphereOf(0) : apart;
+  model.position.sub(apart.center);
+
   let explode = 0;
-  const at = (p: number) => clip && mixer?.setTime(clip.duration * 0.999 * Math.min(1, Math.max(0, p)));
-
-  // Frame: bounding sphere of the pose the camera must hold (exploded for long assemblies), centred on the pivot.
-  at(o.frameExploded ? 1 : 0);
-  const sphere = new THREE.Box3().setFromObject(model).getBoundingSphere(new THREE.Sphere());
-  at(0);
-  model.position.sub(sphere.center);
-
-  // Distance that fits the sphere in both directions; recomputed when the canvas changes shape.
+  let aspect = 1;
   let fit = 1;
   const refit = () => {
     const v = (camera.fov * deg) / 2;
-    const h = Math.atan(Math.tan(v) * camera.aspect);
-    fit = (sphere.radius / Math.sin(Math.min(v, h))) * (o.frame ?? 1);
-    camera.near = fit / 50;
+    const h = Math.atan(Math.tan(v) * aspect);
+    const r = together.radius + (apart.radius - together.radius) * Math.min(1, explode * 1.4);
+    fit = (r / Math.sin(Math.min(v, h))) * (o.frame ?? 1);
+    camera.aspect = aspect;
+    camera.near = apart.radius / 50;
     camera.far = fit * 10;
     camera.updateProjectionMatrix();
   };
-  refit();
 
   const meshes: T.Mesh[] = [];
   model.traverse((n) => {
@@ -119,44 +118,39 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
 
   let theta = o.theta ?? 40;
   let phi = o.phi ?? 65;
-  let zoom = 1;
+  let size = { w: canvas.clientWidth, h: canvas.clientHeight };
   let dirty = true;
   let raf = 0;
   let lost = false;
-  const place = () => {
-    const t = theta * deg;
-    const p = phi * deg;
-    const d = fit * zoom;
-    camera.position.set(d * Math.sin(p) * Math.sin(t), d * Math.cos(p), d * Math.sin(p) * Math.cos(t));
-    camera.lookAt(0, 0, 0);
-  };
-  const size = () => {
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
-    if (!w || !h) return;
-    const pr = renderer.getPixelRatio();
-    // three's setSize floors the drawing buffer, so compare floored values or every frame would resize.
-    if (canvas.width !== Math.floor(w * pr) || canvas.height !== Math.floor(h * pr)) {
-      renderer.setSize(w, h, false);
-      camera.aspect = w / h;
-      refit();
-    }
-  };
   const draw = () => {
     raf = 0;
-    if (!dirty || lost) return;
+    if (!dirty || lost || !size.w || !size.h) return;
     dirty = false;
-    size();
-    place();
+    const pr = renderer.getPixelRatio();
+    // three's setSize floors the drawing buffer, so compare floored values or every frame would resize.
+    if (canvas.width !== Math.floor(size.w * pr) || canvas.height !== Math.floor(size.h * pr) || aspect !== size.w / size.h) {
+      renderer.setSize(size.w, size.h, false);
+      aspect = size.w / size.h;
+    }
+    refit();
+    const t = theta * deg;
+    const p = phi * deg;
+    camera.position.set(fit * Math.sin(p) * Math.sin(t), fit * Math.cos(p), fit * Math.sin(p) * Math.cos(t));
+    camera.lookAt(0, 0, 0);
     renderer.render(scene, camera);
-    canvas.dataset.explode = explode.toFixed(3);
-    canvas.dataset.theta = theta.toFixed(1);
+    const e = explode.toFixed(3);
+    const th = theta.toFixed(1);
+    if (canvas.dataset.explode !== e) canvas.dataset.explode = e;
+    if (canvas.dataset.theta !== th) canvas.dataset.theta = th;
   };
   const render = () => {
     dirty = true;
     if (!raf) raf = requestAnimationFrame(draw);
   };
-  const ro = new ResizeObserver(render);
+  const ro = new ResizeObserver(([entry]) => {
+    size = { w: entry.contentRect.width, h: entry.contentRect.height };
+    render();
+  });
   ro.observe(canvas);
 
   const onLost = (e: Event) => {
@@ -167,9 +161,17 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
   };
   canvas.addEventListener("webglcontextlost", onLost);
 
-  // Drag turns (horizontal orbits, vertical tilts a little). Pointer capture keeps the drag alive outside the
-  // canvas; touch-action pan-y on the canvas keeps vertical page scroll working on phones. Arrow keys do the same
-  // for a focused canvas (the single-pointer alternative is the caller's Turn buttons).
+  // Every turn the visitor makes (drag, arrow keys, Turn buttons) goes through here and announces itself, so a
+  // caller that also moves the camera (the hero's scroll turn) can carry on from where the visitor left it.
+  const turn = (dt: number, dp = 0) => {
+    theta += dt;
+    phi = clamp(phi + dp, PHI[0], PHI[1]);
+    render();
+    canvas.dispatchEvent(new Event("stage:turn"));
+  };
+
+  // Drag: horizontal orbits, vertical tilts a little. Pointer capture keeps the drag alive outside the canvas;
+  // touch-action pan-y on the canvas keeps vertical page scroll working on phones.
   const offs: (() => void)[] = [];
   if (o.drag) {
     let last: { x: number; y: number; id: number } | null = null;
@@ -180,24 +182,17 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
     };
     const move = (e: PointerEvent) => {
       if (!last || e.pointerId !== last.id) return;
-      theta -= (e.clientX - last.x) * 0.4;
-      phi = Math.min(95, Math.max(20, phi - (e.clientY - last.y) * 0.2));
+      turn(-(e.clientX - last.x) * 0.4, -(e.clientY - last.y) * 0.2);
       last = { ...last, x: e.clientX, y: e.clientY };
-      render();
-      canvas.dispatchEvent(new Event("stage:turn"));
     };
     const up = (e: PointerEvent) => {
       if (last?.id === e.pointerId) last = null;
     };
     const keys = (e: KeyboardEvent) => {
-      const turn = ({ ArrowLeft: 15, ArrowRight: -15 } as Record<string, number>)[e.key];
-      const tilt = ({ ArrowUp: -8, ArrowDown: 8 } as Record<string, number>)[e.key];
-      if (turn === undefined && tilt === undefined) return;
+      const k = ({ ArrowLeft: [15, 0], ArrowRight: [-15, 0], ArrowUp: [0, -8], ArrowDown: [0, 8] } as Record<string, [number, number]>)[e.key];
+      if (!k) return;
       e.preventDefault();
-      theta += turn ?? 0;
-      phi = Math.min(95, Math.max(20, phi + (tilt ?? 0)));
-      render();
-      canvas.dispatchEvent(new Event("stage:turn"));
+      turn(...k);
     };
     const pairs: [string, EventListener][] = [
       ["pointerdown", down as EventListener],
@@ -216,7 +211,7 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
   const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff });
   const ghost = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.08, depthWrite: false });
   const occluder = new THREE.MeshBasicMaterial({ colorWrite: false, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
-  const setMode = (mode: Mode, line = "#e8e3d6") => {
+  const setMode = (mode: Mode, line: string) => {
     lineMat.color.set(line);
     ghost.color.set(line);
     if (mode !== "solid" && !edges) {
@@ -239,15 +234,9 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
   canvas.dataset.ready = "";
 
   return {
-    hasExplode: Boolean(clip),
-    parts: meshes.length,
     setExplode(p) {
       explode = p;
       at(p);
-      render();
-    },
-    setZoom(k) {
-      zoom = k;
       render();
     },
     setAngles(t, p) {
@@ -255,12 +244,7 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
       if (p !== undefined) phi = p;
       render();
     },
-    turnBy(dt, dp = 0) {
-      theta += dt;
-      phi = Math.min(95, Math.max(20, phi + dp));
-      render();
-      canvas.dispatchEvent(new Event("stage:turn"));
-    },
+    turnBy: turn,
     setMode,
     angles: () => ({ theta, phi }),
     dispose() {
@@ -282,35 +266,31 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
   };
 }
 
-// Finishes: "cad" keeps the export's colours with a satin metal response; "graphite" and "aluminium" repaint every
-// part in one material family, keeping each part's lightness so the assembly still reads part by part; "anodized"
-// keeps the CAD's grouping but in the bay's palette: grey parts machined aluminium, blues dark anodized grey, warm
-// colours sodium amber, greens oxide. Returns the export's own materials, which the stage no longer uses.
+// Finishes. "aluminium" repaints every part as machined aluminium, keeping each part's lightness so the assembly
+// still reads part by part. "anodized" keeps the CAD's colour grouping in the bay's palette: grey parts machined
+// aluminium, blues dark anodized grey, greens oxide, warm colours sodium amber. Returns the export's own materials,
+// which the stage no longer uses, so they can be freed.
 function applyFinish(THREE: typeof import("three"), root: T.Object3D, finish: Finish, physical: boolean): T.Material[] {
   const cache = new Map<T.Material, T.Material>();
+  const paint = (mat: T.MeshStandardMaterial, h: number, s: number, l: number, metalness: number, roughness: number) => {
+    mat.color.setHSL(h, s, l);
+    mat.metalness = metalness;
+    mat.roughness = roughness;
+  };
   root.traverse((n) => {
     const m = n as T.Mesh;
     if (!m.isMesh) return;
     const src = m.material as T.MeshStandardMaterial;
     let out = cache.get(src);
     if (!out) {
-      const { h, s: sat, l } = src.color.getHSL({ h: 0, s: 0, l: 0 });
-      const base = { color: src.color.clone(), map: src.map, vertexColors: src.vertexColors, metalness: 0.45, roughness: 0.4 };
+      const { h, s, l } = src.color.getHSL({ h: 0, s: 0, l: 0 });
+      const base = { map: src.map, vertexColors: src.vertexColors };
       const mat = physical ? new THREE.MeshPhysicalMaterial({ ...base, clearcoat: 0.25, clearcoatRoughness: 0.5 }) : new THREE.MeshStandardMaterial(base);
-      if (finish === "graphite") {
-        mat.color.setHSL(0.6, 0.04, 0.14 + l * 0.35);
-        mat.metalness = 0.6;
-        mat.roughness = 0.42;
-      } else if (finish === "anodized") {
-        if (sat < 0.15) mat.color.setHSL(0.58, 0.03, 0.42 + l * 0.35), (mat.metalness = 0.85), (mat.roughness = 0.34);
-        else if (h > 0.45 && h < 0.8) mat.color.setHSL(0.6, 0.05, 0.085), (mat.metalness = 0.45), (mat.roughness = 0.42);
-        else if (h > 0.2 && h <= 0.45) mat.color.setHSL(0.08, 0.35, 0.32), (mat.metalness = 0.5), (mat.roughness = 0.5);
-        else mat.color.setHSL(0.085, 0.9, 0.4), (mat.metalness = 0.25), (mat.roughness = 0.4);
-      } else if (finish === "aluminium") {
-        mat.color.setHSL(0.58, 0.03, 0.5 + l * 0.3);
-        mat.metalness = 0.85;
-        mat.roughness = 0.32;
-      }
+      if (finish === "aluminium") paint(mat, 0.58, 0.03, 0.5 + l * 0.3, 0.85, 0.32);
+      else if (s < 0.15) paint(mat, 0.58, 0.03, 0.42 + l * 0.35, 0.85, 0.34);
+      else if (h > 0.45 && h < 0.8) paint(mat, 0.6, 0.05, 0.085, 0.45, 0.42);
+      else if (h > 0.2) paint(mat, 0.08, 0.35, 0.32, 0.5, 0.5);
+      else paint(mat, 0.085, 0.9, 0.4, 0.25, 0.4);
       out = mat;
       cache.set(src, out);
     }
@@ -325,14 +305,14 @@ export function parseOrbit(s?: string, fallback = { theta: 40, phi: 65 }) {
   return { theta: Number.isFinite(t) ? t : fallback.theta, phi: Number.isFinite(p) ? p : fallback.phi };
 }
 
-/** A CSS custom property (any colour syntax, oklch included) as "#rrggbb" for three.js, via a 1 px canvas. */
+// A CSS custom property (any colour syntax, oklch included) as "#rrggbb" for three.js, through one reused 1 px canvas.
+let probe: CanvasRenderingContext2D | null = null;
 export function cssColor(el: Element, prop: string, fallback = "#e8e3d6") {
   const v = getComputedStyle(el).getPropertyValue(prop).trim();
-  if (!v) return fallback;
-  const c = document.createElement("canvas").getContext("2d");
-  if (!c) return fallback;
-  c.fillStyle = v;
-  c.fillRect(0, 0, 1, 1);
-  const [r, g, b] = c.getImageData(0, 0, 1, 1).data;
+  probe ??= document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+  if (!v || !probe) return fallback;
+  probe.fillStyle = v;
+  probe.fillRect(0, 0, 1, 1);
+  const [r, g, b] = probe.getImageData(0, 0, 1, 1).data;
   return `#${[r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("")}`;
 }

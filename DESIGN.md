@@ -1,192 +1,143 @@
 ---
-name: Allen Sun, portfolio
-description: A mechanical design engineer's work, printed like a shop traveler on goldenrod card stock.
+name: Allen Sun, portfolio (v4)
+description: A mechanical design engineer's work, shown like a test cell at night with the instruments on.
 colors:
-  stock: "oklch(0.915 0.078 94)"
-  stock-2: "oklch(0.875 0.088 91)"
-  ink: "oklch(0.21 0.02 80)"
-  ink-2: "oklch(0.37 0.035 80)"
-  rule-soft: "oklch(0.21 0.02 80 / 0.3)"
-  stamp: "oklch(0.44 0.15 262)"
+  bg: "oklch(0.17 0.006 70)"
+  bg-2: "oklch(0.205 0.007 70)"
+  bg-3: "oklch(0.245 0.008 70)"
+  fg: "oklch(0.93 0.015 85)"
+  muted: "oklch(0.75 0.014 80)"
+  rule: "oklch(0.93 0.015 85 / 0.16)"
+  rule-strong: "oklch(0.93 0.015 85 / 0.42)"
+  accent: "oklch(0.8 0.145 72)"
+  on-accent: "oklch(0.17 0.006 70)"
+  oxide: "oklch(0.68 0.16 38)"
+  plate: "oklch(0.9 0.012 85)"
+  light-bg: "oklch(0.945 0.012 85)"
+  light-fg: "oklch(0.19 0.008 70)"
+  light-accent: "oklch(0.52 0.13 62)"
 typography:
   display:
-    fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "clamp(3rem, 6vw, 5.25rem)"
+    fontFamily: "Big Shoulders, Arial Narrow, sans-serif"
+    fontSize: "clamp(5rem, 17vw, 15.5rem)"
     fontWeight: 800
-    lineHeight: 0.95
-    letterSpacing: "-0.03em"
-    fontVariation: "'wdth' 110"
-  headline:
-    fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.875rem"
+    lineHeight: 0.84
+    letterSpacing: "-0.005em"
+  section:
+    fontFamily: "Big Shoulders, Arial Narrow, sans-serif"
+    fontSize: "clamp(3rem, 7vw, 6.5rem)"
     fontWeight: 800
-    lineHeight: 1.2
-    letterSpacing: "-0.02em"
-    fontVariation: "'wdth' 108"
-  title:
-    fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.25rem"
-    fontWeight: 700
-    lineHeight: 1.25
+    lineHeight: 0.84
   body:
-    fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1rem"
+    fontFamily: "Schibsted Grotesk, ui-sans-serif, sans-serif"
+    fontSize: "1.125rem"
     fontWeight: 400
-    lineHeight: 1.5
-  label:
-    fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "0.875rem"
-    fontWeight: 800
-    letterSpacing: "0.01em"
-    fontVariation: "'wdth' 118"
+    lineHeight: 1.6
+  lead:
+    fontFamily: "Schibsted Grotesk, ui-sans-serif, sans-serif"
+    fontSize: "1.25rem"
+    fontWeight: 400
+    lineHeight: 1.35
+  readout:
+    fontFamily: "Azeret Mono, ui-monospace, monospace"
+    fontSize: "0.8125rem"
+    fontWeight: 500
+    lineHeight: 1.25
+    letterSpacing: "0.07em"
 rounded:
   none: "0"
+  balloon: "9999px"
 spacing:
   gutter: "16px"
-  gutter-md: "40px"
-  section: "80px"
-  rule: "1.5px"
+  gutter-md: "32px"
+  section: "96px"
+  max: "1600px"
 components:
-  stamp:
-    textColor: "{colors.stamp}"
-    typography: "{typography.label}"
+  button:
+    textColor: "{colors.fg}"
+    typography: "{typography.readout}"
     rounded: "{rounded.none}"
-    padding: "3px 10px"
-  button-load:
-    backgroundColor: "{colors.stock}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.none}"
-    padding: "6px 12px"
-  button-load-hover:
-    backgroundColor: "{colors.ink}"
-    textColor: "{colors.stock}"
-  nav-link:
-    textColor: "{colors.ink}"
-    typography: "{typography.body}"
+    height: "40px"
+    padding: "0 14px"
+  button-pressed:
+    backgroundColor: "{colors.accent}"
+    textColor: "{colors.on-accent}"
+  switch:
+    textColor: "{colors.muted}"
+    typography: "{typography.readout}"
+  switch-on:
+    textColor: "{colors.fg}"
+  link:
+    textColor: "{colors.fg}"
+  link-hover:
+    textColor: "{colors.accent}"
 ---
 
-# Design System: Allen Sun, portfolio
+# Design System: Allen Sun, portfolio (v4)
+
+Chosen 2026-09-27 by Allen, by looking at three built directions (`/lab/a`, `/lab/b`, `/lab/c`, since deleted): **A, "test cell at night"**, keeping the scope waveform and adding more CAD models to the home page as C did. Everything before v4 (the goldenrod "shop traveler" sheet) is retired.
 
 ## Overview
 
-**Creative North Star: "The Shop Traveler"**
+**Creative North Star: "The test cell at night."** A dyno bay with the lights down and the instruments on. The hardware sits under work lights in the middle of the floor; the numbers that matter glow sodium amber on the instruments around it. Every live value on the site (part count, travel in mm, percent apart, the scope trace, dates, statuses) is an instrument reading, and the CAD models are the hardware on the floor.
 
-The site is the paperwork that rides along with a part through the shop: goldenrod card stock, black print ink, and one blue stamp ink that marks what state each job reached. Every project is routed like real hardware, and the page steps back so renders, photos, drawings and 3D models carry it. This comes from the approved direction contract (`.impeccable/surfaces/src-app-page-tsx.md`), which rejects the category default of a dark hero over a grid of same-size thumbnails.
+The site is dark whatever the OS says, because the dark bay is the identity. The Lights switch brings the bay lights up (a bone sheet with black ink) and is remembered. Motion is maximal by Allen's request (2026-09-27, "as many bells and whistles as possible"), but every moving thing has an off state: the OS reduced-motion setting and the site's own Motion switch both stop it, script-driven motion included.
 
-Density is editorial rather than dashboard: image-led bands on the home page, long-form case studies with figures that float into the margin, 1.5px ink rules between sections, square corners everywhere, no shadows. Images keep their true colors. See-through cut-outs sit straight on the stock; photos, plots and videos keep their own ground inside a thin ink frame. Nothing is blended with the page (Allen rejected both the yellow tint and white-on-yellow panels).
-
-Dark mode is the same sheet at night: near-black ground, text in the stock's color, and see-through images on a stock-colored plate so black ink labels stay readable.
-
-**Key Characteristics:**
-- Goldenrod stock as the whole ground; black ink; blue used only for status, the award, and the active part
-- Archivo throughout, wide and extra-bold for display and stamps
-- 1.5px ink rules and frames; square corners; flat
-- True-color images, never tinted by the page
-- One authored motion: status stamps land as they scroll into view. The home page adds one more, asked for: the take-apart model in the vitrine
+**Key characteristics**
+- Warm black floor, bone text, amber for live values and focus only
+- Condensed industrial capitals for display; a sturdy grotesk for reading; mono only for readings
+- Real CAD in WebGL (self-hosted three.js): the hand in the hero, the Terrament drive taken apart by scroll, three more models on a shelf with Solid / Edges / X-ray
+- Square corners, hairline rules, no shadows, no glow
 
 ## Colors
 
-Two inks on card stock, like a risograph print.
+- **Floor** (`bg`), **bench** (`bg-2`, panels behind models and images), **raised** (`bg-3`, the active row in the jump menu).
+- **Bone** (`fg`): text and model edge lines. **Muted** (`muted`): secondary text.
+- **Sodium amber** (`accent`): live values, the scope trace, focus rings, pressed buttons, the current page, text selection and the caret. In the light sheet it deepens (`light-accent`) to hold text contrast.
+- **Oxide** (`oxide`): reserved for "before" traces; not used yet.
+- **Plate** (`plate`): see-through images (renders, ink drawings, plots) were made for paper, so in the dark they sit on a bone plate. In the light sheet the plate is transparent.
 
-### Primary
-- **Stamp Blue** (`stamp`): status stamps, the award stamp, the ringed part in the exploded view, focus rings, text selection and the caret. Dark mode lightens it (oklch 0.76 0.11 258) for contrast.
-
-### Neutral
-- **Goldenrod Stock** (`stock`): the page ground, and the fill of buttons that sit on images.
-- **The vitrine** (`.vitrine`): the one framed display sheet on the home page, where the take-apart model sits. Deep Stock ground inside a 1.5px ink frame, in the day or night sheet alike. (Allen, 2026-09-26: not dark by day.)
-- **Deep Stock** (`stock-2`): hover and focus fill on legend rows.
-- **Print Ink** (`ink`): text, rules, frames, button borders; the hover fill of the 3D load button.
-- **Faded Ink** (`ink-2`): secondary text (context lines, captions, dates).
-- **Soft Rule** (`rule-soft`): hairline dividers inside lists and fact rows.
-
-### Named Rules
-**The One Blue Rule.** Stamp Blue marks state, never decoration: a status, the award, the active part, keyboard focus. If it isn't one of those, it's ink.
-
-**The True Color Rule.** Images never pick up the stock. No multiply blending, no tinted overlays, no white panels behind cut-outs.
+**The Amber Rule.** Amber means "this is a reading or a live control". If it is neither, it is bone.
 
 ## Typography
 
-**Display Font:** Archivo (self-hosted variable font with a width axis), fallback ui-sans-serif, system-ui
-**Body Font:** Archivo
-**Label Font:** Archivo, expanded
-**Figure Font:** Martian Mono (self-hosted, width axis 75 to 112.5), for numbers that act as measurements only: the explode readout, the schedule's year axis, the work index numbers. Never for text or headings.
+- **Display:** Big Shoulders 800, uppercase, line-height 0.84. Name, page titles, section titles, project titles in the index.
+- **Text:** Schibsted Grotesk. Body 1.125rem at 1.6 in case studies (65ch), 1.25rem leads.
+- **Readout:** Azeret Mono 500, 0.8125rem, uppercase, 0.07em tracking, tabular figures. Only for data and measurements: dates, counts, mm, statuses, instrument labels, switches. Never for sentences (Impeccable's craft floor: mono is not a costume).
+- All three are self-hosted by `next/font` at build time.
 
-**Character:** One family doing every job. The width axis carries the voice: headings and stamps run expanded and extra-bold like stamped lettering, body text stays at normal width for reading.
-
-### Hierarchy
-- **Display** (800, 3 to 5.25rem, line-height about 0.95, expanded 110 to 112%): Allen's name on the home page and page titles.
-- **Headline** (800, 1.875rem, expanded 108%): section headings and project titles in the home bands.
-- **Title** (700, 1.25rem): project titles in the short-entry grid, subsection heads.
-- **Body** (400, 1rem to 1.25rem for lead paragraphs, line-height about 1.5): case-study text, capped at about 62 to 65 characters per line.
-- **Label** (800, 0.875rem, expanded 118%, uppercase): stamps only.
-
-### Named Rules
-**The Stamp Lettering Rule.** Uppercase belongs to stamps. Headings are sentence case.
+**The No-Eyebrow Rule.** No small label above a heading. Context lines (course, year, award) go under the heading.
 
 ## Layout
 
-A single column that holds a 1400px sheet with 16px side gutters (40px from 768px up). Sections are separated by a full-width 1.5px ink rule with the heading hanging just below it. Case-study bands on the home page lay themselves out from the hero image's shape: wide images run full width, tall ones sit beside the text, the rest split about 55/45. Case-study text runs about 62ch; narrow figures float into the right margin on desktop and stack on phones. The home page's lead project shows its exploded view at about 70% width with the numbered parts legend beside it.
+A 1600px floor with 16px gutters (32px from 768px). Sections are separated by a hairline rule and 96px of air. The home page runs: hero (name and live hand), canceller with the scope, the pinned Terrament take-apart (320svh of scroll with the model pinned), the models shelf (three across on desktop), the work index (cases large, short entries in a four-up grid), experience, then the footer (waveform, email set large, links, switches). Case studies: title block, a four-cell facts row, the parts figure or hero, then prose at 65ch with a sticky section index on wide screens.
 
 ## Elevation & Depth
 
-Flat. There are no shadows anywhere. Depth comes from print conventions instead: ink rules between sections, a thin ink frame around photos, videos and 3D viewports, and the stamp's slight tilt.
-
-### Named Rules
-**The Printed Sheet Rule.** If it would need a shadow to look separate, give it a rule or a frame instead.
+Flat. Depth comes from the floor/bench/raised steps and hairline rules. No shadows, no blur, no glow; the X-ray render mode uses normal blending, never additive.
 
 ## Shapes
 
-Square corners on everything: frames, buttons, stamps, the 3D viewport. The only curves are the stamp-blue rings that circle a part in the exploded view. Stamps are rotated a couple of degrees, set per project so they look hand-placed.
+Square corners everywhere. The only curve is the amber balloon that rings a part in a numbered exploded view, as on a drawing.
 
 ## Components
 
-### Stamps
-- **Character:** a rubber stamp on paper.
-- **Shape:** square, 2.5px Stamp Blue border, rotated about -2° to -4°.
-- **Type:** label style in Stamp Blue.
-- **Motion:** lands with a quick press (scale 1.25 to 0.96 to 1) as its project scrolls into view, CSS scroll-driven, screen only; off under reduced motion and on print.
-
-### Buttons
-- **Load 3D model:** a stock-filled chip with a 1.5px ink border in the bottom-left of the viewport, labelled with the file size. Hover fills it with ink and turns the text stock; press scales it to 0.97 (150ms, ease-out). The whole viewport is the hit area.
-- **Download PDF:** the same chip style, on the resume page.
-- **Parts legend rows:** full-width rows; hover or keyboard focus fills them with Deep Stock and rings the matching part in Stamp Blue on the drawing (200ms scale and fade).
-
-### Navigation
-- **Style:** Work, About, Resume, Email, LinkedIn as semibold text links, slightly expanded; underline on hover; wraps on narrow phones with a tighter gap. The site name leads on inner pages.
-
-### Take-apart viewer (the vitrine's signature)
-A model whose GLB carries a baked "explode" animation (media pipeline option `explode: { along, across }`) opens assembled; after loading, a native range slider labelled "Explode" scrubs it from 0 to 100% apart, drawn as a dimension line with a square Stamp Blue handle (24px), and a Martian Mono readout says "248 parts, 60% apart". Keyboard focus lands on the slider. Once, just after loading, the parts come apart to 60% over 1.4s (ease-in-out) and settle; any touch stops it and reduced motion skips it. The model file's resting pose is the exploded one, so the camera framing always has room for it.
-
-### Hero model
-The robotic hand beside the name loads on idle and makes one slow turn by itself (18 degrees a second, about 20 seconds, paused off screen). After that, scrolling turns the camera around it, a quarter degree per pixel, only while it is on screen; a drag re-bases the turn. Reduced motion keeps it still.
-
-### 3D viewer (signature component)
-A 4:3 ink-framed viewport showing a see-through poster rendered from the model itself at the same camera angle. On click, the viewer loads (self-hosted model-viewer), the poster fades out over 200ms as the model appears, and keyboard focus moves to the model. Rotate only: zoom and pan are off so the page scroll is never trapped. A "Drag to rotate, or use the arrow keys" hint appears once it's live.
-
-### Figures and strips
-- **Figure:** an image with a small caption in Faded Ink; `narrow` figures float into the margin on desktop.
-- **Strip:** two versions side by side between ink rules, like darkroom test strips, for how a design changed.
-- **Clips:** silent videos in a two-column grid, native player, nothing downloads until play.
+- **Buttons** (`.btn`): bordered, mono label, amber fill when pressed (`aria-pressed`), scale 0.97 on press.
+- **Switches** (Lights, Motion, Sound): mono labels with a small square that fills amber when on. In the header on wide screens, in the footer everywhere.
+- **Jump menu** (Ctrl/Cmd K, or the Jump to button): native modal dialog, no open animation.
+- **3D views** (`src/components/stage/*`): poster first, live model when near (the hero after load and idle; on touch screens after the first touch), freed when far. Drag, arrow keys or Turn buttons. Models over 1.5 MB wait for a Load button on case pages.
+- **Explode**: scroll drives it while pinned; the slider is the same control and scrolls the page to match. With motion off it is a plain figure and the slider moves the parts.
+- **Scope**: replays Test 2 from the published figures, labelled as a redraw, with Canceller and Hold.
+- **Waveform** (footer): excited by scroll speed, rings down, then stops.
 
 ## Do's and Don'ts
 
-### Do:
-- **Do** keep the whole ground Goldenrod Stock and separate sections with a 1.5px ink rule. The vitrine's Deep Stock sheet is the single exception, one per page.
-- **Do** show see-through images straight on the stock and frame opaque ones in 1.5px ink.
-- **Do** reserve Stamp Blue for state: status, award, active part, focus.
-- **Do** keep one authored motion per page and honor reduced motion.
-
-### Don't:
-- **Don't** blend images with the page or put white panels behind cut-outs (Allen rejected both).
-- **Don't** use shadows, rounded cards, or a dark hero over a grid of same-size thumbnails.
-- **Don't** add a second accent color or use blue for decoration.
-- **Don't** use uppercase outside stamps.
+- Do show real hardware and real CAD; don't draw fake UI or decoration where the work should be.
+- Do keep every number traceable to the write-ups; the scope says it is a redraw.
+- Don't use purple, neon, glow, glass, gradients, grid backgrounds, marquees, custom cursors or scroll-jacking. The explode pins a section but never takes over the wheel.
+- Don't give two elements on one page the same `view-transition-name`.
 
 ## Sources
 
-Style cards used for prototype v3 (2026-09-25), read through `knowledge\design-sources.md` in the website framework. Taken: the idea, never the brand's fonts, colors, imagery or copy.
-- Refero Styles, Superlative (https://styles.refero.design/style/10ab6120-3d03-48ff-aebe-0b4910edc046): the product vitrine, a dark plate for one object.
-- Refero Styles, Moving Parts (https://styles.refero.design/style/fb459c9d-c089-4d0b-b5b0-d147b1c4ebd7): a semi-mono face for measurements beside a grotesk.
-- Refero Styles, teenage engineering (https://styles.refero.design/style/aecf9dda-5cba-4dc7-9e73-59b65d895cdf): hairline precision, 0 radius (already the house rule).
-- MotionSites, veyra-electric (https://motionsites.ai/?prompt=veyra-electric): an engineering cutaway as the showpiece (idea only).
-- Interaction reference: PYC weblog's exploded-assembly slider (https://www.pycheung.com/weblog/post/1703), found in the 2026-09-22 inspiration research.
+- Research brief and notes: `_notes/redesign-inspiration.md` (Awwwards SOTD and SOTY 2023 to 2026: Oryzo by Lusion, Igloo Inc, Lando Norris by OFF+BRAND, Opal Tadpole, Active Theory V6, Bruno Simon 2025, teenage engineering OP-XY, JUNNI split-flap), read 2026-09-27.
+- Direction A palette and type from that brief's "Test cell at night" direction, adapted: body text moved from mono to Schibsted Grotesk per Impeccable's craft floor.

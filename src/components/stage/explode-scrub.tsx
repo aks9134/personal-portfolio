@@ -1,14 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
-import { motionOk, useMotionOk } from "@/lib/motion";
+import { createContext, useContext, useEffect, useEffectEvent, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useMotionOk } from "@/lib/prefs";
 import type { Media } from "@/lib/work";
-import { type Finish, parseOrbit, type Stage } from "./engine";
+import { parseOrbit, type Stage } from "./engine";
 import { useStage } from "./use-stage";
-import { StageCanvas, TurnButtons } from "./view";
+import { ExplodeRange, StageCanvas, TurnButtons } from "./view";
 
-type Readout = { p: number; mm: number; parts: number; ready: boolean };
-type Ctx = Readout & { slide: (v: number) => void; id: string; stage: RefObject<Stage | null> };
+type Ctx = { p: number; mm: number; parts: number; slide: (v: number) => void; stage: RefObject<Stage | null> };
 const ExplodeContext = createContext<Ctx | null>(null);
 const useExplode = () => {
   const c = useContext(ExplodeContext);
@@ -16,57 +15,36 @@ const useExplode = () => {
   return c;
 };
 
-// The take-apart. With motion allowed, a tall section pins the model while scrolling through it pulls the assembly
-// apart, swings the camera around it and pulls back so it stays in frame. The Explode slider is the same control by
+const SWING = 80; // degrees the camera travels around the model over the run
+const RISE = -12; // degrees it rises over the run
+
+// The take-apart. With motion allowed, a tall section (320 small-viewport heights, set in CSS as .explode-run) pins
+// the model while scrolling through it pulls the assembly apart and swings the camera around it; the engine's
+// framing follows the parts, so the drive fills the view at both ends. The Explode slider is the same control by
 // hand: it scrolls the page to the matching point, so scroll and slider never disagree. With motion off (OS or site
-// switch) the section is a normal figure and the slider alone moves the parts. Layout comes from CSS (.explode-run),
-// so hydration never changes the page height. Overlay and children are server-rendered; the readout parts below
-// (ExplodeValue, ExplodeSlider, ExplodeBeat, ExplodeDimension) read the state from context.
-export function ExplodeScrub({
-  m,
-  finish = "cad",
-  swing = 80,
-  tilt = -12,
-  length = 3.2,
-  className = "",
-  id: anchor,
-  overlay,
-  children,
-}: {
-  m: Media;
-  finish?: Finish;
-  swing?: number; // degrees the camera travels around the model over the run
-  tilt?: number; // degrees it rises (negative) or falls over the run
-  length?: number; // section height in small-viewport heights
-  className?: string;
-  id?: string;
-  overlay?: ReactNode;
-  children?: ReactNode;
-}) {
+// switch) the section is a normal figure and the slider alone moves the parts. Layout comes from CSS, so hydration
+// never changes the page height. Overlay and children are server-rendered; the parts below (ExplodeValue,
+// ExplodeSlider, ExplodeBeat, ExplodeTurn) read the state from context.
+export function ExplodeScrub({ m, className = "", id, overlay, children }: { m: Media; className?: string; id?: string; overlay?: ReactNode; children?: ReactNode }) {
   const section = useRef<HTMLElement>(null);
   const pinned = useMotionOk();
   const o = parseOrbit(m.orbit);
-  const { box, canvas, stage, gen, ready } = useStage({ src: m.src, finish, theta: o.theta, phi: o.phi, frameExploded: true, drag: true });
+  const { box, canvas, stage, gen, ready } = useStage({ src: m.src, finish: "anodized", theta: o.theta, phi: o.phi, frame: 0.82, drag: true });
   const [p, setP] = useState(0);
-  const id = useId();
-  const travel = m.explode ?? 0;
 
   // Puts the model in the pose for progress v. Swinging the camera only happens on the scroll path.
-  const pose = (v: number, swingIt: boolean) => {
-    const s = stage.current;
+  const apply = (v: number, swing: boolean) => {
     setP((prev) => (Math.abs(prev - v) < 0.0005 ? prev : v));
+    const s = stage.current;
     if (!s) return;
     s.setExplode(v);
-    // Start close on the assembled drive and pull back as it spreads, so it fills the frame at both ends.
-    s.setZoom(0.62 + 0.38 * Math.min(1, v * 1.4));
-    if (swingIt) s.setAngles(o.theta + swing * v, o.phi + tilt * v);
+    if (swing) s.setAngles(o.theta + SWING * v, o.phi + RISE * v);
   };
-  const poseRef = useRef(pose);
-  poseRef.current = pose;
+  const pose = useEffectEvent(apply); // the same, for the effects below (always sees the latest render)
 
   // A freshly built stage takes the current pose.
   useEffect(() => {
-    if (ready && section.current) poseRef.current(pinned ? progressOf(section.current) : p, pinned);
+    if (ready && section.current) pose(pinned ? progressOf(section.current) : p, pinned);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, gen]);
 
@@ -78,7 +56,7 @@ export function ExplodeScrub({
     let near = false;
     const tick = () => {
       raf = 0;
-      if (motionOk()) poseRef.current(progressOf(el), true);
+      pose(progressOf(el), true);
     };
     const on = () => {
       if (near && !raf) raf = requestAnimationFrame(tick);
@@ -103,13 +81,12 @@ export function ExplodeScrub({
     if (pinned) {
       const top = el.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({ top: top + v * (el.offsetHeight - window.innerHeight), behavior: "instant" });
-    } else pose(v, false);
+    } else apply(v, false);
   };
 
-  const r: Ctx = { p, mm: Math.round(p * travel), parts: m.parts ?? 0, ready, slide, id, stage };
   return (
-    <ExplodeContext.Provider value={r}>
-      <section ref={section} id={anchor} className={`explode-run ${className}`} style={{ ["--run" as string]: `${length * 100}svh` }}>
+    <ExplodeContext.Provider value={{ p, mm: Math.round(p * (m.explode ?? 0)), parts: m.parts ?? 0, slide, stage }}>
+      <section ref={section} id={id} className={`explode-run ${className}`}>
         <div className="explode-sticky">
           <div ref={box} className="explode-stage">
             <StageCanvas m={m} canvas={canvas} gen={gen} ready={ready} sizes="100vw" label={`${m.alt}, ${m.parts} parts`} />
@@ -128,23 +105,9 @@ function progressOf(el: HTMLElement) {
   return run > 0 ? Math.min(1, Math.max(0, -rect.top / run)) : 0;
 }
 
-export function ExplodeSlider({ className = "explode-control" }: { className?: string }) {
+export function ExplodeSlider({ className }: { className?: string }) {
   const x = useExplode();
-  return (
-    <div className={className}>
-      <label htmlFor={x.id}>Explode</label>
-      <input
-        id={x.id}
-        type="range"
-        min={0}
-        max={1000}
-        step={1}
-        value={Math.round(x.p * 1000)}
-        aria-valuetext={`${x.mm} millimetres apart`}
-        onChange={(e) => x.slide(Number(e.target.value) / 1000)}
-      />
-    </div>
-  );
+  return <ExplodeRange value={x.p} mm={x.mm} onChange={x.slide} className={className} />;
 }
 
 /** The Turn buttons for the model, placed wherever the page puts them. */
@@ -152,10 +115,10 @@ export function ExplodeTurn({ className = "" }: { className?: string }) {
   return <TurnButtons stage={useExplode().stage} className={className} />;
 }
 
-export function ExplodeValue({ kind, pad = 0, className }: { kind: "mm" | "pct" | "parts"; pad?: number; className?: string }) {
+export function ExplodeValue({ kind, pad = 0 }: { kind: "mm" | "pct" | "parts"; pad?: number }) {
   const x = useExplode();
   const v = kind === "mm" ? x.mm : kind === "pct" ? Math.round(x.p * 100) : x.parts;
-  return <span className={className}>{String(v).padStart(pad, "0")}</span>;
+  return <>{String(v).padStart(pad, "0")}</>;
 }
 
 /** Shows its children only while the explode is inside [from, to); hidden beats are inert, so nothing reads or focuses them. */
@@ -165,20 +128,6 @@ export function ExplodeBeat({ from, to, children, className = "" }: { from: numb
   return (
     <div inert={!on} className={`${className} transition-opacity duration-300 ease-(--ease-out) ${on ? "opacity-100" : "opacity-0"}`}>
       {children}
-    </div>
-  );
-}
-
-/** A dimension line whose length follows the explode: arrowheads, rule, value in the middle. */
-export function ExplodeDimension({ max = 60 }: { max?: number }) {
-  const { p, mm } = useExplode();
-  return (
-    <div className="flex items-center" style={{ width: `${Math.max(10, p * max)}%` }} aria-hidden>
-      <span className="h-0 w-0 border-y-[5px] border-r-[10px] border-y-transparent border-r-accent" />
-      <span className="h-px flex-1 bg-accent" />
-      <span className="readout px-2 text-accent">{mm} mm</span>
-      <span className="h-px flex-1 bg-accent" />
-      <span className="h-0 w-0 border-y-[5px] border-l-[10px] border-y-transparent border-l-accent" />
     </div>
   );
 }

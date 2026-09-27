@@ -90,7 +90,7 @@ export default async function WorkPage({ params }: PageProps<"/work/[slug]">) {
           </p>
         </article>
         <aside className="hidden xl:block">
-          <SectionIndex within=".case-body" />
+          <SectionIndex within=".case-body" sections={w.sections} />
         </aside>
       </div>
 

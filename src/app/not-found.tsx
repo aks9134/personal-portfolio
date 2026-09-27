@@ -23,6 +23,7 @@ export default async function NotFound() {
             ))}
           </ul>
           <p className="mt-10">
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- plain anchors keep the view transitions */}
             <a href="/" className="link font-semibold">Back to the home page</a>
           </p>
         </div>

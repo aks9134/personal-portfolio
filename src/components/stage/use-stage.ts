@@ -1,22 +1,30 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { createStage, type Stage, type StageOptions } from "./engine";
+import { useEffect, useRef, useState, type RefObject } from "react";
+import { subscribe } from "@/lib/prefs";
+import { createStage, cssColor, type Mode, type Stage, type StageOptions } from "./engine";
 
 // Lifecycle shared by every 3D view: build the scene when the view comes within a screen of the viewport, free the
 // GPU context when it is two screens away (or when the browser drops it), and hand back a fresh <canvas> each time
 // (`gen` is its React key), because a canvas whose context was lost can't get a new one. `idle` waits for the page
 // to finish loading and go quiet first; on touch screens it also waits for the first interaction, so a phone's
 // first load spends nothing on 3D. `enabled` false holds the build back entirely (a model the visitor must ask for).
-export function useStage(opts: Omit<StageOptions, "onProgress" | "onLost">, { idle = false, enabled = true } = {}) {
+// `progress` reports the download, for the one view that shows it.
+export function useStage(
+  opts: Omit<StageOptions, "onProgress" | "onLost">,
+  { idle = false, enabled = true, progress = false }: { idle?: boolean; enabled?: boolean; progress?: boolean } = {},
+) {
   const box = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const stage = useRef<Stage | null>(null);
   const [gen, setGen] = useState(0);
   const [ready, setReady] = useState(false);
   const [loaded, setLoaded] = useState(0);
+  // Options that don't need a rebuild are read at build time from here.
   const optsRef = useRef(opts);
-  optsRef.current = opts;
+  useEffect(() => {
+    optsRef.current = opts;
+  });
 
   useEffect(() => {
     const el = box.current;
@@ -37,7 +45,8 @@ export function useStage(opts: Omit<StageOptions, "onProgress" | "onLost">, { id
       if (!enabled || !near || !gate || stage.current || loading || !canvas.current) return;
       loading = true;
       try {
-        const s = await createStage(canvas.current, { ...optsRef.current, onProgress: (l, t) => setLoaded(t ? l / t : 0), onLost: drop });
+        const onProgress = progress ? (l: number, t: number) => setLoaded(t ? Math.round((l / t) * 100) / 100 : 0) : undefined;
+        const s = await createStage(canvas.current, { ...optsRef.current, onProgress, onLost: drop });
         if (!alive) return s.dispose();
         stage.current = s;
         setReady(true);
@@ -89,9 +98,18 @@ export function useStage(opts: Omit<StageOptions, "onProgress" | "onLost">, { id
       offs.forEach((f) => f());
       drop();
     };
-    // Rebuilt for a new model or a fresh canvas; option changes that don't need a rebuild are read from optsRef.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [opts.src, gen, idle, enabled]);
+  }, [opts.src, gen, idle, enabled, progress]);
 
   return { box, canvas, stage, gen, ready, loaded };
+}
+
+/** Keeps a stage in render mode `mode`, its lines drawn in the theme's ink, now and whenever the lights change. */
+export function useInk(stage: RefObject<Stage | null>, box: RefObject<HTMLDivElement | null>, mode: Mode, ready: boolean, gen: number) {
+  useEffect(() => {
+    const el = box.current;
+    if (!ready || !el) return;
+    const apply = () => stage.current?.setMode(mode, cssColor(el, "--fg"));
+    apply();
+    return subscribe(apply);
+  }, [stage, box, mode, ready, gen]);
 }

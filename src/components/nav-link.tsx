@@ -12,7 +12,7 @@ export function NavLink({ href, children }: { href: string; children: string }) 
       href={href}
       aria-current={here ? "page" : undefined}
       onPointerEnter={sound.tick}
-      className={`readout inline-flex min-h-6 items-center transition-colors duration-150 max-[400px]:tracking-normal ${here ? "text-accent" : "text-fg hover:text-accent"}`}
+      className={`readout inline-flex min-h-6 items-center transition-colors duration-150 ${here ? "text-accent" : "text-fg hover:text-accent"}`}
     >
       <Scramble text={children} />
     </a>

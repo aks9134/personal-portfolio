@@ -62,7 +62,7 @@ for (const route of routes) {
       }
     });
 
-    test('keyboard: first Tab lands on something visible with a focus indicator', async ({ page, browserName }, testInfo) => {
+    test('keyboard: first Tab lands on something visible with a focus indicator', async ({ page }, testInfo) => {
       test.skip(testInfo.project.name !== 'desktop', 'keyboard check runs once');
       await page.goto(route);
       await page.keyboard.press('Tab');
