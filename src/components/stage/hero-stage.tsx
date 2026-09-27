@@ -1,20 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { srcSet } from "@/lib/image-widths";
+import { useEffect } from "react";
+import { motionOk, onMotionChange } from "@/lib/motion";
 import type { Media } from "@/lib/work";
-import { createStage, type Finish, type Stage } from "./engine";
+import { type Finish, parseOrbit } from "./engine";
+import { useStage } from "./use-stage";
+import { StageCanvas, TurnButtons } from "./view";
 
-const motionOk = () => window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
-
-// A CAD model that loads by itself once the page is idle. The poster holds its place until the first frame is
-// drawn, so nothing jumps. It follows the pointer a few degrees (springy, decorative) and turns with scroll while on
-// screen; drag turns it for real. Reduced motion: it only moves when dragged.
+// The hero model. It loads once the page has finished and gone quiet (on phones, after the first touch), with its
+// poster holding the space until then. It leans a few degrees toward the pointer and turns as the page scrolls past
+// it; drag, arrow keys or the Turn buttons turn it for real. With motion off it only moves when asked.
 export function HeroStage({
   m,
-  finish = "cad",
-  theta = 40,
-  phi = 65,
+  finish = "aluminium",
   frame = 1,
   scrollTurn = 0.12,
   className = "",
@@ -22,109 +20,86 @@ export function HeroStage({
 }: {
   m: Media;
   finish?: Finish;
-  theta?: number;
-  phi?: number;
   frame?: number;
   scrollTurn?: number; // degrees per pixel scrolled
   className?: string;
-  label: string;
+  label?: string;
 }) {
-  const box = useRef<HTMLDivElement>(null);
-  const canvas = useRef<HTMLCanvasElement>(null);
-  const [ready, setReady] = useState(false);
+  const o = parseOrbit(m.orbit);
+  const { box, canvas, stage, gen, ready } = useStage({ src: m.src, finish, theta: o.theta, phi: o.phi, frame, drag: true, exposure: 1.1 }, { idle: true });
 
   useEffect(() => {
-    let stage: Stage | null = null;
-    let cancelled = false;
+    if (!ready) return;
+    const s = stage.current;
+    const cv = canvas.current;
+    const el = box.current;
+    if (!s || !cv || !el) return;
+    const base = s.angles();
+    let offset = { t: 0, p: 0 }; // turns made by drag, keys or buttons
+    let target = { t: 0, p: 0 };
+    let cur = { t: 0, p: 0 };
+    let scrollBase = window.scrollY;
+    let visible = true;
     let raf = 0;
-    const offs: (() => void)[] = [];
-    const ric = (window as { requestIdleCallback?: (c: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
-    const idle = (cb: () => void) => (ric ? ric(cb, { timeout: 1800 }) : window.setTimeout(cb, 600));
+    let own = false; // true while this effect is the one moving the camera
 
-    idle(async () => {
-      if (cancelled || !canvas.current) return;
-      try {
-        stage = await createStage(canvas.current, { src: m.src, finish, theta, phi, frame, drag: true, exposure: 1.1 });
-      } catch {
-        return; // the poster stays: a model that fails to load is not an error the visitor needs to see
-      }
-      if (cancelled) return stage.dispose();
-      setReady(true);
+    const tick = () => {
+      raf = 0;
       if (!motionOk()) return;
-
-      // Pointer follow and scroll turn, eased toward their targets each frame (a critically damped chase).
-      let target = { t: 0, p: 0 };
-      let cur = { t: 0, p: 0 };
-      let scrollBase = window.scrollY;
-      let visible = true;
-      const base = stage.angles();
-      let dragged = { t: 0, p: 0 };
-      const tick = () => {
-        raf = 0;
-        if (!stage) return;
-        const scroll = (window.scrollY - scrollBase) * scrollTurn;
-        cur.t += (target.t - scroll * -1 - cur.t) * 0.08;
-        cur.p += (target.p - cur.p) * 0.08;
-        stage.setAngles(base.theta + dragged.t + cur.t, base.phi + dragged.p + cur.p);
-        if (Math.abs(target.t + scroll - cur.t) > 0.01 || Math.abs(target.p - cur.p) > 0.01) raf = requestAnimationFrame(tick);
-      };
-      const kick = () => {
-        if (visible && !raf) raf = requestAnimationFrame(tick);
-      };
-      const onMove = (e: PointerEvent) => {
-        if (e.pointerType !== "mouse" || e.buttons) return;
-        target = { t: (e.clientX / innerWidth - 0.5) * 16, p: (e.clientY / innerHeight - 0.5) * -8 };
-        kick();
-      };
-      // A drag moves the camera itself; fold it into the base so the follow carries on from there.
-      const onUp = () => {
-        if (!stage) return;
-        const a = stage.angles();
-        dragged = { t: a.theta - base.theta - cur.t, p: a.phi - base.phi - cur.p };
-      };
-      const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting));
-      io.observe(box.current!);
-      window.addEventListener("pointermove", onMove, { passive: true });
-      window.addEventListener("scroll", kick, { passive: true });
-      canvas.current?.addEventListener("pointerup", onUp);
-      offs.push(() => {
-        io.disconnect();
-        window.removeEventListener("pointermove", onMove);
-        window.removeEventListener("scroll", kick);
-        canvas.current?.removeEventListener("pointerup", onUp);
-      });
+      const goal = { t: target.t - (window.scrollY - scrollBase) * scrollTurn, p: target.p };
+      cur = { t: cur.t + (goal.t - cur.t) * 0.08, p: cur.p + (goal.p - cur.p) * 0.08 };
+      own = true;
+      s.setAngles(base.theta + offset.t + cur.t, base.phi + offset.p + cur.p);
+      own = false;
+      if (Math.abs(goal.t - cur.t) > 0.02 || Math.abs(goal.p - cur.p) > 0.02) raf = requestAnimationFrame(tick);
+    };
+    const kick = () => {
+      if (visible && !raf && motionOk()) raf = requestAnimationFrame(tick);
+    };
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse" || e.buttons) return;
+      target = { t: (e.clientX / innerWidth - 0.5) * 16, p: (e.clientY / innerHeight - 0.5) * -8 };
+      kick();
+    };
+    // A turn by hand becomes the new base, so the lean and scroll carry on from where the visitor left it.
+    const onTurn = () => {
+      if (own) return;
+      const a = s.angles();
+      offset = { t: a.theta - base.theta - cur.t, p: a.phi - base.phi - cur.p };
+    };
+    const io = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      if (visible) kick();
+    });
+    io.observe(el);
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("scroll", kick, { passive: true });
+    cv.addEventListener("stage:turn", onTurn);
+    // Motion switched back on: keep the current view and count scroll from here, so nothing jumps.
+    const offMotion = onMotionChange((ok) => {
+      if (!ok) return;
+      const a = s.angles();
+      offset = { t: a.theta - base.theta, p: a.phi - base.phi };
+      cur = { t: 0, p: 0 };
+      target = { t: 0, p: 0 };
       scrollBase = window.scrollY;
     });
-
     return () => {
-      cancelled = true;
+      io.disconnect();
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("scroll", kick);
+      cv.removeEventListener("stage:turn", onTurn);
+      offMotion();
       cancelAnimationFrame(raf);
-      offs.forEach((f) => f());
-      stage?.dispose();
     };
-  }, [m.src, finish, theta, phi, frame, scrollTurn]);
+  }, [ready, gen, scrollTurn, stage, canvas, box]);
 
   return (
-    <div ref={box} className={`relative ${className}`}>
-      <canvas
-        ref={canvas}
-        role="img"
-        aria-label={`${m.alt ?? label}. Drag to turn it.`}
-        className={`absolute inset-0 h-full w-full cursor-grab touch-pan-y transition-opacity duration-500 ease-(--ease-out) active:cursor-grabbing motion-reduce:transition-none ${ready ? "opacity-100" : "opacity-0"}`}
-      />
-      {m.poster && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={m.poster}
-          srcSet={srcSet(m.poster, m.width)}
-          sizes="(min-width: 768px) 50vw, 100vw"
-          width={m.width}
-          height={m.height}
-          alt=""
-          fetchPriority="high"
-          className={`pointer-events-none absolute inset-0 h-full w-full object-contain transition-opacity duration-500 ease-(--ease-out) motion-reduce:transition-none ${ready ? "opacity-0" : "opacity-100"}`}
-        />
-      )}
+    <div className={className}>
+      <div ref={box} className="relative h-full w-full">
+        <StageCanvas m={m} canvas={canvas} gen={gen} ready={ready} sizes="(min-width: 768px) 50vw, 100vw" priority label={label} />
+      </div>
+      <TurnButtons stage={stage} className="mt-2 justify-end" />
     </div>
   );
 }

@@ -1,177 +1,134 @@
 "use client";
 
 import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { srcSet } from "@/lib/image-widths";
+import { motionOk, useMotionOk } from "@/lib/motion";
 import type { Media } from "@/lib/work";
-import { createStage, type Finish, type Stage } from "./engine";
+import { type Finish, parseOrbit } from "./engine";
+import { useStage } from "./use-stage";
+import { StageCanvas, TurnButtons } from "./view";
 
-export type Readout = { p: number; mm: number; parts: number; ready: boolean; loaded: number };
-
-type Ctx = Readout & { travel: number; slide: (v: number) => void; id: string };
+type Readout = { p: number; mm: number; parts: number; ready: boolean };
+type Ctx = Readout & { slide: (v: number) => void; id: string };
 const ExplodeContext = createContext<Ctx | null>(null);
-export const useExplode = () => {
+const useExplode = () => {
   const c = useContext(ExplodeContext);
-  if (!c) throw new Error("useExplode outside <ExplodeScrub>");
+  if (!c) throw new Error("explode parts must sit inside <ExplodeScrub>");
   return c;
 };
 
-// The take-apart: a tall section pins the model while scrolling through it pulls the assembly apart and swings the
-// camera around it. The Explode slider is the same control by hand: it scrolls the page to the matching point, so
-// scroll and slider never disagree. Reduced motion: no pin and no camera swing, the slider alone moves the parts.
-// The model starts loading when the section comes within a screen of view.
+// The take-apart. With motion allowed, a tall section pins the model while scrolling through it pulls the assembly
+// apart, swings the camera around it and pulls back so it stays in frame. The Explode slider is the same control by
+// hand: it scrolls the page to the matching point, so scroll and slider never disagree. With motion off (OS or site
+// switch) the section is a normal figure and the slider alone moves the parts. Layout comes from CSS (.explode-run),
+// so hydration never changes the page height. Overlay and children are server-rendered; the readout parts below
+// (ExplodeValue, ExplodeSlider, ExplodeBeat, ExplodeDimension) read the state from context.
 export function ExplodeScrub({
   m,
   finish = "cad",
-  swing = [40, 110],
-  tilt = [65, 55],
+  swing = 80,
+  tilt = -12,
   length = 3.2,
   className = "",
-  stageClassName = "",
+  id: anchor,
   overlay,
   children,
 }: {
   m: Media;
   finish?: Finish;
-  swing?: [number, number]; // camera theta at 0 and 1, degrees
-  tilt?: [number, number]; // camera phi at 0 and 1
-  length?: number; // section height in viewport heights
+  swing?: number; // degrees the camera travels around the model over the run
+  tilt?: number; // degrees it rises (negative) or falls over the run
+  length?: number; // section height in small-viewport heights
   className?: string;
-  stageClassName?: string;
+  id?: string;
   overlay?: ReactNode;
   children?: ReactNode;
 }) {
   const section = useRef<HTMLElement>(null);
-  const canvas = useRef<HTMLCanvasElement>(null);
-  const stageRef = useRef<Stage | null>(null);
-  const [pinned, setPinned] = useState(true);
-  const [r, setR] = useState<Readout>({ p: 0, mm: 0, parts: m.parts ?? 0, ready: false, loaded: 0 });
+  const pinned = useMotionOk();
+  const o = parseOrbit(m.orbit);
+  const { box, canvas, stage, gen, ready } = useStage({ src: m.src, finish, theta: o.theta, phi: o.phi, frameExploded: true, drag: true });
+  const [p, setP] = useState(0);
   const id = useId();
   const travel = m.explode ?? 0;
 
-  // Reduced motion decides the layout: pinned scroll or a plain slider.
-  useEffect(() => {
-    const q = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const set = () => setPinned(!q.matches);
-    set();
-    q.addEventListener("change", set);
-    return () => q.removeEventListener("change", set);
-  }, []);
-
-  const apply = (p: number, swingIt: boolean) => {
-    const s = stageRef.current;
-    setR((x) => ({ ...x, p, mm: Math.round(p * travel) }));
+  // Puts the model in the pose for progress v. Swinging the camera only happens on the scroll path.
+  const pose = (v: number, swingIt: boolean) => {
+    const s = stage.current;
+    setP((prev) => (Math.abs(prev - v) < 0.0005 ? prev : v));
     if (!s) return;
-    s.setExplode(p);
+    s.setExplode(v);
     // Start close on the assembled drive and pull back as it spreads, so it fills the frame at both ends.
-    s.setZoom(0.62 + 0.38 * Math.min(1, p * 1.4));
-    if (swingIt) s.setAngles(swing[0] + (swing[1] - swing[0]) * p, tilt[0] + (tilt[1] - tilt[0]) * p);
+    s.setZoom(0.62 + 0.38 * Math.min(1, v * 1.4));
+    if (swingIt) s.setAngles(o.theta + swing * v, o.phi + tilt * v);
   };
-  const applyRef = useRef(apply);
-  applyRef.current = apply;
+  const poseRef = useRef(pose);
+  poseRef.current = pose;
 
-  // Load when near.
+  // A freshly built stage takes the current pose.
   useEffect(() => {
-    const el = section.current;
-    if (!el) return;
-    let cancelled = false;
-    const io = new IntersectionObserver(
-      async ([e]) => {
-        if (!e.isIntersecting || stageRef.current || !canvas.current) return;
-        io.disconnect();
-        try {
-          const s = await createStage(canvas.current, {
-            src: m.src,
-            finish,
-            theta: swing[0],
-            phi: tilt[0],
-            frameExploded: true,
-            drag: true,
-            onProgress: (l, t) => setR((x) => ({ ...x, loaded: t ? l / t : 0 })),
-          });
-          if (cancelled) return s.dispose();
-          stageRef.current = s;
-          setR((x) => ({ ...x, ready: true, parts: x.parts || s.parts }));
-          applyRef.current(progressOf(el), window.matchMedia("(prefers-reduced-motion: no-preference)").matches);
-        } catch {
-          /* poster stays */
-        }
-      },
-      { rootMargin: "100% 0px" },
-    );
-    io.observe(el);
-    return () => {
-      cancelled = true;
-      io.disconnect();
-      stageRef.current?.dispose();
-      stageRef.current = null;
-    };
+    if (ready && section.current) poseRef.current(pinned ? progressOf(section.current) : p, pinned);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [m.src, finish]);
+  }, [ready, gen]);
 
-  // Scroll drives the explode while pinned. rAF-throttled; reads layout once per frame.
+  // Scroll drives the explode while pinned: one layout read per frame, only while the section is near.
   useEffect(() => {
     if (!pinned) return;
     const el = section.current!;
     let raf = 0;
+    let near = false;
     const tick = () => {
       raf = 0;
-      applyRef.current(progressOf(el), true);
+      if (motionOk()) poseRef.current(progressOf(el), true);
     };
     const on = () => {
-      if (!raf) raf = requestAnimationFrame(tick);
+      if (near && !raf) raf = requestAnimationFrame(tick);
     };
+    const io = new IntersectionObserver(([e]) => {
+      near = e.isIntersecting;
+      on();
+    }, { rootMargin: "50% 0px" });
+    io.observe(el);
     window.addEventListener("scroll", on, { passive: true });
     window.addEventListener("resize", on);
-    on();
     return () => {
+      io.disconnect();
       window.removeEventListener("scroll", on);
       window.removeEventListener("resize", on);
       cancelAnimationFrame(raf);
     };
   }, [pinned]);
 
-  const onSlide = (v: number) => {
+  const slide = (v: number) => {
     const el = section.current!;
     if (pinned) {
       const top = el.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({ top: top + v * (el.offsetHeight - window.innerHeight), behavior: "instant" });
-    } else apply(v, false);
+    } else pose(v, false);
   };
 
+  const r: Ctx = { p, mm: Math.round(p * travel), parts: m.parts ?? 0, ready, slide, id };
   return (
-    <ExplodeContext.Provider value={{ ...r, travel, slide: onSlide, id }}>
-    <section ref={section} className={className} style={pinned ? { height: `${length * 100}dvh` } : undefined}>
-      <div className={pinned ? "sticky top-0 h-dvh overflow-hidden" : "relative"}>
-        <div className={`relative ${pinned ? "h-full" : "aspect-[16/10]"} ${stageClassName}`}>
-          <canvas
-            ref={canvas}
-            role="img"
-            aria-label={`${m.alt}. ${m.parts} parts. Drag to turn it; the Explode slider takes it apart.`}
-            className={`absolute inset-0 h-full w-full cursor-grab touch-pan-y transition-opacity duration-500 ease-(--ease-out) active:cursor-grabbing motion-reduce:transition-none ${r.ready ? "opacity-100" : "opacity-0"}`}
-          />
-          {m.poster && !r.ready && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={m.poster}
-              srcSet={srcSet(m.poster, m.width)}
-              sizes="100vw"
-              width={m.width}
-              height={m.height}
-              alt=""
-              loading="lazy"
-              className="pointer-events-none absolute inset-0 h-full w-full object-contain"
-            />
-          )}
-          {overlay}
+    <ExplodeContext.Provider value={r}>
+      <section ref={section} id={anchor} className={`explode-run ${className}`} style={{ ["--run" as string]: `${length * 100}svh` }}>
+        <div className="explode-sticky">
+          <div ref={box} className="explode-stage">
+            <StageCanvas m={m} canvas={canvas} gen={gen} ready={ready} sizes="100vw" label={`${m.alt}, ${m.parts} parts`} />
+            {overlay}
+          </div>
+          {children}
+          <TurnButtons stage={stage} className="absolute right-4 bottom-6 md:right-8" />
         </div>
-        {children}
-      </div>
-    </section>
+      </section>
     </ExplodeContext.Provider>
   );
 }
 
-// Leaf parts that read the explode state; place them anywhere inside <ExplodeScrub>.
+function progressOf(el: HTMLElement) {
+  const rect = el.getBoundingClientRect();
+  const run = el.offsetHeight - window.innerHeight;
+  return run > 0 ? Math.min(1, Math.max(0, -rect.top / run)) : 0;
+}
+
 export function ExplodeSlider({ className = "explode-control" }: { className?: string }) {
   const x = useExplode();
   return (
@@ -197,29 +154,27 @@ export function ExplodeValue({ kind, pad = 0, className }: { kind: "mm" | "pct" 
   return <span className={className}>{String(v).padStart(pad, "0")}</span>;
 }
 
-/** Shows its children only while the explode is inside [from, to). */
+/** Shows its children only while the explode is inside [from, to); hidden beats are inert, so nothing reads or focuses them. */
 export function ExplodeBeat({ from, to, children, className = "" }: { from: number; to: number; children: ReactNode; className?: string }) {
   const { p } = useExplode();
   const on = p >= from && (p < to || to >= 1);
-  return <div className={`${className} transition-opacity duration-300 ease-(--ease-out) motion-reduce:transition-none ${on ? "opacity-100" : "opacity-0"}`}>{children}</div>;
+  return (
+    <div inert={!on} className={`${className} transition-opacity duration-300 ease-(--ease-out) ${on ? "opacity-100" : "opacity-0"}`}>
+      {children}
+    </div>
+  );
 }
 
 /** A dimension line whose length follows the explode: arrowheads, rule, value in the middle. */
 export function ExplodeDimension({ max = 60 }: { max?: number }) {
   const { p, mm } = useExplode();
   return (
-    <div className="flex items-center" style={{ width: `${Math.max(8, p * max)}%` }} aria-hidden>
-      <span className="h-0 w-0 border-y-[5px] border-r-[10px] border-y-transparent border-r-(--accent)" />
-      <span className="h-px flex-1 bg-(--accent)" />
-      <span className="readout px-2 text-(--accent)">{mm} mm</span>
-      <span className="h-px flex-1 bg-(--accent)" />
-      <span className="h-0 w-0 border-y-[5px] border-l-[10px] border-y-transparent border-l-(--accent)" />
+    <div className="flex items-center" style={{ width: `${Math.max(10, p * max)}%` }} aria-hidden>
+      <span className="h-0 w-0 border-y-[5px] border-r-[10px] border-y-transparent border-r-accent" />
+      <span className="h-px flex-1 bg-accent" />
+      <span className="readout px-2 text-accent">{mm} mm</span>
+      <span className="h-px flex-1 bg-accent" />
+      <span className="h-0 w-0 border-y-[5px] border-l-[10px] border-y-transparent border-l-accent" />
     </div>
   );
-}
-
-function progressOf(el: HTMLElement) {
-  const rect = el.getBoundingClientRect();
-  const run = el.offsetHeight - window.innerHeight;
-  return run > 0 ? Math.min(1, Math.max(0, -rect.top / run)) : 0;
 }

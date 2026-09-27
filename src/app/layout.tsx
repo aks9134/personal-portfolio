@@ -1,18 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Martian_Mono } from "next/font/google";
-import { ScrollRail } from "@/components/scroll-rail";
+import { Azeret_Mono, Big_Shoulders, Schibsted_Grotesk } from "next/font/google";
+import { Header } from "@/components/header";
+import { Palette, type PaletteItem } from "@/components/palette";
 import { SiteFooter } from "@/components/site-footer";
 import { preview } from "@/lib/og";
 import { site } from "@/lib/site";
+import { allWork } from "@/lib/work";
 import "./globals.css";
 
-const archivo = Archivo({ subsets: ["latin"], axes: ["wdth"], variable: "--font-archivo", display: "swap" });
-// Figures and readouts only (the explode readout, spec figures): a mono with its own width axis, like Archivo's.
-// Not preloaded: nothing on the first screen uses it.
-const mono = Martian_Mono({ subsets: ["latin"], axes: ["wdth"], variable: "--font-martian", display: "swap", preload: false });
+// Display: condensed industrial capitals. Text: a sturdy grotesk for reading. Mono: readouts and measurements only.
+// next/font downloads them at build time and serves them from this site (no requests to Google at runtime).
+const shoulders = Big_Shoulders({ subsets: ["latin"], variable: "--font-shoulders", axes: ["opsz"], display: "swap" });
+const schibsted = Schibsted_Grotesk({ subsets: ["latin"], variable: "--font-schibsted", display: "swap" });
+const azeret = Azeret_Mono({ subsets: ["latin"], variable: "--font-azeret", display: "swap" });
 
-// Link previews need absolute URLs, so the site has to know its own address. `site.url` is the canonical one
-// (Vercel hands a project several), and NEXT_PUBLIC_SITE_URL overrides it for a one-off build.
+// Link previews need absolute URLs. `site.url` is the canonical address; NEXT_PUBLIC_SITE_URL overrides it for a build.
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? site.url;
 
 export const metadata: Metadata = {
@@ -23,35 +25,43 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
-// Phone status bar and browser chrome take the page color in each scheme (the stock, or the night sheet).
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4e3a8" },
-    { media: "(prefers-color-scheme: dark)", color: "#19160e" },
-  ],
-};
+export const viewport: Viewport = { themeColor: "#141210" };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+// Saved switches (lights, motion, sound) go onto <html> before the first paint, so nothing flashes or moves first.
+// The phone's browser chrome follows the lights too.
+const prefs = `try{for(const k of["theme","motion","sound"]){const v=localStorage.getItem("pref-"+k);if(v)document.documentElement.dataset[k]=v}}catch(e){}
+var tc=function(){var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=document.documentElement.dataset.theme==="light"?"#efece4":"#141210"};
+document.addEventListener("DOMContentLoaded",tc);new MutationObserver(tc).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});`;
+
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const work = await allWork();
+  const items: PaletteItem[] = [
+    { label: "Home", hint: "Page", href: "/" },
+    ...work.map((w) => ({ label: w.title, hint: `${w.context}, ${w.year}`, href: `/work/${w.slug}` })),
+    { label: "About", hint: "Page", href: "/about" },
+    { label: "Resume", hint: "Page", href: "/resume" },
+    { label: "Resume PDF", hint: "Download", href: "/allen-sun-resume.pdf" },
+    { label: "Take the drive apart", hint: "Home", href: "/#terrament" },
+    { label: "Copy email address", hint: site.email, action: "copy-email" },
+    { label: "LinkedIn", hint: "Elsewhere", href: site.linkedin },
+    { label: "Lights", hint: "Switch", action: "lights" },
+    { label: "Motion", hint: "Switch", action: "motion" },
+    { label: "Sound", hint: "Switch", action: "sound" },
+    { label: "Privacy and accessibility", hint: "Page", href: "/privacy" },
+  ];
   return (
-    <html lang="en" className={`${archivo.variable} ${mono.variable}`}>
+    <html lang="en" className={`${shoulders.variable} ${schibsted.variable} ${azeret.variable}`} suppressHydrationWarning>
       <head>
-        <script
-          // Applies the saved sheet before paint, so a night reader never gets a flash of day.
-          dangerouslySetInnerHTML={{
-            __html: `try{var s=localStorage.getItem("sheet");if(s)document.documentElement.dataset.theme=s}catch(e){}`,
-          }}
-        />
+        <script dangerouslySetInnerHTML={{ __html: prefs }} />
       </head>
       <body className="min-h-dvh">
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-10 focus:bg-ink focus:px-4 focus:py-2 focus:text-stock"
-        >
+        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-accent focus:px-4 focus:py-2 focus:text-on-accent">
           Skip to content
         </a>
-        <ScrollRail />
+        <Header />
         {children}
         <SiteFooter />
+        <Palette items={items} email={site.email} />
       </body>
     </html>
   );

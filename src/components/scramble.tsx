@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ElementType } from "react";
+import { motionOk } from "@/lib/motion";
 
 const GLYPHS = "ABCDEFGHJKLMNPRSTUVWXYZ0123456789/#+=<>";
 
@@ -12,10 +13,11 @@ export function Scramble({ text, as: Tag = "span", className = "", ms = 520 }: {
 
   useEffect(() => {
     const el = out.current;
-    if (!el || !window.matchMedia("(prefers-reduced-motion: no-preference)").matches) return;
+    if (!el) return;
     let raf = 0;
     const play = () => {
       cancelAnimationFrame(raf);
+      if (!motionOk()) return;
       const t0 = performance.now();
       const step = (now: number) => {
         const k = (now - t0) / ms;
