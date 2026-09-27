@@ -43,6 +43,7 @@
   },
   {
     "out": "midterm-hand",
+    "ground": "sheet",
     "src": "_notes/media/robotic-arm/midpres_image7.png",
     "alpha": "cutout",
     "alt": "Midterm renders of the hand: five jointed fingers on a four-part palm, front and back"

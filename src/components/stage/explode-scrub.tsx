@@ -15,7 +15,9 @@ const useExplode = () => {
   return c;
 };
 
-const SWING = 80; // degrees the camera travels around the model over the run
+// The parts spread along the drive's shaft, so the camera ends side-on to it, where that spread reads widest.
+// (Swinging further, to look down the shaft, hid the take-apart behind the rotation.)
+const SWING = 35; // degrees the camera travels around the model over the run
 const RISE = -12; // degrees it rises over the run
 
 // The take-apart. With motion allowed, a tall section (320 small-viewport heights, set in CSS as .explode-run) pins

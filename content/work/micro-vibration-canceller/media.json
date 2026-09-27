@@ -7,6 +7,7 @@
   },
   {
     "out": "exploded",
+    "ground": "sheet",
     "src": "Info Repository/Senior Design/Senior Design/Sem 2 Final Deliverables/Report Figures/VI_Lab.png",
     "crop": [
       0,
@@ -25,6 +26,7 @@
   },
   {
     "out": "sem1-exploded",
+    "ground": "sheet",
     "src": "Info Repository/Senior Design/Senior Design/CAD/Images/Labeled Explo (2).png",
     "alpha": "drawing",
     "alt": "Exploded view of the first-semester design: open-frame shield and no centering spring"
@@ -42,24 +44,28 @@
   },
   {
     "out": "control-diagram",
+    "ground": "ink",
     "src": "_notes/media/senior-design/report_image13.png",
     "alpha": "ink",
     "alt": "Control loop: negative acceleration feedback drives PWM to the voice coil motor, which acts on the beam, which the piezo sensor measures"
   },
   {
     "out": "test1-plot",
+    "ground": "ink",
     "src": "_notes/media/senior-design/report_image12.png",
     "alpha": "ink",
     "alt": "Test 1 plot: beam vibration frequency rising roughly linearly with the excitation motor's voltage"
   },
   {
     "out": "solver-failure",
+    "ground": "ink",
     "src": "_notes/media/senior-design/report_image16.png",
     "alpha": "ink",
     "alt": "Simulation output showing the controller's position command coming out jagged and slower than the beam"
   },
   {
     "out": "sim-result",
+    "ground": "ink",
     "src": "_notes/media/senior-design/report_image25.png",
     "alpha": "ink",
     "alt": "Simulated closed-loop result: beam acceleration decaying to a small steady amplitude once the controller engages"
@@ -72,6 +78,7 @@
   },
   {
     "out": "wiring",
+    "ground": "ink",
     "src": "_notes/media/senior-design/report_image14.png",
     "alpha": "ink",
     "alt": "Wiring schematic: Arduino Uno reading the biased piezo signal and driving the voice coil motor through an L298 H-bridge from a 12 V battery"

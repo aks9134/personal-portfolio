@@ -2,8 +2,10 @@ import type { Media } from "@/lib/work";
 import { srcSet } from "@/lib/image-widths";
 import { cn } from "@/lib/utils";
 
-// Every image keeps its true colours. See-through images (cut-outs, ink drawings) sit on the plate (bone in the dark,
-// nothing in the light); photos and screenshots keep their own ground and get a hairline frame. Never upscaled.
+// See-through images in the dark: renders sit on the bench like the live models; ink drawings and plots (ground "ink")
+// turn light-on-dark, like an instrument trace; the few that need paper (ground "sheet": labelled renders, black
+// parts) keep a dimmed bone plate. With the lights up all of them show as made, on nothing. Photos and screenshots
+// keep their own ground and get a hairline frame. Never upscaled.
 // A plain <img> on purpose: the pipeline already made the sizes, and this srcset labels each with its real width.
 export function MediaImage({
   m,
@@ -21,7 +23,7 @@ export function MediaImage({
   style?: React.CSSProperties; // carries the view-transition name when an image morphs between pages
 }) {
   return (
-    <div className={cn(m.alpha ? "plate" : "border border-rule", className)}>
+    <div className={cn(!m.alpha ? "border border-rule" : m.ground === "sheet" ? "plate" : "bench", className)}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={m.src}
@@ -34,7 +36,7 @@ export function MediaImage({
         fetchPriority={priority ? "high" : undefined}
         decoding="async"
         style={{ maxWidth: `min(100%, ${m.width}px)`, ...style }}
-        className={cn("h-auto w-full", imgClassName)}
+        className={cn("h-auto w-full", m.alpha && m.ground === "ink" && "ink", imgClassName)}
       />
     </div>
   );

@@ -12,7 +12,7 @@ colors:
   accent: "oklch(0.8 0.145 72)"
   on-accent: "oklch(0.17 0.006 70)"
   oxide: "oklch(0.68 0.16 38)"
-  plate: "oklch(0.9 0.012 85)"
+  plate: "oklch(0.72 0.012 85)"
   light-bg: "oklch(0.945 0.012 85)"
   light-fg: "oklch(0.19 0.008 70)"
   light-accent: "oklch(0.52 0.13 62)"
@@ -95,7 +95,7 @@ The site is dark whatever the OS says, because the dark bay is the identity. The
 - **Bone** (`fg`): text and model edge lines. **Muted** (`muted`): secondary text.
 - **Sodium amber** (`accent`): live values, the scope trace, focus rings, pressed buttons, the current page, text selection and the caret. In the light sheet it deepens (`light-accent`) to hold text contrast.
 - **Oxide** (`oxide`): reserved for "before" traces; not used yet.
-- **Plate** (`plate`): see-through images (renders, ink drawings, plots) were made for paper, so in the dark they sit on a bone plate. In the light sheet the plate is transparent.
+- **See-through images in the dark** (2026-09-27, replacing a full-bright bone plate that glared): renders sit on the bench like the live models; ink drawings, plots and schematics (`"ground": "ink"` in `media.json`) invert to bone-on-bench, like an instrument trace; the few that need paper (`"ground": "sheet"`: labelled exploded renders, black parts) keep a **plate** (`plate`) dimmed to the bay's light. In the light sheet all of them show as made, on nothing.
 
 **The Amber Rule.** Amber means "this is a reading or a live control". If it is neither, it is bone.
 

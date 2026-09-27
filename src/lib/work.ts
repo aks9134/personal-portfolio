@@ -11,6 +11,7 @@ export type Media = {
   height: number;
   alt?: string;
   alpha?: boolean; // cut-out with a see-through background
+  ground?: "ink" | "sheet"; // see-through images in the dark: ink turns light-on-dark, sheet keeps a dimmed paper plate
   poster?: string;
   parts?: number;
   bytes?: number;

@@ -100,7 +100,7 @@ export default async function Home() {
         m={geared}
         className="border-t border-rule"
         overlay={
-          <div className="pointer-events-none absolute inset-x-4 top-6 flex flex-wrap items-start justify-between gap-6 md:inset-x-8">
+          <div className="pointer-events-none absolute inset-x-4 top-6 motion-safe:top-20 flex flex-wrap items-start justify-between gap-6 md:inset-x-8">
             <div>
               <h2 className="display text-[clamp(2.75rem,6.5vw,6rem)]">
                 Gravity<br />storage drive

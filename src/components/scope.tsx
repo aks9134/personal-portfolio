@@ -8,8 +8,8 @@ import { sound } from "@/lib/sound";
 // A scope face that replays the canceller's Test 2 from the numbers in the write-up: the beam held at 54 Hz with a
 // 0.17 V peak on the piezo, and with the canceller driving, down to as low as 0.015 V for 40 to 50 ms before the
 // fixed signal slipped out of phase. It is redrawn from those figures and says so; it is not the recording.
-// It runs only while on screen and has a Hold button (anything moving past 5 s needs a pause). With motion off it
-// shows one still frame and no Hold button.
+// It plays at a tenth of real time, and the scale readout says so. It runs only while on screen and has a Hold
+// button (anything moving past 5 s needs a pause). With motion off it shows one still frame and no Hold button.
 const HZ = 54;
 const PEAK = 0.17; // V
 const FLOOR = 0.015; // V
@@ -17,6 +17,7 @@ const WINDOW = 0.045; // s the cancellation holds (40 to 50 ms)
 const CYCLE = 0.32; // s between re-phasing: illustrative spacing, not from the test
 const SPAN = 0.2; // s across the screen (20 ms/div, 10 div)
 const VDIV = 0.05; // V per division, 8 divisions tall
+const SLOW = 0.1; // replayed at a tenth of real time: at full speed a 54 Hz trace is a blur
 const COLOURS = { ink: "--scope-ink", grid: "--scope-grid", ref: "--scope-ref" };
 
 export function Scope({ className = "" }: { className?: string }) {
@@ -47,7 +48,7 @@ export function Scope({ className = "" }: { className?: string }) {
     const draw = (now: number) => {
       raf = 0;
       const running = motionOk() && !state.current.held;
-      if (running) at = (now - t0) / 1000;
+      if (running) at = ((now - t0) / 1000) * SLOW;
       const { w, h } = fitCanvas(c, ctx);
       ctx.clearRect(0, 0, w, h);
       // Graticule: 10 x 8 divisions, with ticks along the centre line.
@@ -92,7 +93,7 @@ export function Scope({ className = "" }: { className?: string }) {
       if (!raf) raf = requestAnimationFrame(draw);
     };
     redraw.current = () => {
-      t0 = performance.now() - at * 1000; // resume where it was held
+      t0 = performance.now() - (at / SLOW) * 1000; // resume where it was held
       kick();
     };
     const io = new IntersectionObserver(([e]) => {
@@ -150,7 +151,7 @@ export function Scope({ className = "" }: { className?: string }) {
             Hold
           </button>
         )}
-        <p className="scope-scale">54 Hz, 20 ms/div, 50 mV/div</p>
+        <p className="scope-scale">54 Hz, 20 ms/div, 50 mV/div{moving && ", 1/10 speed"}</p>
       </div>
       <figcaption className="scope-cap">
         <span role="status">

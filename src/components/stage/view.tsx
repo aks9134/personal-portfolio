@@ -2,12 +2,14 @@
 
 import { useId, type RefObject } from "react";
 import { srcSet } from "@/lib/image-widths";
+import { motionOk } from "@/lib/prefs";
 import { sound } from "@/lib/sound";
 import type { Media } from "@/lib/work";
 import type { Mode, Stage } from "./engine";
 
 // The pieces every 3D view shares: the poster that holds the space (and comes back if the GPU drops the model), the
-// canvas (focusable: arrow keys turn it), Turn buttons (the single-pointer alternative to dragging, WCAG 2.5.7), the
+// canvas (focusable: arrow keys turn it), Turn buttons (the single-pointer alternative to dragging, WCAG 2.5.7; they
+// glide 30 degrees, or step there at once with motion off), the
 // render-mode switch, the Explode slider and the parts/size readout.
 export function StageCanvas({
   m,
@@ -64,7 +66,7 @@ export function TurnButtons({ stage, className = "" }: { stage: RefObject<Stage 
   return (
     <div role="group" aria-label="Turn the model" className={`flex gap-1 ${className}`}>
       {turns.map(([label, d]) => (
-        <button key={label} type="button" onClick={() => stage.current?.turnBy(d)} className="readout-btn">
+        <button key={label} type="button" onClick={() => stage.current?.turnBy(d, 0, motionOk())} className="readout-btn">
           {label}
         </button>
       ))}

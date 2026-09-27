@@ -20,8 +20,10 @@
   --scope-grid: oklch(0.93 0.015 85 / 0.09);
   --scope-ref: oklch(0.93 0.015 85 / 0.34);
   --stage-bg: oklch(0.17 0.006 70);
-  /* See-through images (renders, ink drawings, plots) were made for paper: in the dark they sit on a bone plate. */
-  --plate: oklch(0.9 0.012 85);
+  /* See-through images in the dark (media-image.tsx): renders sit on the bench; the few that need paper get a bone
+     plate, dimmed to the bay's light so it doesn't glare; ink drawings and plots turn light-on-dark (.ink). */
+  --bench: var(--bg-2);
+  --plate: oklch(0.72 0.012 85);
   color-scheme: dark;
 }
 
@@ -41,6 +43,7 @@
   --scope-grid: oklch(0.93 0.015 85 / 0.1);
   --scope-ref: oklch(0.93 0.015 85 / 0.34);
   --stage-bg: oklch(0.945 0.012 85);
+  --bench: transparent;
   --plate: transparent;
   color-scheme: light;
 }
@@ -146,6 +149,15 @@
   }
   .plate {
     background: var(--plate);
+  }
+  .bench {
+    background: var(--bench);
+  }
+  /* Black ink on paper becomes bone ink on the bench; hue-rotate puts coloured traces back to their own hue. */
+  @media screen {
+    :root:not([data-theme="light"]) .ink {
+      filter: invert(1) hue-rotate(180deg);
+    }
   }
   .link {
     text-decoration-line: underline;

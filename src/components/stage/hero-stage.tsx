@@ -11,10 +11,11 @@ const SCROLL_TURN = 0.12; // degrees per pixel scrolled
 
 // The hero model. It loads once the page has finished and gone quiet (on phones, after the first touch), with its
 // poster holding the space until then. It leans a few degrees toward the pointer and turns as the page scrolls past
-// it; drag, arrow keys or the Turn buttons turn it for real. With motion off it only moves when asked.
+// it; drag, arrow keys or the Turn buttons turn it for real, all the way round and over the top. With motion off it
+// only moves when asked.
 export function HeroStage({ m, frame = 1, className = "", label }: { m: Media; frame?: number; className?: string; label?: string }) {
   const o = parseOrbit(m.orbit);
-  const { box, canvas, stage, gen, ready } = useStage({ src: m.src, theta: o.theta, phi: o.phi, frame, drag: true, exposure: 1.1 }, { idle: true });
+  const { box, canvas, stage, gen, ready } = useStage({ src: m.src, theta: o.theta, phi: o.phi, frame, drag: true, tumble: true, exposure: 1.1 }, { idle: true });
   const moving = useMotionOk();
 
   // Runs only while motion is allowed; switching motion off or on restarts it from the current view, so nothing jumps.

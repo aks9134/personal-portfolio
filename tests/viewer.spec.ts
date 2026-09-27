@@ -47,6 +47,9 @@ test('home: scrolling through the drive takes it apart (motion allowed)', async 
   await page.goto('/', { waitUntil: 'networkidle' });
   await toDrive(page, 0);
   await ready(drive(page));
+  // The parts themselves move: measured from the geometry, the drive is larger apart than together. (The explode
+  // attribute alone once read 0.8 while every part sat assembled.)
+  expect(Number(await drive(page).getAttribute('data-spread'))).toBeGreaterThan(1.1);
   await toDrive(page, 0.8);
   await expect.poll(() => apart(page)).toBeGreaterThan(0.6);
   await expect(page.locator('#terrament')).toContainText(/[1-9]\d* mm/);
@@ -120,6 +123,43 @@ test('keyboard: a focused model turns with the arrow keys', async ({ page }) => 
   await hero(page).focus();
   await page.keyboard.press('ArrowLeft');
   await expect.poll(() => theta(page)).toBeCloseTo(before + 15, 0);
+});
+
+test('hero: the hand tilts all the way over the top, not only around', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+  await ready(hero(page));
+  const phi = () => hero(page).getAttribute('data-phi').then(Number);
+  const before = await phi();
+  await hero(page).focus();
+  for (let i = 0; i < 25; i++) await page.keyboard.press('ArrowUp'); // 8 degrees each, 200 in all
+  await expect.poll(phi).toBeLessThan(before - 150);
+});
+
+test('Turn buttons glide to the new angle when motion is allowed', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+  await ready(hero(page));
+  // Scroll and pointer turn the hero too, so bring the button into view and rest the pointer on it first.
+  const button = page.locator('section[aria-labelledby="name"]').getByRole('button', { name: 'Turn left' });
+  await button.scrollIntoViewIfNeeded();
+  await button.hover();
+  await page.waitForTimeout(1500);
+  const before = await theta(page);
+  const seen = hero(page).evaluate((c) => {
+    const out: number[] = [];
+    const end = performance.now() + 900;
+    return new Promise<number[]>((done) => {
+      const read = () => {
+        out.push(Number(c.dataset.theta));
+        if (performance.now() < end) requestAnimationFrame(read);
+        else done(out);
+      };
+      read();
+    });
+  });
+  await button.click();
+  const values = await seen;
+  expect(values.some((v) => v > before + 3 && v < before + 27), 'an in-between angle on the way').toBe(true);
+  await expect.poll(() => theta(page)).toBeCloseTo(before + 30, 0);
 });
 
 test('case study: small models load when near, the big one waits for its button', async ({ page }) => {

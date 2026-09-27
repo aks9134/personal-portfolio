@@ -22,6 +22,29 @@ test('every page has a JPG link preview that exists', async ({ page, request }) 
   }
 });
 
+// See-through images in the dark: ink drawings and plots turn light-on-dark, renders sit on the bench, and only the
+// few that need paper keep a (dimmed) sheet. With the lights up, every image shows as made.
+test('see-through images: ink inverts in the dark, renders drop the plate, lights up restores both', async ({ page }) => {
+  const img = (alt: RegExp) => page.getByRole('img', { name: alt }).first();
+  const ground = (alt: RegExp) => img(alt).evaluate((i) => getComputedStyle(i.parentElement!).backgroundColor);
+  const bench = await page.goto('/work/micro-vibration-canceller').then(() =>
+    page.evaluate(() => {
+      const d = document.createElement('div');
+      d.style.background = 'var(--bg-2)';
+      document.body.append(d);
+      const c = getComputedStyle(d).backgroundColor;
+      d.remove();
+      return c;
+    }),
+  );
+  await expect(img(/^Wiring schematic/)).toHaveCSS('filter', /invert/);
+  expect(await ground(/^CAD of the test rig/)).toBe(bench);
+  await expect(img(/^CAD of the test rig/)).toHaveCSS('filter', 'none');
+  await page.locator('header').getByRole('button', { name: 'Lights' }).click();
+  await expect(img(/^Wiring schematic/)).toHaveCSS('filter', 'none');
+  expect(await ground(/^CAD of the test rig/)).toBe('rgba(0, 0, 0, 0)');
+});
+
 test('home page describes Allen in structured data', async ({ page }) => {
   await page.goto('/');
   const data = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent())!);

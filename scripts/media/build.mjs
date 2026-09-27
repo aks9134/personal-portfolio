@@ -36,16 +36,18 @@ try {
     const old = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf8')) : {};
     const manifest = {};
     for (const item of JSON.parse(fs.readFileSync(listPath, 'utf8'))) {
-      const hash = createHash('sha1').update(JSON.stringify(item)).digest('hex').slice(0, 10);
+      // `ground` ("ink" or "sheet") only tells the page what to set the image on, so changing it rebuilds nothing.
+      const { ground, ...made } = item;
+      const hash = createHash('sha1').update(JSON.stringify(made)).digest('hex').slice(0, 10);
       const posterless = HANDLERS[path.extname(item.src).toLowerCase()] === model && !old[item.out]?.poster;
       if (!force && old[item.out]?.hash === hash && !posterless) {
-        manifest[item.out] = old[item.out];
+        manifest[item.out] = { ...old[item.out], ground };
         continue;
       }
       const handler = HANDLERS[path.extname(item.src).toLowerCase()];
       if (!handler) throw new Error(`${slug}/${item.out}: no handler for ${item.src}`);
       if (!fs.existsSync(item.src)) throw new Error(`${slug}/${item.out}: source missing: ${item.src}`);
-      manifest[item.out] = { ...(await handler(item, slug, outDir)), ...(item.alt && { alt: item.alt }), hash };
+      manifest[item.out] = { ...(await handler(item, slug, outDir)), ...(item.alt && { alt: item.alt }), ground, hash };
       console.log(`${slug}/${item.out}`, JSON.stringify(manifest[item.out]));
     }
     // ponytail: stale files in public/work/<slug>/ are not deleted; clear the folder and rerun if it matters.

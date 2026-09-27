@@ -13,6 +13,7 @@
     "height": 850,
     "alpha": true,
     "alt": "Labeled exploded view: voice coil motor, aluminum mount plate, piezo sensor, test beam, cage shield and centering spring",
+    "ground": "sheet",
     "hash": "8509458a33"
   },
   "rig-photo": {
@@ -28,6 +29,7 @@
     "height": 630,
     "alpha": true,
     "alt": "Exploded view of the first-semester design: open-frame shield and no centering spring",
+    "ground": "sheet",
     "hash": "7d91b5eaec"
   },
   "final-photo": {
@@ -51,6 +53,7 @@
     "height": 319,
     "alpha": true,
     "alt": "Control loop: negative acceleration feedback drives PWM to the voice coil motor, which acts on the beam, which the piezo sensor measures",
+    "ground": "ink",
     "hash": "ba80f755d2"
   },
   "test1-plot": {
@@ -59,6 +62,7 @@
     "height": 681,
     "alpha": true,
     "alt": "Test 1 plot: beam vibration frequency rising roughly linearly with the excitation motor's voltage",
+    "ground": "ink",
     "hash": "f4c0f360e7"
   },
   "solver-failure": {
@@ -67,6 +71,7 @@
     "height": 771,
     "alpha": true,
     "alt": "Simulation output showing the controller's position command coming out jagged and slower than the beam",
+    "ground": "ink",
     "hash": "55a6dc28bd"
   },
   "sim-result": {
@@ -75,6 +80,7 @@
     "height": 694,
     "alpha": true,
     "alt": "Simulated closed-loop result: beam acceleration decaying to a small steady amplitude once the controller engages",
+    "ground": "ink",
     "hash": "5d18e84e83"
   },
   "rig-cad": {
@@ -91,6 +97,7 @@
     "height": 373,
     "alpha": true,
     "alt": "Wiring schematic: Arduino Uno reading the biased piezo signal and driving the voice coil motor through an L298 H-bridge from a 12 V battery",
+    "ground": "ink",
     "hash": "97271b365e"
   },
   "shield-print": {

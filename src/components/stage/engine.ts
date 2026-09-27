@@ -18,6 +18,8 @@ export type StageOptions = {
   exposure?: number;
   /** Drag to turn (zoom and pan stay off, so the page scroll is never trapped) and arrow keys on the focused canvas. */
   drag?: boolean;
+  /** Tilt without limit, over the top and underneath, instead of staying between 20 and 95 degrees. */
+  tumble?: boolean;
   onProgress?: (loaded: number, total: number) => void;
   /** The GPU dropped the context (memory pressure on phones): the caller shows its poster again. */
   onLost?: () => void;
@@ -27,8 +29,9 @@ export type Stage = {
   /** 0 = assembled, 1 = fully apart; the framing follows, so the model fills the view at both ends. */
   setExplode: (p: number) => void;
   setAngles: (theta: number, phi?: number) => void;
-  /** A turn made by the visitor (buttons): moves the camera and fires "stage:turn" on the canvas, like a drag does. */
-  turnBy: (dTheta: number, dPhi?: number) => void;
+  /** A turn made by the visitor (buttons): moves the camera and fires "stage:turn" on the canvas, like a drag does.
+   *  `glide` eases there over about 400 ms instead of jumping; presses made on the way add up. */
+  turnBy: (dTheta: number, dPhi?: number, glide?: boolean) => void;
   /** Solid shading, feature edges only (like a line drawing), or see-through with edges. */
   setMode: (mode: Mode, line: string) => void;
   angles: () => { theta: number; phi: number };
@@ -80,12 +83,15 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
 
   const clip = gltf.animations.find((a) => a.name === "explode");
   const mixer = clip ? new THREE.AnimationMixer(model) : null;
-  if (mixer && clip) {
-    const action = mixer.clipAction(clip);
-    action.play();
-    action.paused = true;
-  }
-  const at = (p: number) => clip && mixer?.setTime(clip.duration * 0.999 * clamp(p, 0, 1));
+  const action = clip && mixer ? mixer.clipAction(clip).play() : null;
+  if (action) action.paused = true;
+  // Pose by placing the paused action's playhead and applying it. (mixer.setTime can't do this: it zeroes every
+  // action and then advances them, and a paused action doesn't advance, so the model stayed assembled.)
+  const at = (p: number) => {
+    if (!clip || !action || !mixer) return;
+    action.time = clip.duration * 0.999 * clamp(p, 0, 1);
+    mixer.update(0);
+  };
 
   // Framing: the bounding spheres of the assembled and the fully exploded pose. The camera distance blends between
   // them as the parts spread, centred on the exploded pose so nothing drifts out of view.
@@ -96,6 +102,7 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
   const apart = sphereOf(1);
   const together = clip ? sphereOf(0) : apart;
   model.position.sub(apart.center);
+  canvas.dataset.spread = (apart.radius / together.radius).toFixed(2); // for tests: the parts really move
 
   let explode = 0;
   let aspect = 1;
@@ -136,12 +143,16 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
     const t = theta * deg;
     const p = phi * deg;
     camera.position.set(fit * Math.sin(p) * Math.sin(t), fit * Math.cos(p), fit * Math.sin(p) * Math.cos(t));
+    // "Up" on screen follows the tilt, so a tumbling camera passes over the top without the picture flipping.
+    camera.up.set(-Math.cos(p) * Math.sin(t), Math.sin(p), -Math.cos(p) * Math.cos(t));
     camera.lookAt(0, 0, 0);
     renderer.render(scene, camera);
     const e = explode.toFixed(3);
     const th = theta.toFixed(1);
+    const ph = phi.toFixed(1);
     if (canvas.dataset.explode !== e) canvas.dataset.explode = e;
     if (canvas.dataset.theta !== th) canvas.dataset.theta = th;
+    if (canvas.dataset.phi !== ph) canvas.dataset.phi = ph;
   };
   const render = () => {
     dirty = true;
@@ -165,9 +176,23 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
   // caller that also moves the camera (the hero's scroll turn) can carry on from where the visitor left it.
   const turn = (dt: number, dp = 0) => {
     theta += dt;
-    phi = clamp(phi + dp, PHI[0], PHI[1]);
+    phi = o.tumble ? phi + dp : clamp(phi + dp, PHI[0], PHI[1]);
     render();
     canvas.dispatchEvent(new Event("stage:turn"));
+  };
+
+  // A glide: each frame turns a share of what is left (an ease-out), so a second press mid-turn simply adds on.
+  let left = { t: 0, p: 0 };
+  let spin = 0;
+  let then = 0;
+  const glide = (now: number) => {
+    const k = 1 - Math.exp(-Math.min(64, now - then) / 110);
+    then = now;
+    const done = Math.abs(left.t) * (1 - k) < 0.05 && Math.abs(left.p) * (1 - k) < 0.05;
+    const step = done ? left : { t: left.t * k, p: left.p * k };
+    left = { t: left.t - step.t, p: left.p - step.p };
+    turn(step.t, step.p);
+    spin = done ? 0 : requestAnimationFrame(glide);
   };
 
   // Drag: horizontal orbits, vertical tilts a little. Pointer capture keeps the drag alive outside the canvas;
@@ -182,7 +207,9 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
     };
     const move = (e: PointerEvent) => {
       if (!last || e.pointerId !== last.id) return;
-      turn(-(e.clientX - last.x) * 0.4, -(e.clientY - last.y) * 0.2);
+      // Upside down, the world turns the other way on screen: flip the sideways drag so the model follows the hand.
+      const side = o.tumble && Math.sin(phi * deg) < 0 ? -1 : 1;
+      turn(-(e.clientX - last.x) * 0.4 * side, -(e.clientY - last.y) * (o.tumble ? 0.4 : 0.2));
       last = { ...last, x: e.clientX, y: e.clientY };
     };
     const up = (e: PointerEvent) => {
@@ -244,11 +271,19 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
       if (p !== undefined) phi = p;
       render();
     },
-    turnBy: turn,
+    turnBy(dt, dp = 0, smooth = false) {
+      if (!smooth) return turn(dt, dp);
+      left = { t: left.t + dt, p: left.p + dp };
+      if (!spin) {
+        then = performance.now();
+        spin = requestAnimationFrame(glide);
+      }
+    },
     setMode,
     angles: () => ({ theta, phi }),
     dispose() {
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(spin);
       ro.disconnect();
       offs.forEach((f) => f());
       canvas.removeEventListener("webglcontextlost", onLost);
