@@ -76,7 +76,7 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
   };
 
   return (
-    <main className="lab-console">
+    <main id="main" className="lab-console">
       <div ref={run} style={{ height: `${tl.total * 185 + 100}svh` }}>
         <div className="sticky top-0 h-svh w-full overflow-hidden">
           <canvas ref={canvas} className="absolute inset-0 h-full w-full" />
