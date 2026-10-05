@@ -52,7 +52,11 @@ export async function createConsole(o: {
   key.position.set(3, 5, 4);
   const rim = new THREE.DirectionalLight(0xff6a2b, 1.6);
   rim.position.set(-4, 2, -3);
-  scene.add(key, rim);
+  // The lights ride with the camera: the key stays front-right of the view and the orange rim behind-left, so
+  // whichever way the orbit has turned, the model faces the light (fixed lights left some models seen from the dark side).
+  const rig = new THREE.Group();
+  rig.add(key, rim);
+  scene.add(rig);
   const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 100);
 
   const grid = new THREE.GridHelper(40, 80, 0x1d2a33, 0x111a20);
@@ -63,7 +67,7 @@ export async function createConsole(o: {
 
   const loaded = await Promise.all(o.models.map((m) => (m.build === "canceller" ? Promise.resolve(buildCanceller()) : loadModel(m.src!))));
   const measures: Measure[] = [];
-  const clouds: Float32Array[] = [];
+  const clouds: { whole: Float32Array; apart: Float32Array }[] = [];
   const clip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
   const solids: { root: THREE.Group; mixer: THREE.AnimationMixer | null; action: THREE.AnimationAction | null; clip: THREE.AnimationClip | null; pose: number; broad: number; c0: THREE.Vector3; c1: THREE.Vector3; r0: number; r1: number }[] = [];
 
@@ -91,8 +95,10 @@ export async function createConsole(o: {
     model.scale.multiplyScalar(s);
     model.position.sub(new THREE.Box3().setFromObject(model).getCenter(new THREE.Vector3()));
     holder.updateMatrixWorld(true);
-    // Sample the surfaces: every mesh merged into one position-only geometry in holder space.
+    // Sample the surfaces: every mesh merged into one position-only geometry in holder space. Each mesh's index rides
+    // along in the colour channel, so every point knows which part it sits on.
     const geos: THREE.BufferGeometry[] = [];
+    const meshList: THREE.Mesh[] = [];
     model.traverse((n) => {
       const m = n as THREE.Mesh;
       if (!m.isMesh) return;
@@ -101,19 +107,23 @@ export async function createConsole(o: {
       for (let k = 0; k < p.count; k++) arr.set([p.getX(k), p.getY(k), p.getZ(k)], k * 3);
       const g = new THREE.BufferGeometry();
       g.setAttribute("position", new THREE.BufferAttribute(arr, 3));
+      g.setAttribute("color", new THREE.BufferAttribute(new Float32Array(p.count * 3).fill(meshList.length), 3));
       if (m.geometry.index) g.setIndex(m.geometry.index.clone());
       g.applyMatrix4(m.matrixWorld);
       geos.push(g.index ? g.toNonIndexed() : g);
+      meshList.push(m);
     });
     const merged = mergeGeometries(geos);
     const sampler = new MeshSurfaceSampler(new THREE.Mesh(merged)).build();
     const pts = new Float32Array(N * 3);
+    const owner = new Uint16Array(N);
     const v = new THREE.Vector3();
+    const tag = new THREE.Color();
     for (let k = 0; k < N; k++) {
-      sampler.sample(v);
+      sampler.sample(v, undefined, tag);
       pts.set([v.x, v.y, v.z], k * 3);
+      owner[k] = Math.round(tag.r);
     }
-    clouds.push(pts);
     merged.dispose();
     geos.forEach((g) => g.dispose());
 
@@ -133,8 +143,22 @@ export async function createConsole(o: {
       return new THREE.Box3().setFromObject(model).getBoundingSphere(new THREE.Sphere());
     };
     const s0 = sphere();
+    const where = () => meshList.map((m) => new THREE.Vector3().setFromMatrixPosition(m.matrixWorld));
+    const at0 = where();
     poseAt(1);
     const s1 = l.clip ? sphere() : s0;
+    // The cloud twice, in the solid's own frame: assembled, and fully apart (each point moved with its part; the
+    // explode clips only translate parts). A burst out of an assembly then starts from the pose the solid left in.
+    const apart = l.clip ? new Float32Array(N * 3) : pts;
+    if (l.clip) {
+      const d = where().map((p, k) => p.sub(at0[k]).sub(s1.center));
+      for (let k = 0; k < N; k++) {
+        const off = d[owner[k]];
+        apart.set([pts[k * 3] + off.x, pts[k * 3 + 1] + off.y, pts[k * 3 + 2] + off.z], k * 3);
+      }
+    }
+    for (let k = 0; k < N * 3; k++) pts[k] -= s0.center.getComponent(k % 3);
+    clouds.push({ whole: pts, apart });
     poseAt(0);
     // Side-on azimuth: the camera looks across the long horizontal axis, where an explode reads widest.
     solids.push({ root: holder, mixer, action, clip: l.clip, pose: -1, broad: raw.x >= raw.z ? 0 : Math.PI / 2, c0: s0.center, c1: s1.center, r0: s0.radius, r1: s1.radius });
@@ -150,12 +174,19 @@ export async function createConsole(o: {
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.BufferAttribute(start, 3));
-  for (let k = 0; k < MAX; k++) geo.setAttribute(`c${k}`, new THREE.BufferAttribute(clouds[k] ?? clouds[clouds.length - 1], 3));
+  for (let k = 0; k < MAX; k++) {
+    const c = clouds[k] ?? clouds[clouds.length - 1];
+    const whole = new THREE.BufferAttribute(c.whole, 3);
+    geo.setAttribute(`c${k}`, whole);
+    // A part with no explode shares its one buffer for both shapes.
+    geo.setAttribute(`e${k}`, c.apart === c.whole ? whole : new THREE.BufferAttribute(c.apart, 3));
+  }
   const seed = new Float32Array(N);
   for (let k = 0; k < N; k++) seed[k] = Math.random();
   geo.setAttribute("seed", new THREE.BufferAttribute(seed, 1));
   const uniforms = {
     uFromStart: { value: 1 },
+    uFromPose: { value: 0 }, // how far apart the outgoing machine was when it let go (0 assembled, 1 fully apart)
     uFrom: { value: new THREE.Vector4() },
     uTo: { value: new THREE.Vector4(1, 0, 0, 0) },
     uMorph: { value: 0 },
@@ -171,26 +202,32 @@ export async function createConsole(o: {
     depthWrite: false,
     blending: THREE.AdditiveBlending,
     vertexShader: /* glsl */ `
-      attribute vec3 c0, c1, c2, c3; attribute float seed;
-      uniform float uFromStart, uMorph, uScan, uTime, uSize, uPix; uniform vec4 uFrom, uTo;
+      attribute vec3 c0, c1, c2, c3, e0, e1, e2, e3; attribute float seed;
+      uniform float uFromStart, uFromPose, uMorph, uScan, uTime, uSize, uPix; uniform vec4 uFrom, uTo;
       varying float vAlpha; varying float vHot;
       void main() {
-        vec3 a = position * uFromStart + c0 * uFrom.x + c1 * uFrom.y + c2 * uFrom.z + c3 * uFrom.w;
+        vec3 whole = c0 * uFrom.x + c1 * uFrom.y + c2 * uFrom.z + c3 * uFrom.w;
+        vec3 apart = e0 * uFrom.x + e1 * uFrom.y + e2 * uFrom.z + e3 * uFrom.w;
+        vec3 a = position * uFromStart + mix(whole, apart, uFromPose);
         vec3 b = c0 * uTo.x + c1 * uTo.y + c2 * uTo.z + c3 * uTo.w;
         float t = clamp((uMorph - seed * 0.45) / 0.55, 0.0, 1.0);
         t = t * t * (3.0 - 2.0 * t);
         vec3 p = mix(a, b, t);
+        // The burst: each point flies outward from the centre, swirls and spreads in height, then settles onto the
+        // next machine. It glows hot as it leaves and cools to ice as it lands.
         float fly = sin(t * 3.14159);
-        float ang = fly * (1.2 + seed * 2.0);
+        vec3 dir = normalize(vec3(p.x, p.y * 0.6, p.z) + vec3(seed - 0.5, 0.0, 0.5 - seed) * 0.02);
+        p += dir * fly * (0.8 + seed * 2.4);
+        float ang = fly * (1.6 + seed * 2.8);
         p.xz = mat2(cos(ang), -sin(ang), sin(ang), cos(ang)) * p.xz;
-        p.y += fly * (seed - 0.5) * 1.6;
+        p.y += fly * (seed - 0.5) * 2.6;
         p += 0.006 * vec3(sin(uTime * 2.0 + seed * 40.0), cos(uTime * 1.7 + seed * 31.0), sin(uTime * 2.3 + seed * 17.0)) * (1.0 - fly);
         vec4 mv = modelViewMatrix * vec4(p, 1.0);
         gl_Position = projectionMatrix * mv;
-        gl_PointSize = uSize * uPix * (6.0 / -mv.z);
+        gl_PointSize = min(uSize * uPix * (6.0 / -mv.z), uSize * uPix * 3.0); // capped: the burst brings points close
         float above = p.y - uScan;
         vAlpha = step(0.0, above) * (0.35 + 0.65 * seed);
-        vHot = exp(-abs(above) * 9.0);
+        vHot = max(exp(-abs(above) * 9.0), fly * (1.0 - t) * 0.8);
       }`,
     fragmentShader: /* glsl */ `
       uniform vec3 uHot; varying float vAlpha; varying float vHot;
@@ -253,8 +290,11 @@ export async function createConsole(o: {
   // comes apart between EXPLODE[0] and EXPLODE[1], then holds apart to the end of its segment.
   const at = segments(o.models.map((m) => m.weight ?? 1));
   const unit = (k: number) => new THREE.Vector4(k === 0 ? 1 : 0, k === 1 ? 1 : 0, k === 2 ? 1 : 0, k === 3 ? 1 : 0);
-  const setPair = (from: number, to: number) => {
+  // fromPose: how far apart the outgoing machine was. Scrolling, an assembly always leaves fully apart (its explode
+  // ends before its segment does), so the burst starts from the parts where they hang.
+  const setPair = (from: number, to: number, fromPose = solids[from]?.clip ? 1 : 0) => {
     uniforms.uFromStart.value = from < 0 ? 1 : 0;
+    uniforms.uFromPose.value = fromPose;
     uniforms.uFrom.value.copy(from < 0 ? new THREE.Vector4() : unit(from));
     uniforms.uTo.value.copy(unit(to));
   };
@@ -264,8 +304,9 @@ export async function createConsole(o: {
   let cam = eased; // the camera's own, slower easing, so a jump becomes a sweep
   // A long jump (a clicked target, the Index link, a dragged scrollbar) plays one direct re-form from the current
   // machine to the destination instead of racing through every segment in between.
-  let jump: { from: number; to: number; t: number } | null = null;
-  const JUMP = 1.5; // seconds: 0.85 re-forming, then the scan
+  let jump: { from: number; to: number; t: number; pose: number } | null = null;
+  const JUMP_MORPH = 1.1; // seconds re-forming, then the scan
+  const JUMP = 1.8;
   let raf = 0;
   let clock = 0;
   let last = performance.now();
@@ -278,7 +319,7 @@ export async function createConsole(o: {
     const moving = o.motion();
     if (moving) clock += dt;
     const goal = Math.min(0.9999, o.progress());
-    if (!jump && moving && Math.abs(goal - eased) > 0.12 && at(goal).i !== at(eased).i) jump = { from: shown, to: at(goal).i, t: 0 };
+    if (!jump && moving && Math.abs(goal - eased) > 0.12 && at(goal).i !== at(eased).i) jump = { from: shown, to: at(goal).i, t: 0, pose: Math.max(0, solids[shown]?.pose ?? 0) };
     let i: number;
     let f: number;
     let scanT: number;
@@ -286,11 +327,11 @@ export async function createConsole(o: {
     if (jump && jump.t + dt < JUMP) {
       jump.t += dt;
       i = jump.to;
-      if (shown !== -2) setPair(jump.from, jump.to);
+      if (shown !== -2) setPair(jump.from, jump.to, jump.pose);
       shown = -2; // the pair stays pinned for the whole jump
-      morph = clamp01(jump.t / 0.85);
-      scanT = smooth((jump.t - 0.85) / (JUMP - 0.85));
-      f = jump.t < 0.85 ? morph * MORPH * 0.999 : MORPH + scanT * (SCAN - MORPH) * 0.999;
+      morph = clamp01(jump.t / JUMP_MORPH);
+      scanT = smooth((jump.t - JUMP_MORPH) / (JUMP - JUMP_MORPH));
+      f = jump.t < JUMP_MORPH ? morph * MORPH * 0.999 : MORPH + scanT * (SCAN - MORPH) * 0.999;
     } else {
       if (jump) {
         // The jump has landed: hand back to the scroll position, already re-formed.
@@ -355,6 +396,7 @@ export async function createConsole(o: {
     const el = 0.3; // a steady elevation: the model never sinks or rises in the frame
     camera.position.set(Math.sin(a) * Math.cos(el) * dist, Math.sin(el) * dist, Math.cos(a) * Math.cos(el) * dist);
     camera.lookAt(0, 0, 0);
+    rig.rotation.y = a;
     const phase = f < MORPH ? "morph" : f < SCAN ? "scan" : "solid";
     if (`${i}${phase}` !== shownPhase) {
       shownPhase = `${i}${phase}`;

@@ -2,8 +2,8 @@
 // Each model gets a segment of the run in proportion to its weight. Within a segment: 0-MORPH the cloud re-forms,
 // MORPH-SCAN the scan resolves it, then it is solid; an assembly comes apart between EXPLODE[0] and EXPLODE[1] of the
 // solid part, then holds apart.
-export const MORPH = 0.22;
-export const SCAN = 0.48;
+export const MORPH = 0.3;
+export const SCAN = 0.54;
 export const EXPLODE = [0.06, 0.9] as const;
 
 export function segments(weights: number[]) {
