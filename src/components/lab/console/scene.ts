@@ -17,11 +17,12 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import { applyFinish } from "../../stage/engine";
 import { buildCanceller } from "../canceller";
 import { clamp01, loadModel, smooth } from "../load";
+import { EXPLODE, MORPH, SCAN, segments } from "./timeline";
 
 const SIZE = 3.2;
 const MAX = 4; // the shader carries up to four clouds
 
-export type Spec = { src?: string; build?: "canceller"; finish: "aluminium" | "anodized" | "own"; parts: number };
+export type Spec = { src?: string; build?: "canceller"; finish: "aluminium" | "anodized" | "own"; parts: number; weight?: number };
 export type Measure = { x: number; y: number; z: number; parts: number };
 export type ConsoleFrame = { index: number; phase: "morph" | "scan" | "solid" };
 
@@ -64,7 +65,7 @@ export async function createConsole(o: {
   const measures: Measure[] = [];
   const clouds: Float32Array[] = [];
   const clip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
-  const solids: { root: THREE.Group; mixer: THREE.AnimationMixer | null; action: THREE.AnimationAction | null; clip: THREE.AnimationClip | null; pose: number }[] = [];
+  const solids: { root: THREE.Group; mixer: THREE.AnimationMixer | null; action: THREE.AnimationAction | null; clip: THREE.AnimationClip | null; pose: number; broad: number }[] = [];
 
   loaded.forEach((l, i) => {
     const model = l.scene;
@@ -117,7 +118,8 @@ export async function createConsole(o: {
     const mixer = l.clip ? new THREE.AnimationMixer(model) : null;
     const action = l.clip && mixer ? mixer.clipAction(l.clip).play() : null;
     if (action) action.paused = true;
-    solids.push({ root: holder, mixer, action, clip: l.clip, pose: -1 });
+    // Side-on azimuth: the camera looks across the long horizontal axis, where an explode reads widest.
+    solids.push({ root: holder, mixer, action, clip: l.clip, pose: -1, broad: raw.x >= raw.z ? 0 : Math.PI / 2 });
   });
   o.onMeasure(measures);
 
@@ -226,13 +228,24 @@ export async function createConsole(o: {
   composer.render();
   solids.forEach((s) => (s.root.visible = false));
 
-  // Scroll timeline: one segment per model. 0-0.32 the cloud re-forms; 0.32-0.72 the scan resolves it; 0.72-1 it
-  // holds as a solid and comes apart if it has an explode clip.
-  const M = clouds.length;
+  // Scroll timeline: one segment per model, weighted (an assembly that comes apart gets a longer one). Within a
+  // segment: 0-MORPH the cloud re-forms; MORPH-SCAN the scan resolves it; after that it is solid, and an assembly
+  // comes apart between EXPLODE[0] and EXPLODE[1], then holds apart to the end of its segment.
+  const at = segments(o.models.map((m) => m.weight ?? 1));
   const unit = (k: number) => new THREE.Vector4(k === 0 ? 1 : 0, k === 1 ? 1 : 0, k === 2 ? 1 : 0, k === 3 ? 1 : 0);
-  let shown = -1;
+  const setPair = (from: number, to: number) => {
+    uniforms.uFromStart.value = from < 0 ? 1 : 0;
+    uniforms.uFrom.value.copy(from < 0 ? new THREE.Vector4() : unit(from));
+    uniforms.uTo.value.copy(unit(to));
+  };
+  let shown = -1; // the model the cloud is currently heading to
   let shownPhase = "";
   let eased = o.progress();
+  let cam = eased; // the camera's own, slower easing, so a jump becomes a sweep
+  // A long jump (a clicked target, the Index link, a dragged scrollbar) plays one direct re-form from the current
+  // machine to the destination instead of racing through every segment in between.
+  let jump: { from: number; to: number; t: number } | null = null;
+  const JUMP = 1.5; // seconds: 0.85 re-forming, then the scan
   let raf = 0;
   let clock = 0;
   let last = performance.now();
@@ -243,46 +256,70 @@ export async function createConsole(o: {
     last = now;
     const moving = o.motion();
     if (moving) clock += dt;
-    // Ease toward the scroll position: a wheel step becomes a short glide (about 0.25 s to settle).
     const goal = Math.min(0.9999, o.progress());
-    eased = moving ? eased + (goal - eased) * (1 - Math.exp(-dt * 9)) : goal;
-    const q = eased * M;
-    const i = Math.min(M - 1, Math.floor(q));
-    const f = q - i;
-    if (i !== shown) {
-      shown = i;
-      uniforms.uFromStart.value = i === 0 ? 1 : 0;
-      uniforms.uFrom.value.copy(i === 0 ? new THREE.Vector4() : unit(i - 1));
-      uniforms.uTo.value.copy(unit(i));
+    if (!jump && moving && Math.abs(goal - eased) > 0.12 && at(goal).i !== at(eased).i) jump = { from: shown, to: at(goal).i, t: 0 };
+    let i: number;
+    let f: number;
+    let scanT: number;
+    let morph: number;
+    if (jump && jump.t + dt < JUMP) {
+      jump.t += dt;
+      i = jump.to;
+      if (shown !== -2) setPair(jump.from, jump.to);
+      shown = -2; // the pair stays pinned for the whole jump
+      morph = clamp01(jump.t / 0.85);
+      scanT = smooth((jump.t - 0.85) / (JUMP - 0.85));
+      f = jump.t < 0.85 ? morph * MORPH * 0.999 : MORPH + scanT * (SCAN - MORPH) * 0.999;
+    } else {
+      if (jump) {
+        // The jump has landed: hand back to the scroll position, already re-formed.
+        jump = null;
+        eased = goal;
+        shown = -3;
+      }
+      // Ease toward the scroll position: a wheel step becomes a short glide (about 0.25 s to settle).
+      eased = moving ? eased + (goal - eased) * (1 - Math.exp(-dt * 9)) : goal;
+      ({ i, f } = at(eased));
+      morph = clamp01(f / MORPH);
+      scanT = smooth((f - MORPH) / (SCAN - MORPH));
     }
-    const morph = clamp01(f / 0.32);
-    const scanT = smooth((f - 0.32) / 0.4);
-    const solidT = clamp01((f - 0.72) / 0.28);
+    if (!jump && i !== shown) {
+      shown = i;
+      setPair(i - 1, i);
+    }
+    cam = moving ? cam + (goal - cam) * (1 - Math.exp(-dt * (jump ? 2.5 : 9))) : goal;
+    const solidT = clamp01((f - SCAN) / (1 - SCAN));
     uniforms.uMorph.value = morph * 1.45;
     uniforms.uTime.value = clock;
     const bottom = -SIZE * 0.5;
     const top = SIZE * 0.5;
-    const scanY = f < 0.32 ? bottom - 0.01 : bottom + (top - bottom) * scanT;
+    const scanY = f < MORPH ? bottom - 0.01 : bottom + (top - bottom) * scanT;
     uniforms.uScan.value = scanY;
     // Once the scan is complete the plane lets go, so exploded parts above the scan height stay whole.
     clip.constant = scanT >= 0.999 ? 1e4 : scanY;
     ring.position.y = scanY;
-    (ring.material as THREE.MeshBasicMaterial).opacity = f > 0.3 && scanT < 0.999 ? 0.9 : 0;
+    (ring.material as THREE.MeshBasicMaterial).opacity = f > MORPH - 0.02 && scanT < 0.999 ? 0.9 : 0;
     solids.forEach((s, k) => {
-      s.root.visible = k === i && f > 0.3;
+      s.root.visible = k === i && f > MORPH - 0.02;
       if (!s.action || !s.clip || !s.mixer) return;
-      const pose = k === i ? smooth((solidT - 0.15) / 0.75) : 0;
+      const pose = k === i && !jump ? smooth((solidT - EXPLODE[0]) / (EXPLODE[1] - EXPLODE[0])) : 0;
       if (Math.abs(pose - s.pose) < 1e-4) return; // pose only when it changes
       s.pose = pose;
       s.action.time = s.clip.duration * 0.999 * pose;
       s.mixer.update(0);
     });
     yaw += moving ? dt * 0.12 : 0;
-    const a = yaw + eased * Math.PI * 1.5 + 0.6;
-    const back = 7.4 + (solids[i]?.pose > 0 ? solids[i].pose * 2.6 : 0); // pull back as an assembly comes apart
-    camera.position.set(Math.sin(a) * back, 2.6 + Math.sin(eased * 6) * 0.4 + (back - 7.4) * 0.35, Math.cos(a) * back);
+    const orbit = yaw + cam * Math.PI * 1.5 + 0.6;
+    // While an assembly is solid, the camera swings side-on to its long axis (the nearer of the two sides), so the
+    // parts spread across the frame instead of toward the lens.
+    const s = solids[i];
+    const side = s?.clip && !jump ? smooth(solidT / 0.25) : 0;
+    const near = s ? s.broad + Math.PI * Math.round((orbit - s.broad) / Math.PI) : orbit;
+    const a = orbit + (near + Math.sin(clock * 0.2) * 0.12 - orbit) * side;
+    const back = 7.4 + (s?.pose > 0 ? s.pose * 1.6 : 0); // pull back a little as an assembly comes apart
+    camera.position.set(Math.sin(a) * back, 2.6 - side * 0.7 + Math.sin(cam * 6) * 0.4 * (1 - side) + (back - 7.4) * 0.35, Math.cos(a) * back);
     camera.lookAt(0, (back - 7.4) * 0.45, 0);
-    const phase = f < 0.32 ? "morph" : f < 0.72 ? "scan" : "solid";
+    const phase = f < MORPH ? "morph" : f < SCAN ? "scan" : "solid";
     if (`${i}${phase}` !== shownPhase) {
       shownPhase = `${i}${phase}`;
       o.onFrame({ index: i, phase });

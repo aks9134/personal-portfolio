@@ -660,3 +660,25 @@
   backdrop-filter: blur(6px);
   border: 1px solid var(--line);
 }
+/* Targets are buttons: the whole row is the hit area. */
+.lc-targets li {
+  padding: 0;
+}
+.lc-targets button {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  padding: 7px 12px 7px 10px;
+  color: inherit;
+  text-align: left;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+.lc-targets li:hover {
+  color: var(--ice);
+}
+.lc-targets button:focus-visible {
+  outline: 1px solid var(--hot);
+  outline-offset: 2px;
+}

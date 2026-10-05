@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motionOk } from "@/lib/prefs";
 import { sectionProgress } from "../load";
 import type { ConsoleFrame, Measure, Spec } from "./scene";
+import { SCAN, segments } from "./timeline";
 
 export type Target = { code: string; name: string; klass: string; status: string; line: string; facts: string[]; href: string; model: Spec };
 
@@ -56,10 +57,27 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
   const mm = m[f.index];
   const solid = f.phase === "solid";
   const approx = t.model.build ? "≈ " : "";
+  const tl = segments(targets.map((x) => x.model.weight ?? 1));
+
+  // Jumps land instantly (no smooth scroll through every segment); the scene sees the long jump and re-forms the
+  // cloud straight from the current machine into the chosen one.
+  const jumpTo = (top: number) => window.scrollTo({ top, behavior: "instant" });
+  const toTarget = (i: number) => {
+    const el = run.current;
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY;
+    jumpTo(top + tl.to(i, SCAN + 0.05) * (el.offsetHeight - window.innerHeight));
+  };
+  const toIndex = (e: React.MouseEvent) => {
+    const el = document.getElementById("index");
+    if (!el) return;
+    e.preventDefault();
+    jumpTo(el.getBoundingClientRect().top + window.scrollY);
+  };
 
   return (
     <main className="lab-console">
-      <div ref={run} style={{ height: `${targets.length * 170 + 100}svh` }}>
+      <div ref={run} style={{ height: `${tl.total * 170 + 100}svh` }}>
         <div className="sticky top-0 h-svh w-full overflow-hidden">
           <canvas ref={canvas} className="absolute inset-0 h-full w-full" />
           <div className="lc-frame" aria-hidden><i /><i /><i /><i /></div>
@@ -73,7 +91,7 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
               <span className={ready ? "lc-dot is-on" : "lc-dot"} /> {ready ? "Link live, 4 targets" : "Sampling surfaces"}
             </p>
             <nav className="lc-dim flex gap-5">
-              <a href="#index">Index</a>
+              <a href="#index" onClick={toIndex}>Index</a>
               <a href="/resume">Resume</a>
               <a href="mailto:aks9134@nyu.edu">Email</a>
             </nav>
@@ -82,8 +100,10 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
           <ol className="lc-targets" aria-label="Targets">
             {targets.map((x, i) => (
               <li key={x.code} data-on={i === f.index ? "1" : "0"}>
-                <span>{x.code}</span>
-                {x.name}
+                <button type="button" onClick={() => toTarget(i)} aria-current={i === f.index ? "true" : undefined}>
+                  <span>{x.code}</span>
+                  {x.name}
+                </button>
               </li>
             ))}
           </ol>
