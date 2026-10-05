@@ -14,12 +14,17 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
   const run = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const [m, setM] = useState<Measure[]>([]);
-  const [f, setF] = useState<ConsoleFrame>({ index: 0, phase: "morph", local: 0, scan: 0 });
+  const [f, setF] = useState<ConsoleFrame>({ index: 0, phase: "morph" });
   const [ready, setReady] = useState(false);
+  // The scan bar and percentage change every frame: written straight to the DOM, so React re-renders only when the
+  // target or the phase changes.
+  const bar = useRef<HTMLElement>(null);
+  const pctEl = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     let alive = true;
     let api: Awaited<ReturnType<typeof import("./scene").createConsole>> | null = null;
+    let lastPct = -1;
     (async () => {
       const { createConsole } = await import("./scene");
       if (!alive || !canvas.current) return;
@@ -27,18 +32,22 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
         canvas: canvas.current,
         models: targets.map((t) => t.model),
         motion: motionOk,
+        progress: () => (run.current ? sectionProgress(run.current) : 0),
         onMeasure: setM,
-        onFrame: (n) => setF((p) => (p.index === n.index && p.phase === n.phase && Math.abs(p.scan - n.scan) < 0.01 ? p : n)),
+        onFrame: setF,
+        onTick: (scan) => {
+          const p = Math.round(scan * 100);
+          if (p === lastPct) return;
+          lastPct = p;
+          if (bar.current) bar.current.style.transform = `scaleX(${scan})`;
+          if (pctEl.current) pctEl.current.textContent = `${String(p).padStart(3, "0")}%`;
+        },
       });
       if (!alive) return api.dispose();
       setReady(true);
-      if (run.current) api.setProgress(sectionProgress(run.current));
     })();
-    const onScroll = () => run.current && api?.setProgress(sectionProgress(run.current));
-    window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       alive = false;
-      window.removeEventListener("scroll", onScroll);
       api?.dispose();
     };
   }, [targets]);
@@ -46,7 +55,7 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
   const t = targets[f.index];
   const mm = m[f.index];
   const solid = f.phase === "solid";
-  const pct = f.phase === "morph" ? 0 : f.phase === "scan" ? Math.round(f.scan * 100) : 100;
+  const approx = t.model.build ? "≈ " : "";
 
   return (
     <main className="lab-console">
@@ -86,7 +95,7 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
               <dt>Class</dt>
               <dd>{t.klass}</dd>
               <dt>Envelope</dt>
-              <dd>{mm ? `${Math.round(mm.x)} × ${Math.round(mm.y)} × ${Math.round(mm.z)} mm` : "measuring"}</dd>
+              <dd>{mm ? `${approx}${Math.round(mm.x)} × ${Math.round(mm.y)} × ${Math.round(mm.z)} mm` : "measuring"}</dd>
               <dt>Bodies</dt>
               <dd>{mm ? mm.parts : "-"}</dd>
               <dt>Status</dt>
@@ -94,8 +103,8 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
             </dl>
             <div className="lc-scan">
               <span>{f.phase === "morph" ? "Acquiring" : f.phase === "scan" ? "Scanning" : "Solid"}</span>
-              <b style={{ transform: `scaleX(${pct / 100})` }} />
-              <span>{String(pct).padStart(3, "0")}%</span>
+              <b ref={bar} style={{ transform: "scaleX(0)" }} />
+              <span ref={pctEl}>000%</span>
             </div>
           </section>
 

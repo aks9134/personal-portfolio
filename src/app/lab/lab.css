@@ -654,3 +654,9 @@
   .ll-panel h2 { font-size: 2rem; }
   .ll-scope canvas { height: 44px; }
 }
+.lc-brief {
+  padding: 14px 18px 12px;
+  background: rgba(5, 7, 10, 0.72);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--line);
+}
