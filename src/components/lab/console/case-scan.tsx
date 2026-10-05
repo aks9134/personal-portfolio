@@ -20,6 +20,7 @@ export type CaseHead = {
   award?: string;
   note?: string; // a caveat that travels with the model ("rebuilt from the renders")
   model?: Spec;
+  apart?: { mm?: number }; // an assembly: read out how far apart it is, in mm where the media records the travel
   still: Media;
 };
 
@@ -67,6 +68,7 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const bar = useRef<HTMLElement>(null);
   const pctEl = useRef<HTMLSpanElement>(null);
+  const apartEl = useRef<HTMLElement>(null);
   const [m, setM] = useState<Measure | null>(null);
   const [f, setF] = useState<ConsoleFrame>({ index: 0, phase: "morph" });
 
@@ -91,7 +93,10 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
         },
         onMeasure: (all) => setM(all[0]),
         onFrame: setF,
-        onTick: (scan) => {
+        onTick: (scan, apart) => {
+          const mm = h.apart?.mm;
+          const txt = mm ? `${String(Math.round(apart * mm)).padStart(3, "0")} mm` : `${String(Math.round(apart * 100)).padStart(3, "0")}%`;
+          if (apartEl.current && apartEl.current.textContent !== txt) apartEl.current.textContent = txt;
           if (bar.current) bar.current.style.transform = `scaleX(${scan})`;
           if (pctEl.current) pctEl.current.textContent = `${String(Math.round(scan * 100)).padStart(3, "0")}%`;
         },
@@ -102,7 +107,7 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
       alive = false;
       api?.dispose();
     };
-  }, [model]);
+  }, [model, h.apart]);
 
   const approx = model.build ? "≈ " : "";
   return (
@@ -123,6 +128,12 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
             <dd>{h.status}</dd>
             <dt>When</dt>
             <dd>{h.when}</dd>
+            {h.apart && (
+              <>
+                <dt>Apart</dt>
+                <dd className="lc-apart"><b ref={apartEl} /></dd>
+              </>
+            )}
           </dl>
           {h.note && <p className="lcs-note">{h.note}</p>}
           <div className="lc-scan" aria-hidden>

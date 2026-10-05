@@ -1,5 +1,5 @@
 // node scripts/lab/lab-b-nav.mjs <base>  Checks lab B's navigation: a clicked target lands on that target, solid, with
-// no hitches; Index lands on the index without hitches; the Terrament explode holds across scroll. Saves captures.
+// no hitches; Index lands on the index without hitches; the geared module explode holds across scroll. Saves captures.
 import { chromium } from "@playwright/test";
 
 const base = process.argv[2] ?? "http://localhost:3300";
@@ -27,7 +27,7 @@ const report = async (label) => {
 };
 
 await watch();
-await page.getByRole("button", { name: /Linear harmonic drive/ }).click();
+await page.getByRole("button", { name: /Micro-vibration canceller/ }).click();
 await page.waitForTimeout(2200);
 await report("click target 03");
 await page.screenshot({ path: "review-shots/lbn-target3.png" });

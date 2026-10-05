@@ -32,7 +32,7 @@ export async function createConsole(o: {
   motion: () => boolean;
   progress: () => number;
   onFrame: (f: ConsoleFrame) => void;
-  onTick: (scan: number) => void;
+  onTick: (scan: number, apart: number) => void; // scan 0-1; apart: how far the active assembly has come apart, 0-1
   onMeasure: (m: Measure[]) => void;
 }) {
   if (o.models.length > MAX) throw new Error(`console scene holds at most ${MAX} models`);
@@ -312,6 +312,13 @@ export async function createConsole(o: {
   let last = performance.now();
   let yaw = 0;
   let dist = 7.4;
+  // The pointer leans the camera a little (fine pointers only), like turning your head at a bench.
+  const lean = { x: 0, y: 0, tx: 0, ty: 0 };
+  const onPointer = (e: PointerEvent) => {
+    lean.tx = (e.clientX / innerWidth) * 2 - 1;
+    lean.ty = (e.clientY / innerHeight) * 2 - 1;
+  };
+  if (matchMedia("(pointer: fine)").matches) addEventListener("pointermove", onPointer, { passive: true });
   const tick = (now: number) => {
     raf = requestAnimationFrame(tick);
     const dt = Math.min(0.05, (now - last) / 1000);
@@ -371,6 +378,10 @@ export async function createConsole(o: {
       s.mixer.update(0);
     });
     yaw += moving ? dt * 0.12 : 0;
+    if (moving) {
+      lean.x += (lean.tx - lean.x) * (1 - Math.exp(-dt * 3));
+      lean.y += (lean.ty - lean.y) * (1 - Math.exp(-dt * 3));
+    }
     const s = solids[i];
     const pose = s && s.pose > 0 ? s.pose : 0;
     // Keep the active assembly centred: shift it by its interpolated centre as the parts spread.
@@ -392,8 +403,8 @@ export async function createConsole(o: {
     const orbit = yaw + cam * Math.PI * 1.5 + 0.6;
     const side = s?.clip && !jump ? smooth(solidT / 0.25) * 0.85 : 0;
     const near = s ? s.broad + Math.PI * Math.round((orbit - s.broad) / Math.PI) : orbit;
-    const a = orbit + (near + (solidT - 0.5) * 0.8 - orbit) * side;
-    const el = 0.3; // a steady elevation: the model never sinks or rises in the frame
+    const a = orbit + (near + (solidT - 0.5) * 0.8 - orbit) * side - lean.x * 0.14;
+    const el = 0.3 + lean.y * 0.07; // a steady elevation (the model never sinks or rises), give or take the lean
     camera.position.set(Math.sin(a) * Math.cos(el) * dist, Math.sin(el) * dist, Math.cos(a) * Math.cos(el) * dist);
     camera.lookAt(0, 0, 0);
     rig.rotation.y = a;
@@ -402,7 +413,7 @@ export async function createConsole(o: {
       shownPhase = `${i}${phase}`;
       o.onFrame({ index: i, phase });
     }
-    o.onTick(phase === "morph" ? 0 : phase === "scan" ? scanT : 1);
+    o.onTick(phase === "morph" ? 0 : phase === "scan" ? scanT : 1, s?.clip && !jump ? pose : 0);
     composer.render();
   };
   raf = requestAnimationFrame(tick);
@@ -411,6 +422,7 @@ export async function createConsole(o: {
     dispose() {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      removeEventListener("pointermove", onPointer);
       composer.dispose();
       renderer.dispose();
       pmrem.dispose();

@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Scramble } from "@/components/scramble";
 import { motionOk } from "@/lib/prefs";
 import { sectionProgress } from "../load";
 import type { ConsoleFrame, Measure, Spec } from "./scene";
 import { SCAN, segments } from "./timeline";
 
-export type Target = { code: string; name: string; klass: string; status: string; line: string; facts: string[]; href: string; model: Spec };
+export type Target = { code: string; name: string; klass: string; status: string; line: string; facts: string[]; href: string; model: Spec; apartMm?: number };
 
 // Direction B, "Console". A pinned canvas carries the scan; the HTML around it reads as instrumentation: a target
 // list, a telemetry block with dimensions measured from the CAD itself, a scan bar, and the project line, which only
@@ -21,6 +22,9 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
   // target or the phase changes.
   const bar = useRef<HTMLElement>(null);
   const pctEl = useRef<HTMLSpanElement>(null);
+  const apartEl = useRef<HTMLElement>(null);
+  const apartMm = useRef<number | undefined>(undefined);
+  const jumpRef = useRef<(i: number) => void>(() => {});
 
   useEffect(() => {
     let alive = true;
@@ -36,7 +40,10 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
         progress: () => (run.current ? sectionProgress(run.current) : 0),
         onMeasure: setM,
         onFrame: setF,
-        onTick: (scan) => {
+        onTick: (scan, apart) => {
+          const mm = apartMm.current;
+          const txt = mm ? `${String(Math.round(apart * mm)).padStart(3, "0")} mm` : `${String(Math.round(apart * 100)).padStart(3, "0")}%`;
+          if (apartEl.current && apartEl.current.textContent !== txt) apartEl.current.textContent = txt;
           const p = Math.round(scan * 100);
           if (p === lastPct) return;
           lastPct = p;
@@ -53,6 +60,19 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
     };
   }, [targets]);
 
+  // Keys 1-4 jump to a target, unless the visitor is typing, holding a modifier, or has a dialog open.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      const el = e.target as HTMLElement;
+      if (el.closest("input, textarea, select, [contenteditable]") || document.querySelector("dialog[open]")) return;
+      const k = Number(e.key);
+      if (k >= 1 && k <= targets.length) jumpRef.current(k - 1);
+    };
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, [targets.length]);
+
   const t = targets[f.index];
   const mm = m[f.index];
   const solid = f.phase === "solid";
@@ -68,6 +88,11 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
     const top = el.getBoundingClientRect().top + window.scrollY;
     jumpTo(top + tl.to(i, SCAN + 0.05) * (el.offsetHeight - window.innerHeight));
   };
+  // The key handler and the per-frame readout read the latest target and jump through refs.
+  useEffect(() => {
+    apartMm.current = t.apartMm;
+    jumpRef.current = toTarget;
+  });
   const toIndex = (e: React.MouseEvent) => {
     const el = document.getElementById("index");
     if (!el) return;
@@ -97,7 +122,7 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
             </nav>
           </header>
 
-          <ol className="lc-targets" aria-label="Targets">
+          <ol className="lc-targets" aria-label="Targets, keys 1 to 4">
             {targets.map((x, i) => (
               <li key={x.code} data-on={i === f.index ? "1" : "0"}>
                 <button type="button" onClick={() => toTarget(i)} aria-current={i === f.index ? "true" : undefined}>
@@ -110,16 +135,24 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
 
           <section className="lc-tele" aria-live="polite">
             <p className="lc-dim">Target {t.code}</p>
-            <h2 className="lc-title">{t.name}</h2>
+            {/* Values decode into place when the target changes; screen readers get the plain text. */}
+            <h2 className="lc-title"><Scramble text={t.name} /></h2>
             <dl>
               <dt>Class</dt>
-              <dd>{t.klass}</dd>
+              <dd><Scramble text={t.klass} /></dd>
               <dt>Envelope</dt>
-              <dd>{mm ? `${approx}${Math.round(mm.x)} × ${Math.round(mm.y)} × ${Math.round(mm.z)} mm` : "measuring"}</dd>
+              <dd><Scramble text={mm ? `${approx}${Math.round(mm.x)} × ${Math.round(mm.y)} × ${Math.round(mm.z)} mm` : "measuring"} /></dd>
               <dt>Bodies</dt>
-              <dd>{mm ? mm.parts : "-"}</dd>
+              <dd><Scramble text={mm ? String(mm.parts) : "-"} /></dd>
               <dt>Status</dt>
-              <dd>{t.status}</dd>
+              <dd><Scramble text={t.status} /></dd>
+              {/* Assemblies (the models given a longer segment) read out how far apart they are. */}
+              {t.model.weight && (
+                <>
+                  <dt>Apart</dt>
+                  <dd className="lc-apart"><b key={t.code} ref={apartEl} /></dd>
+                </>
+              )}
             </dl>
             <div className="lc-scan">
               <span>{f.phase === "morph" ? "Acquiring" : f.phase === "scan" ? "Scanning" : "Solid"}</span>

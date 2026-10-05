@@ -371,6 +371,10 @@
 .lc-tele dd {
   font-variant-numeric: tabular-nums;
 }
+.lc-apart b {
+  font-weight: inherit;
+  color: var(--hot);
+}
 .lc-scan {
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -430,6 +434,7 @@
   font-size: 0.7rem;
 }
 .lc-index {
+  min-height: 100svh; /* a full screen, so the Index link lands on its top */
   padding: 16vh 48px 14vh;
   border-top: 1px solid var(--line);
 }

@@ -20,11 +20,11 @@ export async function generateMetadata({ params }: PageProps<"/lab/b/work/[slug]
 }
 
 // The machine each file opens on, where one exists. The canceller is the rebuilt model, so it carries its caveat.
-function machine(w: Work): { model: Spec; note?: string } | null {
+function machine(w: Work): { model: Spec; note?: string; apart?: { mm?: number } } | null {
   const glb = (name: string, finish: Spec["finish"]) => ({ model: { src: w.media[name].src, finish, parts: w.media[name].parts ?? 0 } });
   if (w.slug === "robotic-arm") return glb("hand-model", "aluminium");
-  if (w.slug === "gravity-storage-drive") return glb("geared-module", "anodized");
-  if (w.slug === "micro-vibration-canceller") return { model: { build: "canceller", finish: "own", parts: 14 }, note: "Model rebuilt from the renders and photos; sizes estimated" };
+  if (w.slug === "gravity-storage-drive") return { ...glb("geared-module", "anodized"), apart: { mm: w.media["geared-module"].explode } };
+  if (w.slug === "micro-vibration-canceller") return { model: { build: "canceller", finish: "own", parts: 14 }, note: "Model rebuilt from the renders and photos; sizes estimated", apart: {} };
   return null;
 }
 
@@ -48,6 +48,7 @@ export default async function ConsoleFile({ params }: PageProps<"/lab/b/work/[sl
     award: w.award,
     note: m?.note,
     model: m?.model,
+    apart: m?.apart,
     still: still(w.media[w.hero]),
   };
   const facts = [
