@@ -14,8 +14,8 @@ export function buildCanceller() {
   root.name = "canceller";
   const parts: Part[] = [];
 
-  const alu = new THREE.MeshPhysicalMaterial({ color: 0xa9adb2, metalness: 0.8, roughness: 0.48 });
-  const aluDark = new THREE.MeshPhysicalMaterial({ color: 0x878b90, metalness: 0.8, roughness: 0.52 });
+  const alu = new THREE.MeshPhysicalMaterial({ color: 0x9ea2a7, metalness: 0.55, roughness: 0.62 });
+  const aluDark = new THREE.MeshPhysicalMaterial({ color: 0x7f8388, metalness: 0.55, roughness: 0.62 });
   const steel = new THREE.MeshPhysicalMaterial({ color: 0x2b2d30, metalness: 0.8, roughness: 0.38 });
   const black = new THREE.MeshPhysicalMaterial({ color: 0x141516, metalness: 0.3, roughness: 0.55 });
   const pla = new THREE.MeshPhysicalMaterial({ color: 0x6a1a25, metalness: 0, roughness: 0.72 });

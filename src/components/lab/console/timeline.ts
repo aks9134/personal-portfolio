@@ -4,7 +4,7 @@
 // solid part, then holds apart.
 export const MORPH = 0.22;
 export const SCAN = 0.48;
-export const EXPLODE = [0.1, 0.42] as const;
+export const EXPLODE = [0.06, 0.9] as const;
 
 export function segments(weights: number[]) {
   const total = weights.reduce((a, b) => a + b, 0);

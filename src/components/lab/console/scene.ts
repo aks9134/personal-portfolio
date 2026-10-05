@@ -65,10 +65,21 @@ export async function createConsole(o: {
   const measures: Measure[] = [];
   const clouds: Float32Array[] = [];
   const clip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
-  const solids: { root: THREE.Group; mixer: THREE.AnimationMixer | null; action: THREE.AnimationAction | null; clip: THREE.AnimationClip | null; pose: number; broad: number }[] = [];
+  const solids: { root: THREE.Group; mixer: THREE.AnimationMixer | null; action: THREE.AnimationAction | null; clip: THREE.AnimationClip | null; pose: number; broad: number; c0: THREE.Vector3; c1: THREE.Vector3; r0: number; r1: number }[] = [];
 
   loaded.forEach((l, i) => {
     const model = l.scene;
+    // Assemble first: the pipeline's GLBs rest in their exploded pose, and everything below (the envelope, the
+    // centring, the point cloud) must describe the assembled part.
+    const mixer = l.clip ? new THREE.AnimationMixer(model) : null;
+    const action = l.clip && mixer ? mixer.clipAction(l.clip).play() : null;
+    if (action) action.paused = true;
+    const poseAt = (p: number) => {
+      if (!action || !mixer || !l.clip) return;
+      action.time = l.clip.duration * 0.999 * p;
+      mixer.update(0);
+    };
+    poseAt(0);
     model.updateMatrixWorld(true);
     const raw = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
     let meshes = 0;
@@ -115,11 +126,18 @@ export async function createConsole(o: {
       m.material = mat;
     });
     scene.add(holder);
-    const mixer = l.clip ? new THREE.AnimationMixer(model) : null;
-    const action = l.clip && mixer ? mixer.clipAction(l.clip).play() : null;
-    if (action) action.paused = true;
+    // Framing: the bounding sphere assembled and fully apart. The holder is shifted by the interpolated centre each
+    // frame, so an assembly comes apart about the middle of the view instead of drifting.
+    const sphere = () => {
+      holder.updateMatrixWorld(true);
+      return new THREE.Box3().setFromObject(model).getBoundingSphere(new THREE.Sphere());
+    };
+    const s0 = sphere();
+    poseAt(1);
+    const s1 = l.clip ? sphere() : s0;
+    poseAt(0);
     // Side-on azimuth: the camera looks across the long horizontal axis, where an explode reads widest.
-    solids.push({ root: holder, mixer, action, clip: l.clip, pose: -1, broad: raw.x >= raw.z ? 0 : Math.PI / 2 });
+    solids.push({ root: holder, mixer, action, clip: l.clip, pose: -1, broad: raw.x >= raw.z ? 0 : Math.PI / 2, c0: s0.center, c1: s1.center, r0: s0.radius, r1: s1.radius });
   });
   o.onMeasure(measures);
 
@@ -196,7 +214,7 @@ export async function createConsole(o: {
   const target = new THREE.WebGLRenderTarget(1, 1, { samples: 2, type: THREE.HalfFloatType });
   const composer = new EffectComposer(renderer, target);
   composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.38, 0.45, 1.25);
+  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.38, 0.45, 1.55);
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
 
@@ -211,6 +229,8 @@ export async function createConsole(o: {
     const pr = renderer.getPixelRatio();
     bloom.setSize(Math.round((w * pr) / 2), Math.round((h * pr) / 2));
     camera.aspect = w / h;
+    // Centre the models in the clear space above the project text, not the geometric middle of the screen.
+    camera.setViewOffset(w, h, 0, h * 0.1, w, h);
     camera.updateProjectionMatrix();
     uniforms.uPix.value = renderer.getPixelRatio() * (h / 900);
   };
@@ -250,6 +270,7 @@ export async function createConsole(o: {
   let clock = 0;
   let last = performance.now();
   let yaw = 0;
+  let dist = 7.4;
   const tick = (now: number) => {
     raf = requestAnimationFrame(tick);
     const dt = Math.min(0.05, (now - last) / 1000);
@@ -309,16 +330,31 @@ export async function createConsole(o: {
       s.mixer.update(0);
     });
     yaw += moving ? dt * 0.12 : 0;
-    const orbit = yaw + cam * Math.PI * 1.5 + 0.6;
-    // While an assembly is solid, the camera swings side-on to its long axis (the nearer of the two sides), so the
-    // parts spread across the frame instead of toward the lens.
     const s = solids[i];
-    const side = s?.clip && !jump ? smooth(solidT / 0.25) : 0;
+    const pose = s && s.pose > 0 ? s.pose : 0;
+    // Keep the active assembly centred: shift it by its interpolated centre as the parts spread.
+    if (s) s.root.position.copy(s.c0).lerp(s.c1, pose).negate();
+    grid.position.y = Math.min(-SIZE * 0.42, (s?.root.position.y ?? 0) - SIZE * 0.42 - 0.02); // the floor stays under the lowest part
+    // Fit: the camera distance that holds the current bounding sphere inside the clear part of the screen (between
+    // the side panels on wide screens, above the readout on narrow ones), eased so a change of model glides.
+    const r = s ? s.r0 + (s.r1 - s.r0) * pose : SIZE * 0.6;
+    const vf = (camera.fov * Math.PI) / 360;
+    const wide = camera.aspect > 1.1;
+    const hf = Math.atan(Math.tan(vf) * camera.aspect * (wide ? 0.56 : 1));
+    const fit = (r / Math.sin(Math.min(Math.atan(Math.tan(vf) * (wide ? 0.74 : 0.6)), hf))) * (wide ? 1.04 : 1.14);
+    dist = moving ? dist + (fit - dist) * (1 - Math.exp(-dt * 5)) : fit;
+    // Fog follows the camera, so a far framing (a long assembly apart, a narrow screen) never fogs the model out.
+    (scene.fog as THREE.Fog).near = dist + 1.5;
+    (scene.fog as THREE.Fog).far = dist + 14;
+    // Orbit with scroll. While an assembly is solid the camera leans side-on to its long axis (the nearer side), so
+    // the parts spread across the frame, but it keeps turning with the scroll the whole time.
+    const orbit = yaw + cam * Math.PI * 1.5 + 0.6;
+    const side = s?.clip && !jump ? smooth(solidT / 0.25) * 0.85 : 0;
     const near = s ? s.broad + Math.PI * Math.round((orbit - s.broad) / Math.PI) : orbit;
-    const a = orbit + (near + Math.sin(clock * 0.2) * 0.12 - orbit) * side;
-    const back = 7.4 + (s?.pose > 0 ? s.pose * 1.6 : 0); // pull back a little as an assembly comes apart
-    camera.position.set(Math.sin(a) * back, 2.6 - side * 0.7 + Math.sin(cam * 6) * 0.4 * (1 - side) + (back - 7.4) * 0.35, Math.cos(a) * back);
-    camera.lookAt(0, (back - 7.4) * 0.45, 0);
+    const a = orbit + (near + (solidT - 0.5) * 0.8 - orbit) * side;
+    const el = 0.3; // a steady elevation: the model never sinks or rises in the frame
+    camera.position.set(Math.sin(a) * Math.cos(el) * dist, Math.sin(el) * dist, Math.cos(a) * Math.cos(el) * dist);
+    camera.lookAt(0, 0, 0);
     const phase = f < MORPH ? "morph" : f < SCAN ? "scan" : "solid";
     if (`${i}${phase}` !== shownPhase) {
       shownPhase = `${i}${phase}`;
