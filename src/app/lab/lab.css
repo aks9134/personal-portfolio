@@ -648,3 +648,9 @@
     top: 40svh;
   }
 }
+@media (max-width: 760px) {
+  .ll-panel { padding: 14px 16px 12px; }
+  .ll-panel .ll-text, .ll-panel .ll-facts { display: none; }
+  .ll-panel h2 { font-size: 2rem; }
+  .ll-scope canvas { height: 44px; }
+}

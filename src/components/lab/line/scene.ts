@@ -382,6 +382,9 @@ export async function createLine(o: LineOptions) {
     renderer.setSize(w, h, false);
     composer.setSize(w, h);
     camera.aspect = w / h;
+    // Keep the horizontal view of a 16:9 frame on narrow screens, so a phone still sees the whole station.
+    const ref = 16 / 9;
+    camera.fov = camera.aspect >= ref ? 32 : Math.min(72, (2 * Math.atan((Math.tan((32 * Math.PI) / 360) * ref) / camera.aspect) * 180) / Math.PI);
     camera.updateProjectionMatrix();
   };
   const ro = new ResizeObserver(resize);
@@ -435,6 +438,8 @@ export async function createLine(o: LineOptions) {
     if (moving) clock += dt;
     const { station, beat } = pose(progress);
     // Ease the camera toward the scroll pose, so a wheel step glides instead of jumping.
+    // On a portrait screen the panel sits below the object, so aim at the object itself instead of beside it.
+    if (camera.aspect < 1) look.x += 1.0;
     const k = moving ? 1 - Math.exp(-dt * 6) : 1;
     cur.eye.lerp(eye, k);
     cur.look.lerp(look, k);

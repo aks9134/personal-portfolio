@@ -138,6 +138,7 @@ export function Teardown({ chapters, more }: { chapters: Chapter[]; more: { titl
   return (
     <main className="lab-teardown">
       <header className="lt-top">
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a href="/" className="lt-brand">Allen Sun</a>
         <nav className="lt-mono flex gap-5">
           {chapters.map((c) => (

@@ -98,6 +98,7 @@ export function Line({ models, stations, callouts, more }: { models: { hand: str
           </div>
 
           <header className="ll-top">
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a href="/" className="ll-wide text-sm">Allen Sun</a>
             <nav className="ll-mono flex gap-5">
               <a href="#more">Work</a>
