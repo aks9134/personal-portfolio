@@ -305,7 +305,7 @@ export async function createStage(canvas: HTMLCanvasElement, o: StageOptions): P
 // still reads part by part. "anodized" keeps the CAD's colour grouping in the bay's palette: grey parts machined
 // aluminium, blues dark anodized grey, greens oxide, warm colours sodium amber. Returns the export's own materials,
 // which the stage no longer uses, so they can be freed.
-function applyFinish(THREE: typeof import("three"), root: T.Object3D, finish: Finish, physical: boolean): T.Material[] {
+export function applyFinish(THREE: typeof import("three"), root: T.Object3D, finish: Finish, physical: boolean): T.Material[] {
   const cache = new Map<T.Material, T.Material>();
   const paint = (mat: T.MeshStandardMaterial, h: number, s: number, l: number, metalness: number, roughness: number) => {
     mat.color.setHSL(h, s, l);
