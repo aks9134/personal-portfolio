@@ -20,6 +20,7 @@ export type CaseHead = {
   line: string;
   award?: string;
   note?: string; // a caveat that travels with the model ("rebuilt from the renders")
+  estimated?: boolean; // no measured sizes behind the model: the envelope and body count are not shown as facts
   model?: Spec;
   apart?: { mm?: number }; // an assembly: read out how far apart it is, in mm where the media records the travel
   still: Media;
@@ -33,7 +34,7 @@ export function CaseScan({ h }: { h: CaseHead }) {
   return h.model ? <ModelScan h={h} model={h.model} /> : <StillScan h={h} />;
 }
 
-function Top({ code }: { code: string }) {
+export function Top({ code, label }: { code?: string; label?: string }) {
   return (
     <header className="lc-top">
       <div>
@@ -41,12 +42,12 @@ function Top({ code }: { code: string }) {
         <p className="lc-dim">Mechanical design engineer</p>
       </div>
       <p className="lc-dim lc-status">
-        <span className="lc-dot is-on" /> File {code}
+        <span className="lc-dot is-on" /> {label ?? `File ${code}`}
       </p>
       <nav className="lc-dim flex gap-5">
         <a href="/lab/b">Console</a>
         <a href="/lab/b#index">Index</a>
-        <a href="/resume">Resume</a>
+        <a href="/lab/b/resume">Resume</a>
         <a href="mailto:aks9134@nyu.edu">Email</a>
       </nav>
     </header>
@@ -122,9 +123,13 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
           <p className="lc-dim">File {h.code}</p>
           <dl>
             <dt>Envelope</dt>
-            <dd>{m ? `${approx}${Math.round(m.x)} × ${Math.round(m.y)} × ${Math.round(m.z)} mm` : "measuring"}</dd>
-            <dt>Bodies</dt>
-            <dd>{m ? m.parts : "-"}</dd>
+            <dd>{h.estimated ? "Not measured" : m ? `${approx}${Math.round(m.x)} × ${Math.round(m.y)} × ${Math.round(m.z)} mm` : "measuring"}</dd>
+            {!h.estimated && (
+              <>
+                <dt>Bodies</dt>
+                <dd>{m ? m.parts : "-"}</dd>
+              </>
+            )}
             <dt>Status</dt>
             <dd>{h.status}</dd>
             <dt>When</dt>
@@ -153,9 +158,13 @@ function StillScan({ h }: { h: CaseHead }) {
     <div className="lcs-pin lcs-still">
       <div className="lc-frame" aria-hidden><i /><i /><i /><i /></div>
       <Top code={h.code} />
+      {/* The image cell is a size container, so the image is held inside it by the cell's width and height and can
+          never run into the title or the telemetry. */}
       <div className="lcs-image">
         <div className="lcs-reveal">
-          <MediaImage m={h.still} priority sizes="(min-width: 860px) 56vw, 100vw" imgClassName="mx-auto max-h-[60svh] w-auto object-contain" className="mx-auto w-fit" />
+          {/* Sizing lives in lab.css (.lcs-image img), with a fallback where container units are missing; the image's
+              own pixel size rides along so it is never upscaled. */}
+          <MediaImage m={h.still} priority sizes="(min-width: 860px) 56vw, 100vw" imgClassName="w-auto" style={{ maxWidth: undefined, "--w": `${h.still.width}px`, "--h": `${h.still.height}px` } as React.CSSProperties} />
         </div>
       </div>
       <Head h={h} />

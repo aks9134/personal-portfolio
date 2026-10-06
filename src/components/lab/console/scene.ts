@@ -16,13 +16,20 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { applyFinish } from "../../stage/engine";
 import { buildCanceller } from "../canceller";
+import { buildCouch } from "../couch";
+import { buildWeldRig } from "../weld-rig";
 import { clamp01, loadModel, smooth } from "../load";
 import { EXPLODE, MORPH, SCAN, segments } from "./timeline";
 
 const SIZE = 3.2;
 const MAX = 4; // the shader carries up to four clouds
 
-export type Spec = { src?: string; build?: "canceller"; finish: "aluminium" | "anodized" | "own"; parts: number; weight?: number };
+// Rebuilt models (no CAD on file), built in code from the sources each file names.
+const builders = { canceller: buildCanceller, "weld-rig": buildWeldRig, couch: buildCouch };
+
+// view: where the camera settles once an assembly is solid, as a turn off side-on and an elevation (radians); a long
+// thin part reads better from a three-quarter view above than straight side-on.
+export type Spec = { src?: string; build?: keyof typeof builders; finish: "aluminium" | "anodized" | "own"; parts: number; weight?: number; view?: { turn?: number; el?: number } };
 export type Measure = { x: number; y: number; z: number; parts: number };
 export type ConsoleFrame = { index: number; phase: "morph" | "scan" | "solid" };
 
@@ -48,8 +55,9 @@ export async function createConsole(o: {
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environmentIntensity = 0.55;
-  const key = new THREE.DirectionalLight(0xffffff, 1.1);
-  key.position.set(3, 5, 4);
+  // Key high above the view: flat tops still catch it, but its glare reflects away from the lens, not into it.
+  const key = new THREE.DirectionalLight(0xffffff, 0.95);
+  key.position.set(3, 8, 3);
   const rim = new THREE.DirectionalLight(0xff6a2b, 1.6);
   rim.position.set(-4, 2, -3);
   // The lights ride with the camera: the key stays front-right of the view and the orange rim behind-left, so
@@ -65,11 +73,11 @@ export async function createConsole(o: {
   (grid.material as THREE.Material).opacity = 0.7;
   scene.add(grid);
 
-  const loaded = await Promise.all(o.models.map((m) => (m.build === "canceller" ? Promise.resolve(buildCanceller()) : loadModel(m.src!))));
+  const loaded = await Promise.all(o.models.map((m) => (m.build ? Promise.resolve(builders[m.build]()) : loadModel(m.src!))));
   const measures: Measure[] = [];
   const clouds: { whole: Float32Array; apart: Float32Array }[] = [];
   const clip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
-  const solids: { root: THREE.Group; mixer: THREE.AnimationMixer | null; action: THREE.AnimationAction | null; clip: THREE.AnimationClip | null; pose: number; broad: number; c0: THREE.Vector3; c1: THREE.Vector3; r0: number; r1: number }[] = [];
+  const solids: { root: THREE.Group; mixer: THREE.AnimationMixer | null; action: THREE.AnimationAction | null; clip: THREE.AnimationClip | null; pose: number; broad: number; el: number; y0: number; y1: number; floor0: number; floor1: number; c0: THREE.Vector3; c1: THREE.Vector3; r0: number; r1: number }[] = [];
 
   loaded.forEach((l, i) => {
     const model = l.scene;
@@ -88,7 +96,7 @@ export async function createConsole(o: {
     const raw = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
     let meshes = 0;
     model.traverse((n) => (meshes += (n as THREE.Mesh).isMesh ? 1 : 0));
-    measures.push({ x: raw.x, y: raw.y, z: raw.z, parts: o.models[i].parts || meshes });
+    measures.push({ x: raw.x, y: raw.y, z: raw.z, parts: o.models[i].parts || ("parts" in l ? (l.parts as number) : 0) || meshes });
     const s = SIZE / Math.max(raw.x, raw.y, raw.z);
     const holder = new THREE.Group();
     holder.add(model);
@@ -138,15 +146,20 @@ export async function createConsole(o: {
     scene.add(holder);
     // Framing: the bounding sphere assembled and fully apart. The holder is shifted by the interpolated centre each
     // frame, so an assembly comes apart about the middle of the view instead of drifting.
-    const sphere = () => {
+    const box = () => {
       holder.updateMatrixWorld(true);
-      return new THREE.Box3().setFromObject(model).getBoundingSphere(new THREE.Sphere());
+      return new THREE.Box3().setFromObject(model);
     };
+    const sphere = () => box().getBoundingSphere(new THREE.Sphere());
+    // The scan sweeps the part's own height (a flat part would otherwise resolve in an instant mid-sweep), and the floor
+    // sits just under its lowest point, assembled or apart.
+    const b0 = box();
     const s0 = sphere();
     const where = () => meshList.map((m) => new THREE.Vector3().setFromMatrixPosition(m.matrixWorld));
     const at0 = where();
     poseAt(1);
     const s1 = l.clip ? sphere() : s0;
+    const floor1 = l.clip ? box().min.y - s1.center.y : b0.min.y - s0.center.y;
     // The cloud twice, in the solid's own frame: assembled, and fully apart (each point moved with its part; the
     // explode clips only translate parts). A burst out of an assembly then starts from the pose the solid left in.
     const apart = l.clip ? new Float32Array(N * 3) : pts;
@@ -161,7 +174,7 @@ export async function createConsole(o: {
     clouds.push({ whole: pts, apart });
     poseAt(0);
     // Side-on azimuth: the camera looks across the long horizontal axis, where an explode reads widest.
-    solids.push({ root: holder, mixer, action, clip: l.clip, pose: -1, broad: raw.x >= raw.z ? 0 : Math.PI / 2, c0: s0.center, c1: s1.center, r0: s0.radius, r1: s1.radius });
+    solids.push({ root: holder, mixer, action, clip: l.clip, pose: -1, broad: (raw.x >= raw.z ? 0 : Math.PI / 2) + (o.models[i].view?.turn ?? 0), el: o.models[i].view?.el ?? 0.3, y0: b0.min.y - s0.center.y, y1: b0.max.y - s0.center.y, floor0: b0.min.y - s0.center.y, floor1, c0: s0.center, c1: s1.center, r0: s0.radius, r1: s1.radius });
   });
   o.onMeasure(measures);
 
@@ -195,6 +208,7 @@ export async function createConsole(o: {
     uSize: { value: 2.4 },
     uPix: { value: 1 },
     uHot: { value: new THREE.Color(0xff6a2b) },
+    uHotK: { value: 9 }, // how tight the glowing band at the scan line is: tighter on a flat part, so it never lights all of it
   };
   const mat = new THREE.ShaderMaterial({
     uniforms,
@@ -203,7 +217,7 @@ export async function createConsole(o: {
     blending: THREE.AdditiveBlending,
     vertexShader: /* glsl */ `
       attribute vec3 c0, c1, c2, c3, e0, e1, e2, e3; attribute float seed;
-      uniform float uFromStart, uFromPose, uMorph, uScan, uTime, uSize, uPix; uniform vec4 uFrom, uTo;
+      uniform float uFromStart, uFromPose, uMorph, uScan, uTime, uSize, uPix, uHotK; uniform vec4 uFrom, uTo;
       varying float vAlpha; varying float vHot;
       void main() {
         vec3 whole = c0 * uFrom.x + c1 * uFrom.y + c2 * uFrom.z + c3 * uFrom.w;
@@ -227,7 +241,7 @@ export async function createConsole(o: {
         gl_PointSize = min(uSize * uPix * (6.0 / -mv.z), uSize * uPix * 3.0); // capped: the burst brings points close
         float above = p.y - uScan;
         vAlpha = step(0.0, above) * (0.35 + 0.65 * seed);
-        vHot = max(exp(-abs(above) * 9.0), fly * (1.0 - t) * 0.8);
+        vHot = max(exp(-abs(above) * uHotK), fly * (1.0 - t) * 0.8);
       }`,
     fragmentShader: /* glsl */ `
       uniform vec3 uHot; varying float vAlpha; varying float vHot;
@@ -305,6 +319,8 @@ export async function createConsole(o: {
   // A long jump (a clicked target, the Index link, a dragged scrollbar) plays one direct re-form from the current
   // machine to the destination instead of racing through every segment in between.
   let jump: { from: number; to: number; t: number; pose: number } | null = null;
+  let held = false;
+  let heldAt = 0;
   const JUMP_MORPH = 1.1; // seconds re-forming, then the scan
   const JUMP = 1.8;
   let raf = 0;
@@ -325,7 +341,8 @@ export async function createConsole(o: {
     last = now;
     const moving = o.motion();
     if (moving) clock += dt;
-    const goal = Math.min(0.9999, o.progress());
+    // Held (a smooth scroll to the Index is running): the scene keeps its place instead of following the scroll.
+    const goal = held ? heldAt : Math.min(0.9999, o.progress());
     if (!jump && moving && Math.abs(goal - eased) > 0.12 && at(goal).i !== at(eased).i) jump = { from: shown, to: at(goal).i, t: 0, pose: Math.max(0, solids[shown]?.pose ?? 0) };
     let i: number;
     let f: number;
@@ -360,10 +377,11 @@ export async function createConsole(o: {
     const solidT = clamp01((f - SCAN) / (1 - SCAN));
     uniforms.uMorph.value = morph * 1.45;
     uniforms.uTime.value = clock;
-    const bottom = -SIZE * 0.5;
-    const top = SIZE * 0.5;
+    const bottom = (solids[i]?.y0 ?? -SIZE * 0.5) - 0.01;
+    const top = (solids[i]?.y1 ?? SIZE * 0.5) + 0.01;
     const scanY = f < MORPH ? bottom - 0.01 : bottom + (top - bottom) * scanT;
-    uniforms.uScan.value = scanY;
+    uniforms.uScan.value = f < MORPH ? -10 : scanY; // re-forming: every point shows (the outgoing cloud may sit lower than this part)
+    uniforms.uHotK.value = Math.max(9, (9 * SIZE * 0.5) / Math.max(0.05, top - bottom));
     // Once the scan is complete the plane lets go, so exploded parts above the scan height stay whole.
     clip.constant = scanT >= 0.999 ? 1e4 : scanY;
     ring.position.y = scanY;
@@ -386,7 +404,7 @@ export async function createConsole(o: {
     const pose = s && s.pose > 0 ? s.pose : 0;
     // Keep the active assembly centred: shift it by its interpolated centre as the parts spread.
     if (s) s.root.position.copy(s.c0).lerp(s.c1, pose).negate();
-    grid.position.y = Math.min(-SIZE * 0.42, (s?.root.position.y ?? 0) - SIZE * 0.42 - 0.02); // the floor stays under the lowest part
+    grid.position.y = s ? s.floor0 + (s.floor1 - s.floor0) * pose - 0.06 : -SIZE * 0.42; // the floor stays under the lowest part
     // Fit: the camera distance that holds the current bounding sphere inside the clear part of the screen (between
     // the side panels on wide screens, above the readout on narrow ones), eased so a change of model glides.
     const r = s ? s.r0 + (s.r1 - s.r0) * pose : SIZE * 0.6;
@@ -404,10 +422,13 @@ export async function createConsole(o: {
     const side = s?.clip && !jump ? smooth(solidT / 0.25) * 0.85 : 0;
     const near = s ? s.broad + Math.PI * Math.round((orbit - s.broad) / Math.PI) : orbit;
     const a = orbit + (near + (solidT - 0.5) * 0.8 - orbit) * side - lean.x * 0.14;
-    const el = 0.3 + lean.y * 0.07; // a steady elevation (the model never sinks or rises), give or take the lean
+    const el = 0.3 + ((s?.el ?? 0.3) - 0.3) * side + lean.y * 0.07; // steady (the model never sinks or rises), give or take the lean
     camera.position.set(Math.sin(a) * Math.cos(el) * dist, Math.sin(el) * dist, Math.cos(a) * Math.cos(el) * dist);
     camera.lookAt(0, 0, 0);
+    // The room's reflections turn with the camera too, so a flat metal top never mirrors a bright panel into the lens
+    // at some angle and not others (tested: this turn keeps every panel out of the flat tops' reflection).
     rig.rotation.y = a;
+    scene.environmentRotation.y = a;
     const phase = f < MORPH ? "morph" : f < SCAN ? "scan" : "solid";
     if (`${i}${phase}` !== shownPhase) {
       shownPhase = `${i}${phase}`;
@@ -419,6 +440,15 @@ export async function createConsole(o: {
   raf = requestAnimationFrame(tick);
 
   return {
+    /** Freeze on the current state (true); on release, take up the scroll position directly, with no re-form. */
+    hold(on: boolean) {
+      held = on;
+      heldAt = Math.min(0.9999, o.progress()); // where the visitor was, not where the easing had got to
+      if (on) return;
+      jump = null;
+      eased = cam = Math.min(0.9999, o.progress());
+      shown = -3;
+    },
     dispose() {
       cancelAnimationFrame(raf);
       ro.disconnect();

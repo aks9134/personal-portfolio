@@ -573,11 +573,53 @@ html[data-theme="light"] .lc-case .ink {
 .lcs-bar {
   transform: scaleX(1);
 }
-.lcs-image {
-  position: absolute;
-  inset: 110px calc(48px + 21rem) 210px 48px;
+/* Image openers: a grid, so the image, the title and the telemetry each keep their own cell. The image cell is a size
+   container; the image is held inside it by cqw/cqh (case-scan.tsx). Cut-outs sit straight on the page (no bench
+   box); photos and screenshots keep their hairline frame. */
+.lcs-still {
   display: grid;
-  place-items: center;
+  grid-template-columns: minmax(0, 1fr) 19rem;
+  grid-template-rows: minmax(0, 1fr) auto;
+  column-gap: 56px;
+  row-gap: 36px;
+  padding: 112px 48px 44px;
+}
+.lcs-still .lcs-image {
+  grid-area: 1 / 1;
+  container-type: size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+.lcs-still .lcs-head {
+  grid-area: 2 / 1;
+  position: static;
+  max-width: 44rem;
+}
+.lcs-still .lc-tele {
+  grid-area: 1 / 2 / 3 / 3;
+  position: static;
+  align-self: center;
+  width: auto;
+  transform: none;
+}
+.lcs-image .bench {
+  background: transparent;
+}
+.lcs-still > .lc-frame {
+  position: absolute;
+  inset: 0;
+}
+.lcs-image img {
+  max-width: min(100%, var(--w));
+  max-height: min(56svh, var(--h));
+}
+@supports (width: 1cqw) {
+  .lcs-still .lcs-image img {
+    max-width: min(calc(100cqw - 2px), var(--w));
+    max-height: min(calc(100cqh - 2px), var(--h));
+  }
 }
 .lcs-reveal {
   position: relative;
@@ -690,14 +732,143 @@ html[data-theme="light"] .lc-case .ink {
   .lcs-head h1 { font-size: clamp(1.7rem, 8vw, 2.4rem); }
   .lcs-line, .lcs-award { display: none; }
   .lc-case .lc-top > div > .lc-dim, .lc-case .lc-top nav a:nth-child(2) { display: none; }
-  .lcs-still { display: flex; flex-direction: column; height: auto; min-height: 0; overflow: visible; padding: 92px 0 24px; }
+  .lcs-still { display: flex; flex-direction: column; gap: 0; height: auto; min-height: 0; overflow: visible; padding: 92px 0 24px; }
   .lcs-still .lcs-head, .lcs-still .lc-tele, .lcs-still .lcs-image { position: relative; inset: auto; transform: none; }
   .lcs-still .lcs-head { order: -1; padding: 0 24px; top: auto; }
-  .lcs-still .lcs-image { margin: 24px 20px 0; }
-  .lcs-still .lc-tele { margin: 24px 20px 0; width: auto; }
+  .lcs-still .lcs-image { margin: 24px 20px 0; container-type: inline-size; } /* width-bound on phones; height follows the image */
+  .lcs-still .lcs-image img { max-height: min(60svh, var(--h)); }
+  .lcs-still .lc-tele { margin: 24px 20px 0; width: auto; align-self: stretch; }
   .lcc-wrap { padding: 8vh 24px 0; }
   .lcc-facts { grid-template-columns: 1fr; }
   .lcc-next { padding: 8vh 24px 10vh; }
+}
+
+/* ---- B: resume (/lab/b/resume) ---------------------------------------------------------------------------------- */
+.lcr-top {
+  position: relative;
+  height: 112px;
+}
+.lcr-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 6vh 48px 14vh;
+  font-size: 1rem;
+  letter-spacing: 0;
+}
+.lcr-head h1 {
+  margin: 10px 0 12px;
+  font-variation-settings: "wdth" 118;
+  font-weight: 800;
+  font-size: clamp(2.4rem, 6vw, 4.6rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+.lcr-role {
+  color: var(--muted);
+}
+.lcr-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 28px;
+  margin-top: 22px;
+  font-size: 0.78rem;
+}
+.lcr-pdf {
+  padding: 8px 14px;
+  border: 1px solid var(--hot);
+  color: var(--hot);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  transition: background 200ms, color 200ms;
+}
+.lcr-pdf:hover {
+  background: var(--hot);
+  color: #05070a !important;
+}
+.lcr-h {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  margin-top: 72px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule-strong);
+  font-variation-settings: "wdth" 118;
+  font-weight: 800;
+  font-size: 1.25rem;
+  text-transform: uppercase;
+}
+.lcr-h span {
+  color: var(--hot);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+.lcr-row {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  gap: 8px 32px;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--rule);
+  break-inside: avoid;
+}
+.lcr-when {
+  padding-top: 3px;
+  font-variant-numeric: tabular-nums;
+}
+.lcr-row h3 {
+  font-variation-settings: "wdth" 112;
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.lcr-sub {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.lcr-text {
+  max-width: 68ch;
+  margin-top: 10px;
+  font-family: var(--font-schibsted), ui-sans-serif, sans-serif;
+  line-height: 1.55;
+}
+.lcr-open {
+  display: inline-block;
+  margin-top: 12px;
+  color: var(--hot);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+}
+.lcr-skills > div {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  gap: 8px 32px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.lcr-skills dt {
+  padding-top: 3px;
+}
+.lcr-skills dd {
+  font-family: var(--font-schibsted), ui-sans-serif, sans-serif;
+  line-height: 1.5;
+}
+@media (max-width: 760px) {
+  .lcr-wrap { padding: 4vh 24px 10vh; }
+  .lcr-row, .lcr-skills > div { grid-template-columns: 1fr; gap: 6px; }
+  .lc-resume .lc-top > div > .lc-dim, .lc-resume .lc-top nav a:nth-child(2) { display: none; }
+}
+/* Paper: plain black on white, no instrument chrome. */
+@media print {
+  body { background: #fff !important; }
+  .lc-resume { --ice: #111; --dim: #444; --muted: #333; --hot: #111; --rule: #bbb; --rule-strong: #555; background: #fff; color: #111; }
+  .lc-resume .lcr-top, .lc-resume .lcr-pdf, .lc-resume .lcr-open { display: none; }
+  .lc-resume .lcr-wrap { padding: 0; max-width: none; }
+  .lc-resume .lcr-h { margin-top: 18px; break-after: avoid; }
+  .lc-resume .lcr-row { padding: 8px 0; }
 }
 
 /* ---- C: Teardown ------------------------------------------------------------------------------------------------ */

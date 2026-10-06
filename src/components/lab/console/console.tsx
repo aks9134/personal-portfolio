@@ -25,6 +25,9 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
   const apartEl = useRef<HTMLElement>(null);
   const apartMm = useRef<number | undefined>(undefined);
   const jumpRef = useRef<(i: number) => void>(() => {});
+  const sceneRef = useRef<{ hold: (on: boolean) => void } | null>(null);
+  const glide = useRef<(() => void) | null>(null); // the running Index glide's stop, if one is running
+  useEffect(() => () => glide.current?.(), []);
 
   useEffect(() => {
     let alive = true;
@@ -52,6 +55,7 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
         },
       });
       if (!alive) return api.dispose();
+      sceneRef.current = api;
       setReady(true);
     })();
     return () => {
@@ -93,11 +97,40 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
     apartMm.current = t.apartMm;
     jumpRef.current = toTarget;
   });
+  // Index: one smooth glide down (about a second) while the scene holds still, so the machines don't race past. Any
+  // scroll of the visitor's own (wheel, touch, scrollbar) takes over at once. Reduced motion: an instant jump.
   const toIndex = (e: React.MouseEvent) => {
     const el = document.getElementById("index");
     if (!el) return;
     e.preventDefault();
-    jumpTo(el.getBoundingClientRect().top + window.scrollY);
+    const to = el.getBoundingClientRect().top + window.scrollY;
+    if (!motionOk()) return jumpTo(to);
+    if (glide.current) return; // already gliding there
+    const html = document.documentElement;
+    const from = window.scrollY;
+    const dur = Math.min(1400, 700 + Math.abs(to - from) / 12);
+    const t0 = performance.now();
+    let last = from;
+    let raf = 0;
+    html.style.scrollBehavior = "auto"; // the site's smooth scrolling would ease every step a second time
+    sceneRef.current?.hold(true);
+    const done = () => {
+      cancelAnimationFrame(raf);
+      glide.current = null;
+      html.style.scrollBehavior = "";
+      sceneRef.current?.hold(false);
+    };
+    glide.current = done;
+    const step = (now: number) => {
+      if (Math.abs(window.scrollY - last) > 2) return done(); // the visitor scrolled: hand back
+      const k = Math.min(1, (now - t0) / dur);
+      const ease = k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2;
+      window.scrollTo({ top: from + (to - from) * ease, behavior: "instant" });
+      last = window.scrollY;
+      if (k < 1) raf = requestAnimationFrame(step);
+      else done();
+    };
+    raf = requestAnimationFrame(step);
   };
 
   return (
@@ -117,7 +150,7 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
             </p>
             <nav className="lc-dim flex gap-5">
               <a href="#index" onClick={toIndex}>Index</a>
-              <a href="/resume">Resume</a>
+              <a href="/lab/b/resume">Resume</a>
               <a href="mailto:aks9134@nyu.edu">Email</a>
             </nav>
           </header>
