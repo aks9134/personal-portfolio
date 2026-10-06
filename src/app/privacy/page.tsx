@@ -55,8 +55,8 @@ export default function PrivacyPage() {
               move as you scroll, and everything they show is also written out beside them; the 3D models further down a project turn
               with the arrow keys or their Turn buttons as well as by dragging. The site follows your device&apos;s reduced-motion
               setting, and the Motion switch stops every animation on the site whatever that setting is. Every image, 3D model and
-              video has a text description. The machine at the top of a project loads with the page; further down, the larger 3D
-              models and the videos load only when you ask for them.
+              video has a text description. The machine at the top of a project loads with the page (on a phone, at your first touch
+              or scroll); further down, the larger 3D models and the videos load only when you ask for them.
             </p>
             <p>
               If something doesn&apos;t work with the way you browse, email {email} and tell me what you ran into. I&apos;ll fix it, or

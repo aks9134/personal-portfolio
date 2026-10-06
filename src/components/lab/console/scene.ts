@@ -73,7 +73,13 @@ export async function createConsole(o: {
   (grid.material as THREE.Material).opacity = 0.7;
   scene.add(grid);
 
-  const loaded = await Promise.all(o.models.map((m) => (m.build ? Promise.resolve(builders[m.build]()) : loadModel(m.src!))));
+  // A model that fails to load (offline, a bad file) frees the GL context before the caller falls back to HTML.
+  const loaded = await Promise.all(o.models.map((m) => (m.build ? Promise.resolve(builders[m.build]()) : loadModel(m.src!)))).catch((err) => {
+    pmrem.dispose();
+    renderer.dispose();
+    renderer.forceContextLoss();
+    throw err;
+  });
   const measures: Measure[] = [];
   const clouds: { whole: Float32Array; apart: Float32Array }[] = [];
   const clip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
@@ -324,6 +330,7 @@ export async function createConsole(o: {
   const JUMP_MORPH = 1.1; // seconds re-forming, then the scan
   const JUMP = 1.8;
   let raf = 0;
+  let visible = true; // off-screen (the page scrolled past the run) the loop idles instead of rendering
   let clock = 0;
   let last = performance.now();
   let yaw = 0;
@@ -337,6 +344,10 @@ export async function createConsole(o: {
   if (matchMedia("(pointer: fine)").matches) addEventListener("pointermove", onPointer, { passive: true });
   const tick = (now: number) => {
     raf = requestAnimationFrame(tick);
+    if (!visible) {
+      last = now;
+      return;
+    }
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     const moving = o.motion();
@@ -441,6 +452,10 @@ export async function createConsole(o: {
 
   return {
     /** Freeze on the current state (true); on release, take up the scroll position directly, with no re-form. */
+    /** Whether the canvas is on screen; off screen nothing renders. */
+    setVisible(on: boolean) {
+      visible = on;
+    },
     hold(on: boolean) {
       held = on;
       heldAt = Math.min(0.9999, o.progress()); // where the visitor was, not where the easing had got to

@@ -78,6 +78,7 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
   const apartEl = useRef<HTMLElement>(null);
   const [m, setM] = useState<Measure | null>(null);
   const [f, setF] = useState<ConsoleFrame>({ index: 0, phase: "morph" });
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -108,10 +109,15 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
           if (pctEl.current) pctEl.current.textContent = `${String(Math.round(scan * 100)).padStart(3, "0")}%`;
         },
       });
-      if (!alive) api.dispose();
+      if (!alive) return api.dispose();
+      const io = new IntersectionObserver(([e]) => api?.setVisible(e.isIntersecting));
+      if (run.current) io.observe(run.current);
+      stopIo = () => io.disconnect();
+      canvas.current?.addEventListener("webglcontextlost", () => alive && setFailed(true), { once: true });
     };
+    let stopIo = () => {};
     const go = () => {
-      start().catch(() => {}); // no WebGL: the title, telemetry and write-up are plain HTML and stay
+      start().catch(() => alive && setFailed(true)); // no WebGL: the title, telemetry and write-up are plain HTML and stay
     };
     // Phones load the model on the first touch or scroll, as the home page does; desktops at once.
     const wake = ["pointerdown", "touchstart", "scroll", "keydown"] as const;
@@ -124,13 +130,14 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
     return () => {
       alive = false;
       wake.forEach((e) => removeEventListener(e, first));
+      stopIo();
       api?.dispose();
     };
   }, [model, h.apart]);
 
   const approx = model.build ? "≈ " : "";
   return (
-    <div ref={run} className="lcs-run">
+    <div ref={run} className={failed ? "lcs-run is-failed" : "lcs-run"}>
       <div className="lcs-pin">
         <canvas ref={canvas} className="absolute inset-0 h-full w-full" aria-hidden />
         <div className="lc-frame" aria-hidden><i /><i /><i /><i /></div>

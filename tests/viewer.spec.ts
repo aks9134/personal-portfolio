@@ -62,11 +62,45 @@ for (const how of ['OS setting', 'site switch'] as const)
     await page.goto('/', { waitUntil: 'networkidle' });
     await live(page);
     await page.mouse.move(720, 450);
+    // Still, but not blank: a frozen scene is a detailed picture, a dead canvas compresses to almost nothing.
+    expect((await consoleCanvas(page).screenshot()).length, 'the canvas has drawn the scene').toBeGreaterThan(30_000);
     expect(await still(page), 'nothing moves by itself').toBe(true);
     // The twin: the content still answers the scroll.
     for (let i = 0; i < 12; i++) await page.mouse.wheel(0, 300);
     await expect.poll(() => title(page), { timeout: 10_000 }).not.toBe('Robotic hand');
   });
+
+test('home: the first machine assembles on arrival without scrolling; at once under reduced motion', async ({ page, browser }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+  await live(page);
+  await expect(page.locator('.lc-scan span').first()).toHaveText('Solid', { timeout: 8_000 });
+  await expect(page.locator('.lc-brief')).toHaveClass(/is-on/);
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+  const ctx = await browser.newContext({ reducedMotion: 'reduce', viewport: { width: 1440, height: 900 } });
+  const reduced = await ctx.newPage();
+  await reduced.goto('/', { waitUntil: 'networkidle' });
+  await live(reduced);
+  await expect(reduced.locator('.lc-scan span').first()).toHaveText('Solid', { timeout: 1_500 });
+  await ctx.close();
+});
+
+test('home without WebGL: says so, shows the brief, and leaves no empty scroll run', async ({ page }) => {
+  await page.addInitScript(() => {
+    // A browser without WebGL: every webgl context request comes back empty.
+    const proto = HTMLCanvasElement.prototype as unknown as { getContext: (type: string, ...rest: unknown[]) => unknown };
+    const get = proto.getContext;
+    proto.getContext = function (this: HTMLCanvasElement, type: string, ...rest: unknown[]) {
+      return /webgl/.test(type) ? null : get.call(this, type, ...rest);
+    };
+  });
+  await page.goto('/', { waitUntil: 'networkidle' });
+  await expect(page.locator('.lc-status')).toContainText('3D view unavailable', { timeout: 30_000 });
+  await expect(page.locator('.lc-brief')).toHaveClass(/is-on/);
+  await expect(page.locator('.lc-brief a')).toBeVisible();
+  const run = await page.evaluate(() => (document.querySelector('main > div') as HTMLElement).offsetHeight - innerHeight);
+  expect(run, 'the run collapses to one screen').toBeLessThanOrEqual(2);
+  await expect(page.locator('.lc-targets')).toBeHidden();
+});
 
 test('home: keys 1 to 4 jump to their machine, and not while the jump menu is open', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
@@ -122,6 +156,19 @@ test('phone: the console waits for the first touch before loading models', async
   const glbs: string[] = [];
   page.on('request', (r) => r.url().endsWith('.glb') && glbs.push(r.url()));
   await page.goto('/', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1500);
+  expect(glbs, 'models fetched before any interaction').toEqual([]);
+  await page.mouse.wheel(0, 50);
+  await expect.poll(() => glbs.length, { timeout: 15_000 }).toBeGreaterThan(0);
+  await ctx.close();
+});
+
+test('phone: a project page waits for the first touch before loading its machine', async ({ browser }) => {
+  const ctx = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+  const page = await ctx.newPage();
+  const glbs: string[] = [];
+  page.on('request', (r) => r.url().endsWith('.glb') && glbs.push(r.url()));
+  await page.goto('/work/robotic-arm', { waitUntil: 'networkidle' });
   await page.waitForTimeout(1500);
   expect(glbs, 'models fetched before any interaction').toEqual([]);
   await page.mouse.wheel(0, 50);

@@ -7,9 +7,6 @@ const nextConfig: NextConfig = {
   // copies, and pages list them in a truthful srcset with plain <img> (src/lib/image-widths.ts). This stays as a
   // safety net if next/image is ever used again; the smoke test fails on any /_next/image request.
   images: { unoptimized: true },
-  // Security headers (framework Phase 7, Next.js CSP guide "without nonces", which keeps pages static).
-  // Everything loads from this site. 'unsafe-inline' covers Next's inline bootstrap scripts and style attributes;
-  // 'wasm-unsafe-eval' is the 3D viewer's meshopt decoder (WebAssembly). Retest the viewers after any change here.
   // The Console was prototyped under /lab/b; those addresses now point at the real pages.
   async redirects() {
     return [
@@ -18,6 +15,9 @@ const nextConfig: NextConfig = {
       { source: "/lab/b/resume", destination: "/resume", permanent: false },
     ];
   },
+  // Security headers (framework Phase 7, Next.js CSP guide "without nonces", which keeps pages static).
+  // Everything loads from this site. 'unsafe-inline' covers Next's inline bootstrap scripts and style attributes;
+  // 'wasm-unsafe-eval' is the 3D viewer's meshopt decoder (WebAssembly). Retest the viewers after any change here.
   async headers() {
     const csp = [
       "default-src 'self'",

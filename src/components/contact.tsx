@@ -28,7 +28,7 @@ export function Contact() {
         Want to talk about any of this?
       </h2>
       <div className="mt-5 flex flex-wrap items-end gap-x-6 gap-y-4">
-        <a href={`mailto:${site.email}`} onPointerEnter={sound.tick} className="display text-[clamp(2.75rem,9vw,8rem)] transition-colors duration-150 hover:text-accent">
+        <a href={`mailto:${site.email}`} onPointerEnter={sound.tick} className="display transition-colors duration-150 hover:text-accent">
           {site.email}
         </a>
         <button type="button" onClick={copy} className="btn mb-2">

@@ -28,7 +28,7 @@ export function Console({ targets, index, children }: { targets: Target[]; index
   const apartEl = useRef<HTMLElement>(null);
   const apartMm = useRef<number | undefined>(undefined);
   const jumpRef = useRef<(i: number) => void>(() => {});
-  const sceneRef = useRef<{ hold: (on: boolean) => void } | null>(null);
+  const sceneRef = useRef<{ hold: (on: boolean) => void; setVisible: (on: boolean) => void } | null>(null);
   const glide = useRef<(() => void) | null>(null); // the running Index glide's stop, if one is running
   useEffect(() => () => glide.current?.(), []);
 
@@ -70,7 +70,13 @@ export function Console({ targets, index, children }: { targets: Target[]; index
       if (!alive) return api.dispose();
       sceneRef.current = api;
       setState("ready");
+      // Render only while the run is on screen; a lost GL context (a phone reclaiming memory) falls back to HTML.
+      const io = new IntersectionObserver(([e]) => api?.setVisible(e.isIntersecting));
+      if (run.current) io.observe(run.current);
+      stopIo = () => io.disconnect();
+      canvas.current?.addEventListener("webglcontextlost", () => alive && setState("failed"), { once: true });
     };
+    let stopIo = () => {};
     const go = () => {
       start().catch(() => alive && setState("failed")); // no WebGL, or a model failed: the HTML stays usable
     };
@@ -85,6 +91,7 @@ export function Console({ targets, index, children }: { targets: Target[]; index
     return () => {
       alive = false;
       wake.forEach((e) => removeEventListener(e, first));
+      stopIo();
       api?.dispose();
     };
   }, [targets]);
@@ -126,10 +133,15 @@ export function Console({ targets, index, children }: { targets: Target[]; index
   // scroll of the visitor's own (wheel, touch, scrollbar) takes over at once. Reduced motion: an instant jump.
   const toIndex = (e: React.MouseEvent) => {
     const el = document.getElementById("index");
-    if (!el) return;
+    if (!el || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; // a new tab or window: the browser's own way
     e.preventDefault();
+    // Keyboard and screen-reader users land in the Index too, not only the view.
+    const arrive = () => el.focus({ preventScroll: true });
     const to = el.getBoundingClientRect().top + window.scrollY;
-    if (!motionOk()) return jumpTo(to);
+    if (!motionOk()) {
+      jumpTo(to);
+      return arrive();
+    }
     if (glide.current) return; // already gliding there
     const html = document.documentElement;
     const from = window.scrollY;
@@ -153,14 +165,18 @@ export function Console({ targets, index, children }: { targets: Target[]; index
       window.scrollTo({ top: from + (to - from) * ease, behavior: "instant" });
       last = window.scrollY;
       if (k < 1) raf = requestAnimationFrame(step);
-      else done();
+      else {
+        done();
+        arrive();
+      }
     };
     raf = requestAnimationFrame(step);
   };
 
   return (
-    <main id="main" className="lab-console">
-      <div ref={run} style={{ height: `${tl.total * 185 + 100}svh` }}>
+    <main id="main" className={state === "failed" ? "lab-console is-failed" : "lab-console"}>
+      {/* Without 3D there is nothing to scroll through: the run is one screen showing the first machine's brief. */}
+      <div ref={run} style={{ height: state === "failed" ? "100svh" : `${tl.total * 185 + 100}svh` }}>
         <div className="sticky top-0 h-svh w-full overflow-hidden">
           <canvas ref={canvas} className="absolute inset-0 h-full w-full" aria-hidden />
           <div className="lc-frame" aria-hidden><i /><i /><i /><i /></div>
@@ -193,10 +209,10 @@ export function Console({ targets, index, children }: { targets: Target[]; index
             ))}
           </ol>
 
-          <section className="lc-tele" aria-live="polite">
+          <section className="lc-tele" aria-label="Telemetry">
             <p className="lc-dim">Target {t.code}</p>
             {/* Values decode into place when the target changes; screen readers get the plain text. */}
-            <h2 className="lc-title"><Scramble text={t.name} /></h2>
+            <h2 className="lc-title" aria-live="polite"><Scramble text={t.name} /></h2>
             <dl>
               <dt>Class</dt>
               <dd><Scramble text={t.klass} /></dd>
@@ -235,7 +251,7 @@ export function Console({ targets, index, children }: { targets: Target[]; index
         </div>
       </div>
 
-      <section id="index" className="lc-index" aria-labelledby="index-title">
+      <section id="index" className="lc-index" aria-labelledby="index-title" tabIndex={-1}>
         <h2 id="index-title" className="lc-dim">Index, every project</h2>
         <ul>
           {index.map((x, i) => (

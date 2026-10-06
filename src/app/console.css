@@ -161,6 +161,25 @@
 .lc-brief.is-on {
   opacity: 1;
   transform: translate(-50%, 0);
+  visibility: visible;
+  transition-delay: 0s;
+}
+/* Hidden until the part is solid: out of the tab order too, not only transparent. */
+.lc-brief:not(.is-on) {
+  visibility: hidden;
+  transition: opacity 400ms, transform 500ms cubic-bezier(0.23, 1, 0.32, 1), visibility 0s linear 500ms;
+}
+/* No 3D: the scan readouts mean nothing, and the targets have nowhere to go. */
+.lab-console.is-failed .lc-scan,
+.lab-console.is-failed .lc-targets,
+.lcs-run.is-failed .lc-scan {
+  display: none;
+}
+.lcs-run.is-failed {
+  height: auto !important;
+}
+.lcs-run.is-failed .lcs-pin {
+  position: relative;
 }
 .lc-brief p {
   font-size: 0.95rem;
@@ -235,6 +254,9 @@
 }
 .lc-case .case-body h2.display {
   font-size: clamp(1.25rem, 2.6vw, 2.2rem);
+}
+.lc-index:focus {
+  outline: none;
 }
 .lc-pg h1,
 .lcs-head h1,
@@ -602,7 +624,7 @@
   .lc-resume .lc-top > div > .lc-dim, .lc-resume .lc-top nav a:nth-child(2) { display: none; }
 }
 /* Paper (and the PDF scripts/resume-pdf.mjs prints from this page): one letter page, black on white, the v4 PDF's
-   sizes. The grotesk carries the text; Martian Mono stays only in the name and the section heads. */
+   sizes, all in the grotesk. */
 @media print {
   body { background: #fff !important; }
   .lc-resume { --ice: #111; --dim: #444; --muted: #333; --hot: #111; --rule: #c8c8c8; --rule-strong: #555; background: #fff; color: #111; font-family: var(--font-schibsted), sans-serif; font-size: 9.5pt; line-height: 1.32; letter-spacing: 0; }
