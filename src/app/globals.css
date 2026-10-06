@@ -117,6 +117,9 @@
     text-transform: uppercase;
     line-height: 1.04;
     letter-spacing: 0;
+    /* The wide mono runs long: a word that can't fit a 320 px screen breaks rather than pushing the page sideways. */
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
   /* Readouts: measurements, counts, dates, labels on instruments. Mono is for data only. */
   .readout {

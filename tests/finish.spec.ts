@@ -22,27 +22,27 @@ test('every page has a JPG link preview that exists', async ({ page, request }) 
   }
 });
 
-// See-through images in the dark: ink drawings and plots turn light-on-dark, renders sit on the bench, and only the
-// few that need paper keep a (dimmed) sheet. With the lights up, every image shows as made.
-test('see-through images: ink inverts in the dark, renders drop the plate, lights up restores both', async ({ page }) => {
+// See-through images in the dark: ink drawings and plots turn light-on-dark, and cut-out renders sit straight on the
+// page (no box behind them). The twin: the cut-out is really there, loaded and drawn at size.
+test('see-through images: ink inverts, cut-outs sit on the page with no box, and they still show', async ({ page }) => {
   const img = (alt: RegExp) => page.getByRole('img', { name: alt }).first();
-  const ground = (alt: RegExp) => img(alt).evaluate((i) => getComputedStyle(i.parentElement!).backgroundColor);
-  const bench = await page.goto('/work/micro-vibration-canceller').then(() =>
-    page.evaluate(() => {
-      const d = document.createElement('div');
-      d.style.background = 'var(--bg-2)';
-      document.body.append(d);
-      const c = getComputedStyle(d).backgroundColor;
-      d.remove();
-      return c;
-    }),
-  );
+  await page.goto('/work/micro-vibration-canceller');
   await expect(img(/^Wiring schematic/)).toHaveCSS('filter', /invert/);
-  expect(await ground(/^CAD of the test rig/)).toBe(bench);
   await expect(img(/^CAD of the test rig/)).toHaveCSS('filter', 'none');
-  await page.locator('header').getByRole('button', { name: 'Lights' }).click();
-  await expect(img(/^Wiring schematic/)).toHaveCSS('filter', 'none');
-  expect(await ground(/^CAD of the test rig/)).toBe('rgba(0, 0, 0, 0)');
+  expect(await img(/^CAD of the test rig/).evaluate((i) => getComputedStyle(i.parentElement!).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
+  await img(/^CAD of the test rig/).scrollIntoViewIfNeeded();
+  // It loads lazily once near, so wait for it rather than reading it the instant it scrolls in.
+  await expect
+    .poll(() => img(/^CAD of the test rig/).evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0 && i.getBoundingClientRect().width > 100), { message: 'the cut-out is loaded and drawn' })
+    .toBe(true);
+});
+
+test('the old lab addresses redirect to the real pages', async ({ request }) => {
+  for (const [from, to] of [['/lab/b', '/'], ['/lab/b/work/tpu-weld-rig', '/work/tpu-weld-rig'], ['/lab/b/resume', '/resume']]) {
+    const res = await request.get(from, { maxRedirects: 0 });
+    expect(res.status(), from).toBe(307);
+    expect(new URL(res.headers()['location'], 'http://x').pathname, from).toBe(to);
+  }
 });
 
 test('home page describes Allen in structured data', async ({ page }) => {

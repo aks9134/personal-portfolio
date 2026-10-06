@@ -6,7 +6,7 @@ test.beforeEach(({}, testInfo) => test.skip(testInfo.project.name !== 'desktop',
 
 test('jump menu: Ctrl+K opens it, typing filters, Enter goes, Escape closes and gives focus back', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
-  const trigger = page.locator('header').getByRole('button', { name: /Jump to/ });
+  const trigger = page.locator('footer').getByRole('button', { name: /Jump to/ });
   await trigger.focus();
   await page.keyboard.press('Control+k');
   const dialog = page.getByRole('dialog', { name: 'Jump to' });
@@ -23,22 +23,24 @@ test('jump menu: Ctrl+K opens it, typing filters, Enter goes, Escape closes and 
   await expect(page).toHaveURL(/\/work\/tpu-weld-rig$/);
 });
 
-test('switches: Lights changes the sheet and is remembered across pages', async ({ page }) => {
-  await page.goto('/', { waitUntil: 'networkidle' });
-  const html = page.locator('html');
-  await expect(html).not.toHaveAttribute('data-theme', 'light');
-  const bg = await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor);
-  await page.locator('header').getByRole('button', { name: 'Lights' }).click();
-  await expect(html).toHaveAttribute('data-theme', 'light');
-  expect(await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor)).not.toBe(bg);
-  await page.goto('/about');
-  await expect(html).toHaveAttribute('data-theme', 'light');
-  await expect(page.locator('header').getByRole('button', { name: 'Lights' })).toHaveAttribute('aria-pressed', 'true');
+// v5 is dark only. A visitor who switched v4's Lights on still has that choice saved; it must not half-apply.
+test('a saved v4 light preference leaves the Console sheet dark, and the Sound switch is remembered', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('pref-theme', 'light'));
+  await page.goto('/about', { waitUntil: 'networkidle' });
+  await expect(page.locator('html')).not.toHaveAttribute('data-theme', /.+/);
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor)).toBe('rgb(5, 7, 10)');
+  // The twin: a switch that does exist is saved and comes back on the next page.
+  const sound = page.locator('footer').getByRole('button', { name: 'Sound' });
+  await expect(sound).toHaveAttribute('aria-pressed', 'false');
+  await sound.click();
+  await page.goto('/privacy');
+  await expect(page.locator('html')).toHaveAttribute('data-sound', 'on');
+  await expect(page.locator('footer').getByRole('button', { name: 'Sound' })).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('switches: Motion off stops CSS animation site-wide (and on is the default)', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
-  const motion = page.locator('header').getByRole('button', { name: 'Motion' });
+  const motion = page.locator('footer').getByRole('button', { name: 'Motion' });
   await expect(motion).toHaveAttribute('aria-pressed', 'true');
   await motion.click();
   await expect(page.locator('html')).toHaveAttribute('data-motion', 'off');
