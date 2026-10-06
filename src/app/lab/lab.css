@@ -682,6 +682,9 @@ html[data-theme="light"] .lc-case .ink {
   display: inline-block;
   margin-top: 48px;
 }
+@media (max-height: 600px) {
+  .lcs-pin { min-height: 0; }
+}
 @media (max-width: 860px) {
   .lcs-head { left: 24px; right: 24px; bottom: auto; top: 96px; max-width: none; }
   .lcs-head h1 { font-size: clamp(1.7rem, 8vw, 2.4rem); }

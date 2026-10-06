@@ -6,9 +6,10 @@ import { motionOk } from "@/lib/prefs";
 import type { Media } from "@/lib/work";
 import { sectionProgress } from "../load";
 import type { ConsoleFrame, Measure, Spec } from "./scene";
-import { SCAN } from "./timeline";
+import { EXPLODE, SCAN } from "./timeline";
 
 const INTRO = SCAN + 0.02; // where the arrival play stops: just solid
+const REST = SCAN + (1 - SCAN) * EXPLODE[0] * 0.5; // reduced motion: solid, before any explode begins
 
 export type CaseHead = {
   code: string; // "03 / 08": this file's place in the order
@@ -86,7 +87,7 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
         // On arrival the machine re-forms and scans to solid by itself (about 2.4 s); the pinned run then drives the
         // rest (the orbit, an assembly coming apart). Reduced motion: no run, the model held solid.
         progress: () => {
-          if (!motionOk() || !run.current) return 0.62;
+          if (!motionOk() || !run.current) return REST;
           t0 ||= performance.now();
           const intro = Math.min(1, (performance.now() - t0) / 2400);
           return intro * INTRO + sectionProgress(run.current) * (1 - INTRO);
@@ -131,7 +132,7 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
             {h.apart && (
               <>
                 <dt>Apart</dt>
-                <dd className="lc-apart"><b ref={apartEl} /></dd>
+                <dd className="lc-apart" aria-hidden><b ref={apartEl} /></dd>
               </>
             )}
           </dl>

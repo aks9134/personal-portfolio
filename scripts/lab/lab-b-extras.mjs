@@ -57,5 +57,21 @@ const still = async (p) => {
 check(!(await still(page)), "motion allowed: the canvas moves on its own (twin)");
 const reduced = await open("reduce");
 check(await still(reduced), "reduced motion: the canvas holds still");
+// The geared module's project file rests assembled under reduced motion, and comes apart with scroll when allowed.
+const apartOn = async (p) => {
+  await p.goto(`${base}/lab/b/work/gravity-storage-drive`, { waitUntil: "networkidle", timeout: 120000 });
+  await p.waitForTimeout(3500);
+  await p.mouse.move(720, 450);
+  for (let k = 0; k < 6; k++) {
+    await p.mouse.wheel(0, 300);
+    await p.waitForTimeout(250);
+  }
+  await p.waitForTimeout(1500);
+  return p.evaluate(() => document.querySelector(".lc-apart b")?.textContent);
+};
+const restRed = await apartOn(reduced);
+check(restRed === "000 mm", `reduced motion: the project file's geared module rests assembled (${restRed})`);
+const restOn = await apartOn(page);
+check(parseInt(restOn, 10) > 0, `motion allowed: scrolling the project file takes it apart (${restOn}) (twin)`);
 await browser.close();
 process.exit(fails ? 1 : 0);

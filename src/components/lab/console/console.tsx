@@ -150,11 +150,11 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
               {t.model.weight && (
                 <>
                   <dt>Apart</dt>
-                  <dd className="lc-apart"><b key={t.code} ref={apartEl} /></dd>
+                  <dd className="lc-apart" aria-hidden><b key={t.code} ref={apartEl} /></dd>
                 </>
               )}
             </dl>
-            <div className="lc-scan">
+            <div className="lc-scan" aria-hidden>
               <span>{f.phase === "morph" ? "Acquiring" : f.phase === "scan" ? "Scanning" : "Solid"}</span>
               <b ref={bar} style={{ transform: "scaleX(0)" }} />
               <span ref={pctEl}>000%</span>

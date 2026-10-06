@@ -423,9 +423,17 @@ export async function createConsole(o: {
       cancelAnimationFrame(raf);
       ro.disconnect();
       removeEventListener("pointermove", onPointer);
+      // Free every GPU resource the scene made, then the context itself (a remount must not stack contexts).
+      scene.traverse((n) => {
+        const m = n as THREE.Mesh;
+        m.geometry?.dispose();
+        (Array.isArray(m.material) ? m.material : m.material ? [m.material] : []).forEach((x) => x.dispose());
+      });
+      scene.environment?.dispose();
       composer.dispose();
-      renderer.dispose();
       pmrem.dispose();
+      renderer.dispose();
+      renderer.forceContextLoss();
     },
   };
 }
