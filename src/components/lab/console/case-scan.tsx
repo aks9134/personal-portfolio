@@ -5,7 +5,7 @@ import { MediaImage } from "@/components/media-image";
 import { motionOk } from "@/lib/prefs";
 import { site } from "@/lib/site";
 import type { Media } from "@/lib/work";
-import { sectionProgress } from "../load";
+import { sectionProgress } from "../progress";
 import type { ConsoleFrame, Measure, Spec } from "./scene";
 import { EXPLODE, SCAN } from "./timeline";
 

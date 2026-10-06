@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Scramble } from "@/components/scramble";
 import { motionOk } from "@/lib/prefs";
 import { site } from "@/lib/site";
-import { sectionProgress } from "../load";
+import { sectionProgress } from "../progress";
 import type { ConsoleFrame, Measure, Spec } from "./scene";
 import { SCAN, segments } from "./timeline";
 

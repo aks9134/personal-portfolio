@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { sectionProgress } from "../load";
+import { sectionProgress } from "../progress";
 
 export type Chapter = {
   code: string;

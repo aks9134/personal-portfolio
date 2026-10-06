@@ -81,13 +81,15 @@
   color: var(--dim);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  border-left: 2px solid transparent;
-  transition: color 250ms, border-color 250ms, background 250ms;
+  transition: color 250ms, background 250ms;
 }
+/* The live target: ice text on a faint hot tint, its number in hot (no coloured edge bar). */
 .lc-targets li[data-on="1"] {
   color: var(--ice);
-  border-color: var(--hot);
-  background: rgba(255, 106, 43, 0.07);
+  background: rgba(255, 106, 43, 0.08);
+}
+.lc-targets li[data-on="1"] button span {
+  color: var(--hot);
 }
 .lc-tele {
   position: absolute;
@@ -98,8 +100,7 @@
   width: 19rem;
   padding: 18px 18px 16px;
   border: 1px solid var(--line);
-  background: rgba(5, 7, 10, 0.55);
-  backdrop-filter: blur(6px);
+  background: rgba(5, 7, 10, 0.78);
 }
 .lc-title {
   margin: 6px 0 16px;
@@ -673,8 +674,7 @@
     overflow-x: auto;
     scrollbar-width: none;
   }
-  .lc-targets li { padding: 6px 8px; font-size: 0.6rem; white-space: nowrap; border-left: 0; border-bottom: 2px solid transparent; }
-  .lc-targets li[data-on="1"] { border-color: var(--hot); }
+  .lc-targets li { padding: 6px 8px; font-size: 0.6rem; white-space: nowrap; }
   .lc-targets li button span { display: none; }
   .lc-tele-open {
     display: inline-block;

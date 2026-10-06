@@ -46,15 +46,4 @@ export function partsOf(root: THREE.Object3D) {
   return out;
 }
 
-export const smooth = (x: number) => {
-  const t = Math.min(1, Math.max(0, x));
-  return t * t * t * (t * (t * 6 - 15) + 10);
-};
-export const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
-
-/** Overall scroll progress (0-1) of a tall section through the viewport. */
-export function sectionProgress(el: HTMLElement) {
-  const r = el.getBoundingClientRect();
-  const run = el.offsetHeight - window.innerHeight;
-  return run > 0 ? clamp01(-r.top / run) : 0;
-}
+export { clamp01, sectionProgress, smooth } from "./progress";

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motionOk } from "@/lib/prefs";
-import { sectionProgress } from "../load";
+import { sectionProgress } from "../progress";
 import type { Frame } from "./scene";
 
 export type Station = { code: string; name: string; project: string; meta: string; line: string; facts: string[]; href: string };
