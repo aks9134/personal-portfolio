@@ -13,11 +13,12 @@ function get(media: Record<string, Media>, name: string) {
 
 const cap = "mt-3 max-w-[65ch] text-sm leading-relaxed text-muted";
 
-// One image with a caption. `narrow` figures sit beside the text on wide screens.
+// One image with a caption. `narrow` figures (a drawing, a portrait photo) are held to a smaller width, in line with
+// the text like every other figure: floated beside short paragraphs they left uneven gaps.
 export function Figure({ media, name, caption, narrow = false }: { media: Record<string, Media>; name: string; caption?: string; narrow?: boolean }) {
   return (
-    <figure className={narrow ? "my-12 max-w-md lg:float-right lg:clear-right lg:mt-2 lg:mb-8 lg:ml-12 lg:w-[40%] lg:max-w-lg" : "clear-both my-14 max-w-4xl"}>
-      <MediaImage m={get(media, name)} sizes={narrow ? "28rem" : "(min-width: 1100px) 900px, 100vw"} className="w-fit max-w-full" />
+    <figure className={narrow ? "clear-both my-14 max-w-xl" : "clear-both my-14 max-w-4xl"}>
+      <MediaImage m={get(media, name)} sizes={narrow ? "36rem" : "(min-width: 1100px) 900px, 100vw"} className="w-fit max-w-full" />
       {caption && <figcaption className={cap}>{caption}</figcaption>}
     </figure>
   );

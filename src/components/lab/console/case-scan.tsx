@@ -9,7 +9,7 @@ import { sectionProgress } from "../progress";
 import type { ConsoleFrame, Measure, Spec } from "./scene";
 import { EXPLODE, SCAN } from "./timeline";
 
-const INTRO = SCAN + 0.02; // where the arrival play stops: just solid
+const FORM = 0.25; // the share of the run spent re-forming and scanning to solid; the rest is the explode
 const REST = SCAN + (1 - SCAN) * EXPLODE[0] * 0.5; // reduced motion: solid, before any explode begins
 
 export type CaseHead = {
@@ -20,7 +20,6 @@ export type CaseHead = {
   when: string;
   line: string;
   award?: string;
-  note?: string; // a caveat that travels with the model ("rebuilt from the renders")
   estimated?: boolean; // no measured sizes behind the model: the envelope and body count are not shown as facts
   model?: Spec;
   apart?: { mm?: number }; // an assembly: read out how far apart it is, in mm where the media records the travel
@@ -83,7 +82,6 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
   useEffect(() => {
     let alive = true;
     let api: Awaited<ReturnType<typeof import("./scene").createConsole>> | null = null;
-    let t0 = 0;
     const start = async () => {
       const { createConsole } = await import("./scene");
       if (!alive || !canvas.current) return;
@@ -91,13 +89,13 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
         canvas: canvas.current,
         models: [model],
         motion: motionOk,
-        // On arrival the machine re-forms and scans to solid by itself (about 2.4 s); the pinned run then drives the
-        // rest (the orbit, an assembly coming apart). Reduced motion: no run, the model held solid.
+        // The pinned run drives it all: the page opens on the scattered field, the first quarter of the run re-forms
+        // it and scans it to solid, the rest turns it and takes an assembly apart; back at the top it is the field
+        // again. Reduced motion: no run, the model held solid.
         progress: () => {
           if (!motionOk() || !run.current) return REST;
-          t0 ||= performance.now();
-          const intro = Math.min(1, (performance.now() - t0) / 2400);
-          return intro * INTRO + sectionProgress(run.current) * (1 - INTRO);
+          const p = sectionProgress(run.current);
+          return p < FORM ? (p / FORM) * SCAN : SCAN + ((p - FORM) / (1 - FORM)) * (1 - SCAN);
         },
         onMeasure: (all) => setM(all[0]),
         onFrame: setF,
@@ -165,7 +163,6 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
               </>
             )}
           </dl>
-          {h.note && <p className="lcs-note">{h.note}</p>}
           <div className="lc-scan" aria-hidden>
             <span>{f.phase === "morph" ? "Acquiring" : f.phase === "scan" ? "Scanning" : "Solid"}</span>
             <b ref={bar} style={{ transform: "scaleX(0)" }} />

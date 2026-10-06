@@ -24,14 +24,14 @@ export async function generateMetadata({ params }: PageProps<"/work/[slug]">): P
   };
 }
 
-// The machine each file opens on, where one exists. Rebuilt models (no CAD on file) carry their caveat.
-function machine(w: Work): { model: Spec; note?: string; apart?: { mm?: number }; estimated?: boolean } | null {
+// The machine each file opens on, where one exists.
+function machine(w: Work): { model: Spec; apart?: { mm?: number }; estimated?: boolean } | null {
   const glb = (name: string, finish: Spec["finish"]) => ({ model: { src: w.media[name].src, finish, parts: w.media[name].parts ?? 0 } });
   if (w.slug === "robotic-arm") return glb("hand-model", "aluminium");
   if (w.slug === "gravity-storage-drive") return { ...glb("geared-module", "anodized"), apart: { mm: w.media["geared-module"].explode } };
-  if (w.slug === "micro-vibration-canceller") return { model: { build: "canceller", finish: "own", parts: 14 }, note: "Model rebuilt from the renders and photos; sizes estimated", apart: {} };
-  if (w.slug === "tpu-weld-rig") return { model: { build: "weld-rig", finish: "own", parts: 0, view: { turn: 0.75, el: 0.62 } }, note: "Model rebuilt from my dimension notes, the printed channel files, the render and the photo; lengths estimated", apart: {}, estimated: true };
-  if (w.slug === "motorized-couch") return { model: { build: "couch", finish: "own", parts: 0, view: { turn: 0.6, el: 0.32 } }, note: "Model rebuilt from the two surviving photos and my description; sizes estimated", apart: {}, estimated: true };
+  if (w.slug === "micro-vibration-canceller") return { model: { build: "canceller", finish: "own", parts: 14 }, apart: {} };
+  if (w.slug === "tpu-weld-rig") return { model: { build: "weld-rig", finish: "own", parts: 0, view: { turn: 0.75, el: 0.62 } }, apart: {}, estimated: true };
+  if (w.slug === "motorized-couch") return { model: { build: "couch", finish: "own", parts: 0, view: { turn: 0.6, el: 0.32 } }, apart: {}, estimated: true };
   return null;
 }
 
@@ -53,7 +53,6 @@ export default async function ConsoleFile({ params }: PageProps<"/work/[slug]">)
     when: w.timeframe,
     line: w.line,
     award: w.award,
-    note: m?.note,
     model: m?.model,
     apart: m?.apart,
     estimated: m?.estimated,

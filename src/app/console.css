@@ -286,7 +286,7 @@
 }
 @media (prefers-reduced-motion: no-preference) {
   html:not([data-motion="off"]) .lcs-run {
-    height: 250svh;
+    height: 300svh;
   }
   html:not([data-motion="off"]) .lcs-run .lcs-pin {
     position: sticky;
@@ -323,14 +323,6 @@
   font-size: 0.66rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-}
-.lcs-note {
-  margin-top: 12px;
-  color: var(--dim);
-  font-size: 0.66rem;
-  line-height: 1.45;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 .lcs-bar {
   transform: scaleX(1);
@@ -719,7 +711,7 @@
    the machine stays in view. */
 @media (max-width: 860px) and (max-height: 560px) {
   .lc-tele { padding: 10px 14px; }
-  .lc-tele dl, .lc-tele > .lc-dim, .lcs-note { display: none; }
+  .lc-tele dl, .lc-tele > .lc-dim { display: none; }
   .lc-title { margin: 0 0 4px; font-size: 1.05rem; }
   .lc-scan { margin-top: 6px; }
   .lc-tele-open { margin-top: 6px; }

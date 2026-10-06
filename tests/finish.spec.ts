@@ -37,6 +37,22 @@ test('see-through images: ink inverts, cut-outs sit on the page with no box, and
     .toBe(true);
 });
 
+test('write-up images sit in line with the text, never floated beside it', async ({ page }) => {
+  for (const slug of ['micro-vibration-canceller', 'bolted-flange']) {
+    await page.goto(`/work/${slug}`);
+    const floats = await page.locator('main figure').evaluateAll((els) => els.map((e) => getComputedStyle(e).float));
+    expect(floats.length).toBeGreaterThan(0);
+    expect(new Set(floats), slug).toEqual(new Set(['none']));
+  }
+});
+
+test('no page says a model was rebuilt', async ({ page }) => {
+  for (const path of ['/', '/work/micro-vibration-canceller', '/work/tpu-weld-rig', '/work/motorized-couch']) {
+    await page.goto(path);
+    await expect(page.locator('body'), path).not.toContainText(/rebuilt|recreated/i);
+  }
+});
+
 test('the old lab addresses redirect to the real pages', async ({ request }) => {
   for (const [from, to] of [['/lab/b', '/'], ['/lab/b/work/tpu-weld-rig', '/work/tpu-weld-rig'], ['/lab/b/resume', '/resume']]) {
     const res = await request.get(from, { maxRedirects: 0 });

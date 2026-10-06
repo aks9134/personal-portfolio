@@ -14,11 +14,13 @@ export function buildCanceller() {
   root.name = "canceller";
   const parts: Part[] = [];
 
-  const alu = new THREE.MeshPhysicalMaterial({ color: 0xa9adb2, metalness: 0.8, roughness: 0.48 });
-  const aluDark = new THREE.MeshPhysicalMaterial({ color: 0x878b90, metalness: 0.8, roughness: 0.52 });
-  const steel = new THREE.MeshPhysicalMaterial({ color: 0x2b2d30, metalness: 0.8, roughness: 0.38 });
-  const black = new THREE.MeshPhysicalMaterial({ color: 0x141516, metalness: 0.3, roughness: 0.55 });
-  const pla = new THREE.MeshPhysicalMaterial({ color: 0x6a1a25, metalness: 0, roughness: 0.72 });
+  // Glossy enough to catch the key and the orange rim, like the hand's finish (matte, the lights barely showed on it).
+  const coat = { clearcoat: 0.3, clearcoatRoughness: 0.4 };
+  const alu = new THREE.MeshPhysicalMaterial({ color: 0xa9adb2, metalness: 0.7, roughness: 0.32, ...coat });
+  const aluDark = new THREE.MeshPhysicalMaterial({ color: 0x878b90, metalness: 0.7, roughness: 0.36, ...coat });
+  const steel = new THREE.MeshPhysicalMaterial({ color: 0x2b2d30, metalness: 0.8, roughness: 0.3, ...coat });
+  const black = new THREE.MeshPhysicalMaterial({ color: 0x141516, metalness: 0.3, roughness: 0.42, ...coat });
+  const pla = new THREE.MeshPhysicalMaterial({ color: 0x8a1f2e, metalness: 0, roughness: 0.45, clearcoat: 0.5, clearcoatRoughness: 0.35 });
   const brass = new THREE.MeshPhysicalMaterial({ color: 0xc8924a, metalness: 0.9, roughness: 0.3 });
   const ceramic = new THREE.MeshPhysicalMaterial({ color: 0xe9e4d8, metalness: 0, roughness: 0.5 });
   const coil = new THREE.MeshPhysicalMaterial({ color: 0xb06a2c, metalness: 0.85, roughness: 0.35 });

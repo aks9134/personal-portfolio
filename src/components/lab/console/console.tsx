@@ -36,9 +36,8 @@ export function Console({ targets, index, children }: { targets: Target[]; index
     let alive = true;
     let api: Awaited<ReturnType<typeof import("./scene").createConsole>> | null = null;
     let lastPct = -1;
-    let t0 = 0;
     const tl0 = segments(targets.map((x) => x.model.weight ?? 1));
-    const intro = tl0.to(0, SCAN + 0.02); // the first machine assembles by itself on arrival, up to just solid
+    const still = tl0.to(0, SCAN + 0.02); // reduced motion: the first machine shown just solid
     const start = async () => {
       setState("loading");
       const { createConsole } = await import("./scene");
@@ -47,12 +46,11 @@ export function Console({ targets, index, children }: { targets: Target[]; index
         canvas: canvas.current,
         models: targets.map((t) => t.model),
         motion: motionOk,
-        // Scroll drives it; on arrival the first machine plays to solid over 2.4 s (at once under reduced motion).
+        // Scroll alone drives it: the page opens on the scattered field, and scrolling back to the top returns to it.
+        // Reduced motion: nothing re-forms on its own, so the first machine is shown solid.
         progress: () => {
           const p = run.current ? sectionProgress(run.current) : 0;
-          if (!motionOk()) return Math.max(p, intro);
-          t0 ||= performance.now();
-          return Math.max(p, Math.min(1, (performance.now() - t0) / 2400) * intro);
+          return motionOk() ? p : Math.max(p, still);
         },
         onMeasure: setM,
         onFrame: setF,
@@ -129,7 +127,7 @@ export function Console({ targets, index, children }: { targets: Target[]; index
     apartMm.current = t.apartMm;
     jumpRef.current = toTarget;
   });
-  // Index: one smooth glide down (about a second) while the scene holds still, so the machines don't race past. Any
+  // Index: one quick glide down (at most 0.7 s) while the scene holds still, so the machines don't race past. Any
   // scroll of the visitor's own (wheel, touch, scrollbar) takes over at once. Reduced motion: an instant jump.
   const toIndex = (e: React.MouseEvent) => {
     const el = document.getElementById("index");
@@ -145,7 +143,7 @@ export function Console({ targets, index, children }: { targets: Target[]; index
     if (glide.current) return; // already gliding there
     const html = document.documentElement;
     const from = window.scrollY;
-    const dur = Math.min(1400, 700 + Math.abs(to - from) / 12);
+    const dur = Math.min(700, 350 + Math.abs(to - from) / 24);
     const t0 = performance.now();
     let last = from;
     let raf = 0;

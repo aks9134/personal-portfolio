@@ -64,7 +64,8 @@ export async function createConsole(o: {
   // whichever way the orbit has turned, the model faces the light (fixed lights left some models seen from the dark side).
   const rig = new THREE.Group();
   rig.add(key, rim);
-  scene.add(rig);
+  // A soft sky-and-floor fill, as v4's viewer had: tops read lighter than sides, so flat machined faces show their shape.
+  scene.add(rig, new THREE.HemisphereLight(0xe6ebf0, 0x202226, 0.35));
   const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 100);
 
   const grid = new THREE.GridHelper(40, 80, 0x1d2a33, 0x111a20);
@@ -73,133 +74,21 @@ export async function createConsole(o: {
   (grid.material as THREE.Material).opacity = 0.7;
   scene.add(grid);
 
-  // A model that fails to load (offline, a bad file) frees the GL context before the caller falls back to HTML.
-  const loaded = await Promise.all(o.models.map((m) => (m.build ? Promise.resolve(builders[m.build]()) : loadModel(m.src!)))).catch((err) => {
-    pmrem.dispose();
-    renderer.dispose();
-    renderer.forceContextLoss();
-    throw err;
-  });
-  const measures: Measure[] = [];
-  const clouds: { whole: Float32Array; apart: Float32Array }[] = [];
-  const clip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
-  const solids: { root: THREE.Group; mixer: THREE.AnimationMixer | null; action: THREE.AnimationAction | null; clip: THREE.AnimationClip | null; pose: number; broad: number; el: number; y0: number; y1: number; floor0: number; floor1: number; c0: THREE.Vector3; c1: THREE.Vector3; r0: number; r1: number }[] = [];
-
-  loaded.forEach((l, i) => {
-    const model = l.scene;
-    // Assemble first: the pipeline's GLBs rest in their exploded pose, and everything below (the envelope, the
-    // centring, the point cloud) must describe the assembled part.
-    const mixer = l.clip ? new THREE.AnimationMixer(model) : null;
-    const action = l.clip && mixer ? mixer.clipAction(l.clip).play() : null;
-    if (action) action.paused = true;
-    const poseAt = (p: number) => {
-      if (!action || !mixer || !l.clip) return;
-      action.time = l.clip.duration * 0.999 * p;
-      mixer.update(0);
-    };
-    poseAt(0);
-    model.updateMatrixWorld(true);
-    const raw = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
-    let meshes = 0;
-    model.traverse((n) => (meshes += (n as THREE.Mesh).isMesh ? 1 : 0));
-    measures.push({ x: raw.x, y: raw.y, z: raw.z, parts: o.models[i].parts || ("parts" in l ? (l.parts as number) : 0) || meshes });
-    const s = SIZE / Math.max(raw.x, raw.y, raw.z);
-    const holder = new THREE.Group();
-    holder.add(model);
-    model.scale.multiplyScalar(s);
-    model.position.sub(new THREE.Box3().setFromObject(model).getCenter(new THREE.Vector3()));
-    holder.updateMatrixWorld(true);
-    // Sample the surfaces: every mesh merged into one position-only geometry in holder space. Each mesh's index rides
-    // along in the colour channel, so every point knows which part it sits on.
-    const geos: THREE.BufferGeometry[] = [];
-    const meshList: THREE.Mesh[] = [];
-    model.traverse((n) => {
-      const m = n as THREE.Mesh;
-      if (!m.isMesh) return;
-      const p = m.geometry.attributes.position;
-      const arr = new Float32Array(p.count * 3);
-      for (let k = 0; k < p.count; k++) arr.set([p.getX(k), p.getY(k), p.getZ(k)], k * 3);
-      const g = new THREE.BufferGeometry();
-      g.setAttribute("position", new THREE.BufferAttribute(arr, 3));
-      g.setAttribute("color", new THREE.BufferAttribute(new Float32Array(p.count * 3).fill(meshList.length), 3));
-      if (m.geometry.index) g.setIndex(m.geometry.index.clone());
-      g.applyMatrix4(m.matrixWorld);
-      geos.push(g.index ? g.toNonIndexed() : g);
-      meshList.push(m);
-    });
-    const merged = mergeGeometries(geos);
-    const sampler = new MeshSurfaceSampler(new THREE.Mesh(merged)).build();
-    const pts = new Float32Array(N * 3);
-    const owner = new Uint16Array(N);
-    const v = new THREE.Vector3();
-    const tag = new THREE.Color();
-    for (let k = 0; k < N; k++) {
-      sampler.sample(v, undefined, tag);
-      pts.set([v.x, v.y, v.z], k * 3);
-      owner[k] = Math.round(tag.r);
-    }
-    merged.dispose();
-    geos.forEach((g) => g.dispose());
-
-    if (o.models[i].finish !== "own") applyFinish(THREE, model, o.models[i].finish as "aluminium" | "anodized", !coarse);
-    model.traverse((n) => {
-      const m = n as THREE.Mesh;
-      if (!m.isMesh) return;
-      const mat = (m.material as THREE.Material).clone();
-      mat.clippingPlanes = [clip];
-      m.material = mat;
-    });
-    scene.add(holder);
-    // Framing: the bounding sphere assembled and fully apart. The holder is shifted by the interpolated centre each
-    // frame, so an assembly comes apart about the middle of the view instead of drifting.
-    const box = () => {
-      holder.updateMatrixWorld(true);
-      return new THREE.Box3().setFromObject(model);
-    };
-    const sphere = () => box().getBoundingSphere(new THREE.Sphere());
-    // The scan sweeps the part's own height (a flat part would otherwise resolve in an instant mid-sweep), and the floor
-    // sits just under its lowest point, assembled or apart.
-    const b0 = box();
-    const s0 = sphere();
-    const where = () => meshList.map((m) => new THREE.Vector3().setFromMatrixPosition(m.matrixWorld));
-    const at0 = where();
-    poseAt(1);
-    const s1 = l.clip ? sphere() : s0;
-    const floor1 = l.clip ? box().min.y - s1.center.y : b0.min.y - s0.center.y;
-    // The cloud twice, in the solid's own frame: assembled, and fully apart (each point moved with its part; the
-    // explode clips only translate parts). A burst out of an assembly then starts from the pose the solid left in.
-    const apart = l.clip ? new Float32Array(N * 3) : pts;
-    if (l.clip) {
-      const d = where().map((p, k) => p.sub(at0[k]).sub(s1.center));
-      for (let k = 0; k < N; k++) {
-        const off = d[owner[k]];
-        apart.set([pts[k * 3] + off.x, pts[k * 3 + 1] + off.y, pts[k * 3 + 2] + off.z], k * 3);
-      }
-    }
-    for (let k = 0; k < N * 3; k++) pts[k] -= s0.center.getComponent(k % 3);
-    clouds.push({ whole: pts, apart });
-    poseAt(0);
-    // Side-on azimuth: the camera looks across the long horizontal axis, where an explode reads widest.
-    solids.push({ root: holder, mixer, action, clip: l.clip, pose: -1, broad: (raw.x >= raw.z ? 0 : Math.PI / 2) + (o.models[i].view?.turn ?? 0), el: o.models[i].view?.el ?? 0.3, y0: b0.min.y - s0.center.y, y1: b0.max.y - s0.center.y, floor0: b0.min.y - s0.center.y, floor1, c0: s0.center, c1: s1.center, r0: s0.radius, r1: s1.radius });
-  });
-  o.onMeasure(measures);
-
-  // The cloud: every model's points as its own attribute, plus a scattered starting field.
+  // The cloud: a scattered starting field, plus every model's points as its own attribute once they are sampled. The
+  // field fills the view around the middle of the stage (inside the camera's orbit), so the page opens on it.
   const start = new Float32Array(N * 3);
   for (let k = 0; k < N; k++) {
-    const r = 6 + Math.random() * 6;
+    const r = 1.4 + Math.random() ** 0.8 * 2.8;
     const t = Math.random() * Math.PI * 2;
-    start.set([Math.cos(t) * r, (Math.random() - 0.5) * 8, Math.sin(t) * r], k * 3);
+    const u = Math.random() * 2 - 1;
+    const q = Math.sqrt(1 - u * u);
+    start.set([Math.cos(t) * q * r, u * r * 0.55, Math.sin(t) * q * r], k * 3);
   }
   const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.BufferAttribute(start, 3));
-  for (let k = 0; k < MAX; k++) {
-    const c = clouds[k] ?? clouds[clouds.length - 1];
-    const whole = new THREE.BufferAttribute(c.whole, 3);
-    geo.setAttribute(`c${k}`, whole);
-    // A part with no explode shares its one buffer for both shapes.
-    geo.setAttribute(`e${k}`, c.apart === c.whole ? whole : new THREE.BufferAttribute(c.apart, 3));
-  }
+  const field = new THREE.BufferAttribute(start, 3);
+  geo.setAttribute("position", field);
+  // Until the models arrive, every model slot holds the field itself.
+  for (let k = 0; k < MAX; k++) geo.setAttribute(`c${k}`, field).setAttribute(`e${k}`, field);
   const seed = new Float32Array(N);
   for (let k = 0; k < N; k++) seed[k] = Math.random();
   geo.setAttribute("seed", new THREE.BufferAttribute(seed, 1));
@@ -264,7 +153,7 @@ export async function createConsole(o: {
   cloud.frustumCulled = false;
   scene.add(cloud);
 
-  const ring = new THREE.Mesh(new THREE.RingGeometry(1.95, 2.0, 128), new THREE.MeshBasicMaterial({ color: new THREE.Color(0xff6a2b).multiplyScalar(3), side: THREE.DoubleSide, transparent: true, opacity: 0.9, toneMapped: false }));
+  const ring = new THREE.Mesh(new THREE.RingGeometry(1.95, 2.0, 128), new THREE.MeshBasicMaterial({ color: new THREE.Color(0xff6a2b).multiplyScalar(3), side: THREE.DoubleSide, transparent: true, opacity: 0, toneMapped: false }));
   ring.rotation.x = -Math.PI / 2;
   scene.add(ring);
 
@@ -295,15 +184,176 @@ export async function createConsole(o: {
   ro.observe(o.canvas);
   resize();
 
-  // Compile every solid's shaders before the first frame, so no project stalls the first time it appears.
-  camera.position.set(0, 2.6, 7.4);
-  camera.lookAt(0, 0, 0);
-  await renderer.compileAsync(scene, camera).catch(() => {});
-  // Then draw one frame with everything showing: that uploads every model's geometry to the GPU now, instead of on
-  // the frame where each project first appears (measured: 80-220 ms hitches without it).
-  clip.constant = 1e4;
-  composer.render();
-  solids.forEach((s) => (s.root.visible = false));
+  // While the models load and are sampled, the field is already on screen, turning slowly with the orbit; the scroll
+  // timeline takes over from the same angle once everything is ready.
+  let visible = true; // off-screen (the page scrolled past the run) the loops idle instead of rendering
+  let clock = 0;
+  let yaw = 0;
+  let last = performance.now();
+  const orbitCam = (a: number, el: number, d: number) => {
+    camera.position.set(Math.sin(a) * Math.cos(el) * d, Math.sin(el) * d, Math.cos(a) * Math.cos(el) * d);
+    camera.lookAt(0, 0, 0);
+    // The room's reflections turn with the camera too, so a flat metal top never mirrors a bright panel into the lens
+    // at some angle and not others (tested: this turn keeps every panel out of the flat tops' reflection).
+    rig.rotation.y = a;
+    scene.environmentRotation.y = a;
+  };
+  let raf = 0;
+  const idle = (now: number) => {
+    raf = requestAnimationFrame(idle);
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (!visible || !o.canvas.isConnected) return;
+    if (o.motion()) {
+      clock += dt;
+      yaw += dt * 0.12;
+    }
+    uniforms.uTime.value = clock;
+    orbitCam(yaw + 0.6, 0.3, 7.4);
+    composer.render();
+  };
+  raf = requestAnimationFrame(idle);
+  const nextTask = () => new Promise((r) => setTimeout(r, 0));
+
+  const measures: Measure[] = [];
+  const clouds: { whole: Float32Array; apart: Float32Array }[] = [];
+  const clip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+  const solids: { root: THREE.Group; mixer: THREE.AnimationMixer | null; action: THREE.AnimationAction | null; clip: THREE.AnimationClip | null; pose: number; broad: number; el: number; y0: number; y1: number; floor0: number; floor1: number; c0: THREE.Vector3; c1: THREE.Vector3; r0: number; r1: number }[] = [];
+
+  // A model that fails to load (offline, a bad file) or to sample stops the field and frees the GL context before the
+  // caller falls back to HTML.
+  try {
+    const loaded = await Promise.all(o.models.map((m) => (m.build ? Promise.resolve(builders[m.build]()) : loadModel(m.src!))));
+
+    for (const [i, l] of loaded.entries()) {
+      const model = l.scene;
+      // Assemble first: the pipeline's GLBs rest in their exploded pose, and everything below (the envelope, the
+      // centring, the point cloud) must describe the assembled part.
+      const mixer = l.clip ? new THREE.AnimationMixer(model) : null;
+      const action = l.clip && mixer ? mixer.clipAction(l.clip).play() : null;
+      if (action) action.paused = true;
+      const poseAt = (p: number) => {
+        if (!action || !mixer || !l.clip) return;
+        action.time = l.clip.duration * 0.999 * p;
+        mixer.update(0);
+      };
+      poseAt(0);
+      model.updateMatrixWorld(true);
+      const raw = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
+      let meshes = 0;
+      model.traverse((n) => (meshes += (n as THREE.Mesh).isMesh ? 1 : 0));
+      measures.push({ x: raw.x, y: raw.y, z: raw.z, parts: o.models[i].parts || ("parts" in l ? (l.parts as number) : 0) || meshes });
+      const s = SIZE / Math.max(raw.x, raw.y, raw.z);
+      const holder = new THREE.Group();
+      holder.add(model);
+      model.scale.multiplyScalar(s);
+      model.position.sub(new THREE.Box3().setFromObject(model).getCenter(new THREE.Vector3()));
+      holder.updateMatrixWorld(true);
+      // Sample the surfaces: every mesh merged into one position-only geometry in holder space. Each mesh's index rides
+      // along in the colour channel, so every point knows which part it sits on.
+      const geos: THREE.BufferGeometry[] = [];
+      const meshList: THREE.Mesh[] = [];
+      model.traverse((n) => {
+        const m = n as THREE.Mesh;
+        if (!m.isMesh) return;
+        const p = m.geometry.attributes.position;
+        const arr = new Float32Array(p.count * 3);
+        for (let k = 0; k < p.count; k++) arr.set([p.getX(k), p.getY(k), p.getZ(k)], k * 3);
+        const g = new THREE.BufferGeometry();
+        g.setAttribute("position", new THREE.BufferAttribute(arr, 3));
+        g.setAttribute("color", new THREE.BufferAttribute(new Float32Array(p.count * 3).fill(meshList.length), 3));
+        if (m.geometry.index) g.setIndex(m.geometry.index.clone());
+        g.applyMatrix4(m.matrixWorld);
+        geos.push(g.index ? g.toNonIndexed() : g);
+        meshList.push(m);
+      });
+      const merged = mergeGeometries(geos);
+      const sampler = new MeshSurfaceSampler(new THREE.Mesh(merged)).build();
+      const pts = new Float32Array(N * 3);
+      const owner = new Uint16Array(N);
+      const v = new THREE.Vector3();
+      const tag = new THREE.Color();
+      for (let k = 0; k < N; k++) {
+        sampler.sample(v, undefined, tag);
+        pts.set([v.x, v.y, v.z], k * 3);
+        owner[k] = Math.round(tag.r);
+      }
+      merged.dispose();
+      geos.forEach((g) => g.dispose());
+
+      if (o.models[i].finish !== "own") applyFinish(THREE, model, o.models[i].finish as "aluminium" | "anodized", !coarse);
+      model.traverse((n) => {
+        const m = n as THREE.Mesh;
+        if (!m.isMesh) return;
+        const mat = (m.material as THREE.Material).clone();
+        mat.clippingPlanes = [clip];
+        m.material = mat;
+      });
+      holder.visible = false; // the field keeps the stage until the timeline starts
+      scene.add(holder);
+      // Framing: the bounding sphere assembled and fully apart. The holder is shifted by the interpolated centre each
+      // frame, so an assembly comes apart about the middle of the view instead of drifting.
+      const box = () => {
+        holder.updateMatrixWorld(true);
+        return new THREE.Box3().setFromObject(model);
+      };
+      const sphere = () => box().getBoundingSphere(new THREE.Sphere());
+      // The scan sweeps the part's own height (a flat part would otherwise resolve in an instant mid-sweep), and the floor
+      // sits just under its lowest point, assembled or apart.
+      const b0 = box();
+      const s0 = sphere();
+      const where = () => meshList.map((m) => new THREE.Vector3().setFromMatrixPosition(m.matrixWorld));
+      const at0 = where();
+      poseAt(1);
+      const s1 = l.clip ? sphere() : s0;
+      const floor1 = l.clip ? box().min.y - s1.center.y : b0.min.y - s0.center.y;
+      // The cloud twice, in the solid's own frame: assembled, and fully apart (each point moved with its part; the
+      // explode clips only translate parts). A burst out of an assembly then starts from the pose the solid left in.
+      const apart = l.clip ? new Float32Array(N * 3) : pts;
+      if (l.clip) {
+        const d = where().map((p, k) => p.sub(at0[k]).sub(s1.center));
+        for (let k = 0; k < N; k++) {
+          const off = d[owner[k]];
+          apart.set([pts[k * 3] + off.x, pts[k * 3 + 1] + off.y, pts[k * 3 + 2] + off.z], k * 3);
+        }
+      }
+      for (let k = 0; k < N * 3; k++) pts[k] -= s0.center.getComponent(k % 3);
+      clouds.push({ whole: pts, apart });
+      poseAt(0);
+      // Side-on azimuth: the camera looks across the long horizontal axis, where an explode reads widest.
+      solids.push({ root: holder, mixer, action, clip: l.clip, pose: -1, broad: (raw.x >= raw.z ? 0 : Math.PI / 2) + (o.models[i].view?.turn ?? 0), el: o.models[i].view?.el ?? 0.3, y0: b0.min.y - s0.center.y, y1: b0.max.y - s0.center.y, floor0: b0.min.y - s0.center.y, floor1, c0: s0.center, c1: s1.center, r0: s0.radius, r1: s1.radius });
+      await nextTask(); // one model at a time, so the field keeps turning while the next is sampled
+    }
+    o.onMeasure(measures);
+
+    for (let k = 0; k < MAX; k++) {
+      const c = clouds[k] ?? clouds[clouds.length - 1];
+      const whole = new THREE.BufferAttribute(c.whole, 3);
+      geo.setAttribute(`c${k}`, whole);
+      // A part with no explode shares its one buffer for both shapes.
+      geo.setAttribute(`e${k}`, c.apart === c.whole ? whole : new THREE.BufferAttribute(c.apart, 3));
+    }
+
+    // Compile every solid's shaders before the timeline starts, so no project stalls the first time it appears. The
+    // field holds its last frame meanwhile, so no solid flashes on screen.
+    cancelAnimationFrame(raf);
+    solids.forEach((s) => (s.root.visible = true));
+    await renderer.compileAsync(scene, camera).catch(() => {});
+    // Then draw one frame with everything showing, off screen: that uploads every model's geometry to the GPU now,
+    // instead of on the frame where each project first appears (measured: 80-220 ms hitches without it).
+    clip.constant = 1e4;
+    renderer.setRenderTarget(target);
+    renderer.render(scene, camera);
+    renderer.setRenderTarget(null);
+    solids.forEach((s) => (s.root.visible = false));
+  } catch (err) {
+    cancelAnimationFrame(raf);
+    ro.disconnect();
+    pmrem.dispose();
+    renderer.dispose();
+    renderer.forceContextLoss();
+    throw err;
+  }
 
   // Scroll timeline: one segment per model, weighted (an assembly that comes apart gets a longer one). Within a
   // segment: 0-MORPH the cloud re-forms; MORPH-SCAN the scan resolves it; after that it is solid, and an assembly
@@ -329,12 +379,8 @@ export async function createConsole(o: {
   let heldAt = 0;
   const JUMP_MORPH = 1.1; // seconds re-forming, then the scan
   const JUMP = 1.8;
-  let raf = 0;
-  let visible = true; // off-screen (the page scrolled past the run) the loop idles instead of rendering
-  let clock = 0;
-  let last = performance.now();
-  let yaw = 0;
   let dist = 7.4;
+  let turn = { of: -1, k: 0, yaw0: 0, side: 0, drift: 0 }; // the side-on lean: which machine, which side, how far (0-0.85)
   // The pointer leans the camera a little (fine pointers only), like turning your head at a bench.
   const lean = { x: 0, y: 0, tx: 0, ty: 0 };
   const onPointer = (e: PointerEvent) => {
@@ -342,6 +388,7 @@ export async function createConsole(o: {
     lean.ty = (e.clientY / innerHeight) * 2 - 1;
   };
   if (matchMedia("(pointer: fine)").matches) addEventListener("pointermove", onPointer, { passive: true });
+  last = performance.now();
   const tick = (now: number) => {
     raf = requestAnimationFrame(tick);
     if (!visible) {
@@ -415,7 +462,8 @@ export async function createConsole(o: {
     const pose = s && s.pose > 0 ? s.pose : 0;
     // Keep the active assembly centred: shift it by its interpolated centre as the parts spread.
     if (s) s.root.position.copy(s.c0).lerp(s.c1, pose).negate();
-    grid.position.y = s ? s.floor0 + (s.floor1 - s.floor0) * pose - 0.06 : -SIZE * 0.42; // the floor stays under the lowest part
+    const floor = s ? s.floor0 + (s.floor1 - s.floor0) * pose - 0.06 : -SIZE * 0.42; // the floor stays under the lowest part
+    grid.position.y = moving ? grid.position.y + (floor - grid.position.y) * (1 - Math.exp(-dt * 8)) : floor;
     // Fit: the camera distance that holds the current bounding sphere inside the clear part of the screen (between
     // the side panels on wide screens, above the readout on narrow ones), eased so a change of model glides.
     const r = s ? s.r0 + (s.r1 - s.r0) * pose : SIZE * 0.6;
@@ -428,18 +476,23 @@ export async function createConsole(o: {
     (scene.fog as THREE.Fog).near = dist + 1.5;
     (scene.fog as THREE.Fog).far = dist + 14;
     // Orbit with scroll. While an assembly is solid the camera leans side-on to its long axis (the nearer side), so
-    // the parts spread across the frame, but it keeps turning with the scroll the whole time.
+    // the parts spread across the frame, but it keeps turning with the scroll the whole time. The side is picked once,
+    // as the lean begins, and kept until it has let go: picked afresh each frame, it flipped half a turn whenever the
+    // orbit passed the midpoint between the two sides, late in an explode. Re-forming into the next machine, the lean
+    // lets go with the scroll, so one machine's last frame meets the next one's first.
     const orbit = yaw + cam * Math.PI * 1.5 + 0.6;
-    const side = s?.clip && !jump ? smooth(solidT / 0.25) * 0.85 : 0;
-    const near = s ? s.broad + Math.PI * Math.round((orbit - s.broad) / Math.PI) : orbit;
-    const a = orbit + (near + (solidT - 0.5) * 0.8 - orbit) * side - lean.x * 0.14;
-    const el = 0.3 + ((s?.el ?? 0.3) - 0.3) * side + lean.y * 0.07; // steady (the model never sinks or rises), give or take the lean
-    camera.position.set(Math.sin(a) * Math.cos(el) * dist, Math.sin(el) * dist, Math.cos(a) * Math.cos(el) * dist);
-    camera.lookAt(0, 0, 0);
-    // The room's reflections turn with the camera too, so a flat metal top never mirrors a bright panel into the lens
-    // at some angle and not others (tested: this turn keeps every panel out of the flat tops' reflection).
-    rig.rotation.y = a;
-    scene.environmentRotation.y = a;
+    const want = s?.clip && !jump && f >= SCAN ? smooth(solidT / 0.25) * 0.85 : 0;
+    if (want > 0 && turn.side < 0.002) turn = { of: i, k: Math.round((orbit - s!.broad) / Math.PI), yaw0: yaw, side: turn.side, drift: 0 };
+    // The drift across the solid stretch, held wherever this is not that machine's own solid stretch (a jump, the next
+    // machine), so leaving it never moves the camera at once.
+    if (turn.of === i && !jump) turn.drift = (solidT - 0.5) * 0.8;
+    const goalSide = turn.of === i ? want : !jump && turn.of >= 0 && turn.of === i - 1 && f < MORPH ? 0.85 * (1 - smooth(f / MORPH)) : 0;
+    turn.side = moving ? turn.side + (goalSide - turn.side) * (1 - Math.exp(-dt * 6)) : goalSide;
+    const ls = solids[turn.of];
+    const near = ls ? ls.broad + Math.PI * turn.k + (yaw - turn.yaw0) : orbit; // the time turn carries on while leaning
+    const a = orbit + (near + turn.drift - orbit) * turn.side - lean.x * 0.14;
+    const el = 0.3 + ((ls?.el ?? 0.3) - 0.3) * turn.side + lean.y * 0.07; // steady (the model never sinks or rises), give or take the lean
+    orbitCam(a, el, dist);
     const phase = f < MORPH ? "morph" : f < SCAN ? "scan" : "solid";
     if (`${i}${phase}` !== shownPhase) {
       shownPhase = `${i}${phase}`;

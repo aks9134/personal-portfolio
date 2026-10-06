@@ -70,18 +70,38 @@ for (const how of ['OS setting', 'site switch'] as const)
     await expect.poll(() => title(page), { timeout: 10_000 }).not.toBe('Robotic hand');
   });
 
-test('home: the first machine assembles on arrival without scrolling; at once under reduced motion', async ({ page, browser }) => {
+/** At the top the scattered field shows and stays; a scroll forms the machine; back at the top it is the field again. */
+async function scrollForms(page: Page) {
+  const phase = page.locator('.lc-scan span').first();
+  await page.waitForTimeout(3000);
+  await expect(phase, 'nothing forms by itself').toHaveText('Acquiring');
+  await page.mouse.move(720, 450);
+  for (let i = 0; i < 4; i++) await page.mouse.wheel(0, 300);
+  await expect(phase).toHaveText('Solid', { timeout: 8_000 });
+  for (let i = 0; i < 6; i++) await page.mouse.wheel(0, -300);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+  await expect(phase, 'back at the top, the field again').toHaveText('Acquiring', { timeout: 8_000 });
+}
+
+test('home: the page opens on the scattered field and scroll alone forms the first machine; solid at once under reduced motion', async ({ page, browser }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
   await live(page);
-  await expect(page.locator('.lc-scan span').first()).toHaveText('Solid', { timeout: 8_000 });
-  await expect(page.locator('.lc-brief')).toHaveClass(/is-on/);
-  expect(await page.evaluate(() => scrollY)).toBe(0);
+  await expect(page.locator('.lc-brief')).not.toHaveClass(/is-on/);
+  await scrollForms(page);
+  expect(await title(page)).toBe('Robotic hand');
   const ctx = await browser.newContext({ reducedMotion: 'reduce', viewport: { width: 1440, height: 900 } });
   const reduced = await ctx.newPage();
   await reduced.goto('/', { waitUntil: 'networkidle' });
   await live(reduced);
   await expect(reduced.locator('.lc-scan span').first()).toHaveText('Solid', { timeout: 1_500 });
   await ctx.close();
+});
+
+test('project file: opens on the scattered field, the scroll forms its machine, and the top returns to the field', async ({ page }) => {
+  await page.goto('/work/micro-vibration-canceller', { waitUntil: 'networkidle' });
+  // The scene has loaded and measured its model before anything is judged.
+  await expect(page.locator('.lc-tele')).not.toContainText('measuring', { timeout: 60_000 });
+  await scrollForms(page);
 });
 
 test('home without WebGL: says so, shows the brief, and leaves no empty scroll run', async ({ page }) => {
@@ -136,7 +156,7 @@ test('home: Index glides down without racing the machines; reduced motion lands 
   await page.waitForTimeout(2200);
   const s = await page.evaluate(() => (window as unknown as { __s: [number, number, string | null][] }).__s);
   const moving = s.filter((x, i) => i > 0 && x[1] !== s[i - 1][1]);
-  expect(moving.at(-1)![0] - moving[0][0], 'a glide, not a jump').toBeGreaterThan(600);
+  expect(moving.at(-1)![0] - moving[0][0], 'a glide, not a jump (at most 0.7 s since 2026-10-06)').toBeGreaterThan(300);
   expect(s.some((x, i) => i > 0 && x[1] < s[i - 1][1] - 1), 'never backwards').toBe(false);
   expect(new Set(s.filter((x) => x[1] < s.at(-1)![1] - 2).map((x) => x[2])).size, 'the console holds one machine').toBe(1);
   await expect.poll(() => page.evaluate(() => Math.abs(document.getElementById('index')!.getBoundingClientRect().top))).toBeLessThan(4);
