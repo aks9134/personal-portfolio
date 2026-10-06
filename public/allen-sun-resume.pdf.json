@@ -4,7 +4,8 @@
     "src/lib/site.ts",
     "src/app/resume/page.tsx",
     "src/app/globals.css",
+    "src/app/console.css",
     "src/app/layout.tsx"
   ],
-  "hash": "b4a1227f6a5f"
+  "hash": "c918e79b3b88"
 }

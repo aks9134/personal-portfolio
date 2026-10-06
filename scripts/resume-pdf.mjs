@@ -7,8 +7,8 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import { chromium } from '@playwright/test';
 
-// layout.tsx picks the fonts the PDF is set in, so a font change counts as a resume change too.
-const SOURCES = ['src/lib/resume.ts', 'src/lib/site.ts', 'src/app/resume/page.tsx', 'src/app/globals.css', 'src/app/layout.tsx'];
+// layout.tsx picks the fonts the PDF is set in and console.css holds its print styles, so changes there count too.
+const SOURCES = ['src/lib/resume.ts', 'src/lib/site.ts', 'src/app/resume/page.tsx', 'src/app/globals.css', 'src/app/console.css', 'src/app/layout.tsx'];
 const OUT = 'public/allen-sun-resume.pdf';
 const hash = createHash('sha1').update(SOURCES.map((f) => fs.readFileSync(f, 'utf8').replace(/\r\n/g, '\n')).join('\0')).digest('hex').slice(0, 12);
 
