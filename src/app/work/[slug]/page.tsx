@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Clips, Figure, Model, Strip, Video } from "@/components/figure";
-import { MediaImage } from "@/components/media-image";
+import { CaseScan, type CaseHead } from "@/components/lab/console/case-scan";
+import type { Spec } from "@/components/lab/console/scene";
 import { PartsFigure } from "@/components/parts-figure";
 import { SectionIndex } from "@/components/section-index";
 import { preview, projectImage } from "@/lib/og";
 import { site } from "@/lib/site";
-import { allWork, getWork, still, workSlugs } from "@/lib/work";
+import { allWork, getWork, still, workSlugs, type Work } from "@/lib/work";
 
 export const dynamicParams = false;
 
@@ -23,11 +24,41 @@ export async function generateMetadata({ params }: PageProps<"/work/[slug]">): P
   };
 }
 
-export default async function WorkPage({ params }: PageProps<"/work/[slug]">) {
+// The machine each file opens on, where one exists. Rebuilt models (no CAD on file) carry their caveat.
+function machine(w: Work): { model: Spec; note?: string; apart?: { mm?: number }; estimated?: boolean } | null {
+  const glb = (name: string, finish: Spec["finish"]) => ({ model: { src: w.media[name].src, finish, parts: w.media[name].parts ?? 0 } });
+  if (w.slug === "robotic-arm") return glb("hand-model", "aluminium");
+  if (w.slug === "gravity-storage-drive") return { ...glb("geared-module", "anodized"), apart: { mm: w.media["geared-module"].explode } };
+  if (w.slug === "micro-vibration-canceller") return { model: { build: "canceller", finish: "own", parts: 14 }, note: "Model rebuilt from the renders and photos; sizes estimated", apart: {} };
+  if (w.slug === "tpu-weld-rig") return { model: { build: "weld-rig", finish: "own", parts: 0, view: { turn: 0.75, el: 0.62 } }, note: "Model rebuilt from my dimension notes, the printed channel files, the render and the photo; lengths estimated", apart: {}, estimated: true };
+  if (w.slug === "motorized-couch") return { model: { build: "couch", finish: "own", parts: 0, view: { turn: 0.6, el: 0.32 } }, note: "Model rebuilt from the two surviving photos and my description; sizes estimated", apart: {}, estimated: true };
+  return null;
+}
+
+// A project file in the console's language: the scan opener, the file's facts as a readout, then the write-up at
+// reading width with the section list as a target list.
+export default async function ConsoleFile({ params }: PageProps<"/work/[slug]">) {
   const { slug } = await params;
   const w = await getWork(slug);
   const all = await allWork();
-  const next = all[(all.findIndex((x) => x.slug === slug) + 1) % all.length];
+  const at = all.findIndex((x) => x.slug === slug);
+  const next = all[(at + 1) % all.length];
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const m = machine(w);
+  const head: CaseHead = {
+    code: `${pad(at + 1)} / ${pad(all.length)}`,
+    title: w.title,
+    klass: `${w.context}, ${w.year}`,
+    status: w.status,
+    when: w.timeframe,
+    line: w.line,
+    award: w.award,
+    note: m?.note,
+    model: m?.model,
+    apart: m?.apart,
+    estimated: m?.estimated,
+    still: still(w.media[w.hero]),
+  };
   const facts = [
     ["My part", w.role],
     ["Team", w.team],
@@ -36,72 +67,55 @@ export default async function WorkPage({ params }: PageProps<"/work/[slug]">) {
   ];
 
   return (
-    <main id="main" className="mx-auto max-w-[1600px] px-4 md:px-8">
-      {/* Title block: what it is, where and when, what state it reached. The thing itself follows at once. */}
-      <header className={`grid gap-10 pt-12 md:pt-16 ${w.figure ? "" : "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end"}`}>
-        <div>
-          <h1 className="display text-[clamp(3.75rem,10vw,9.5rem)]" style={{ viewTransitionName: `t-${w.slug}` }}>
-            {w.title}
-          </h1>
-          <p className="readout mt-5 text-muted">
-            {w.context}, {w.year}
-          </p>
-          <p className="readout mt-2">
-            Status <span className="val">{w.status}</span>
-          </p>
-          {w.award && <p className="readout val mt-2">{w.award}</p>}
-          <p className="mt-8 max-w-[60ch] text-xl leading-snug">{w.summary}</p>
-        </div>
-        {!w.figure && (
-          <div className="bg-bg-2 p-4">
-            <MediaImage m={still(w.media[w.hero])} priority sizes="(min-width: 1024px) 45vw, 100vw" imgClassName="mx-auto max-h-[70svh] w-auto object-contain" className="mx-auto w-fit" />
+    <main id="main" className="lab-console lc-case">
+      <CaseScan h={head} />
+
+      <div className="lcc-wrap">
+        <p className="lcc-summary">{w.summary}</p>
+        <dl className="lcc-facts">
+          {facts.map(([k, v]) => (
+            <div key={k}>
+              <dt className="lc-dim">{k}</dt>
+              <dd>{v}</dd>
+            </div>
+          ))}
+        </dl>
+
+        {w.figure && (
+          <div className="mt-16">
+            <PartsFigure m={w.media[w.figure.name]} parts={w.figure.parts} />
           </div>
         )}
-      </header>
 
-      <dl className="mt-14 grid border-t border-rule-strong sm:grid-cols-2 lg:grid-cols-4">
-        {facts.map(([k, v]) => (
-          <div key={k} className="border-b border-rule py-5 sm:pr-8 lg:border-b-0">
-            <dt className="readout text-muted">{k}</dt>
-            <dd className="mt-2 leading-snug">{v}</dd>
-          </div>
-        ))}
-      </dl>
-
-      {w.figure && (
-        <div className="mt-14">
-          <PartsFigure m={w.media[w.figure.name]} parts={w.figure.parts} priority />
+        <div className="lcc-grid">
+          <article className="case-body">
+            <w.Body
+              components={{
+                Figure: (p: Omit<Parameters<typeof Figure>[0], "media">) => <Figure media={w.media} {...p} />,
+                Strip: (p: Omit<Parameters<typeof Strip>[0], "media">) => <Strip media={w.media} {...p} />,
+                Model: (p: Omit<Parameters<typeof Model>[0], "media">) => <Model media={w.media} {...p} />,
+                Video: (p: Omit<Parameters<typeof Video>[0], "media">) => <Video media={w.media} {...p} />,
+                Clips: (p: Omit<Parameters<typeof Clips>[0], "media">) => <Clips media={w.media} {...p} />,
+              }}
+            />
+            <p className="clear-both mt-20 text-lg">
+              Questions about this project? Email <a href={`mailto:${site.email}`} className="link">{site.email}</a>.
+            </p>
+          </article>
+          <aside className="hidden xl:block">
+            <SectionIndex within=".case-body" sections={w.sections} />
+          </aside>
         </div>
-      )}
-
-      <div className="mt-6 xl:grid xl:grid-cols-[minmax(0,1fr)_15rem] xl:gap-16">
-        <article className="case-body">
-          <w.Body
-            components={{
-              Figure: (p: Omit<Parameters<typeof Figure>[0], "media">) => <Figure media={w.media} {...p} />,
-              Strip: (p: Omit<Parameters<typeof Strip>[0], "media">) => <Strip media={w.media} {...p} />,
-              Model: (p: Omit<Parameters<typeof Model>[0], "media">) => <Model media={w.media} {...p} />,
-              Video: (p: Omit<Parameters<typeof Video>[0], "media">) => <Video media={w.media} {...p} />,
-              Clips: (p: Omit<Parameters<typeof Clips>[0], "media">) => <Clips media={w.media} {...p} />,
-            }}
-          />
-          <p className="clear-both mt-20 text-lg">
-            Questions about this project? Email <a href={`mailto:${site.email}`} className="link">{site.email}</a>.
-          </p>
-        </article>
-        <aside className="hidden xl:block">
-          <SectionIndex within=".case-body" sections={w.sections} />
-        </aside>
       </div>
 
-      <nav aria-label="Next project" className="mt-24 border-t border-rule-strong pt-8">
-        <a href={`/work/${next.slug}`} className="group block">
-          <span className="readout text-muted">Next project</span>
-          <span className="display mt-3 block text-[clamp(3rem,8vw,7.5rem)] transition-colors duration-150 group-hover:text-accent" style={{ viewTransitionName: `t-${next.slug}` }}>
-            {next.title}
-          </span>
-          <span className="mt-2 block max-w-[60ch] text-muted">{next.line}</span>
+      <nav aria-label="Next file" className="lcc-next">
+        <a href={`/work/${next.slug}`}>
+          <span className="lc-dim">Next file, {pad(((at + 1) % all.length) + 1)}</span>
+          <b>{next.title}</b>
+          <span className="lcc-next-line">{next.line}</span>
         </a>
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a href="/" className="lc-dim lcc-back">Back to the console</a>
       </nav>
     </main>
   );

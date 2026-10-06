@@ -2,10 +2,11 @@
 
 import { useSyncExternalStore } from "react";
 
-// The page's switches live as attributes on <html> (data-theme, data-motion, data-sound), applied before paint by
+// The page's switches live as attributes on <html> (data-motion, data-sound), applied before paint by
 // the layout's inline script and changed by the Lights / Motion / Sound switches. This is the one place that
 // watches them: components subscribe here instead of each keeping its own MutationObserver.
-export type Pref = "theme" | "motion" | "sound";
+// v5 is dark only: the v4 Lights switch (data-theme) is gone, and a saved light preference is ignored.
+export type Pref = "motion" | "sound";
 
 const listeners = new Set<() => void>();
 let observer: MutationObserver | null = null;
@@ -15,7 +16,7 @@ export function subscribe(cb: () => void) {
   listeners.add(cb);
   if (!observer && typeof document !== "undefined") {
     observer = new MutationObserver(() => listeners.forEach((l) => l()));
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-motion", "data-sound"] });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-motion", "data-sound"] });
     reducedQuery?.addEventListener("change", () => listeners.forEach((l) => l()));
   }
   return () => {
@@ -23,14 +24,14 @@ export function subscribe(cb: () => void) {
   };
 }
 
-// Lights and sound are off unless switched on; motion is on unless switched off.
+// Sound is off unless switched on; motion is on unless switched off.
 export function prefOn(k: Pref): boolean {
   const v = document.documentElement.dataset[k];
-  return k === "motion" ? v !== "off" : k === "theme" ? v === "light" : v === "on";
+  return k === "motion" ? v !== "off" : v === "on";
 }
 
 export function setPref(k: Pref, on: boolean) {
-  const v = k === "theme" ? (on ? "light" : "dark") : on ? "on" : "off";
+  const v = on ? "on" : "off";
   document.documentElement.dataset[k] = v;
   try {
     localStorage.setItem(`pref-${k}`, v);

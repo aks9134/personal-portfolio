@@ -13,7 +13,7 @@ page.on("pageerror", (e) => errors.push(e.message));
 const checked = new Map();
 for (const slug of slugs) {
   errors.length = 0;
-  await page.goto(`${base}/lab/b/work/${slug}`, { waitUntil: "networkidle", timeout: 120000 });
+  await page.goto(`${base}/work/${slug}`, { waitUntil: "networkidle", timeout: 120000 });
   await page.waitForTimeout(2500);
   const tag = `case-${w}-${slug}`;
   await page.screenshot({ path: `review-shots/${tag}-0.png` });
@@ -35,11 +35,11 @@ for (const slug of slugs) {
   const bad = [];
   for (const href of links) {
     if (!href.startsWith("/") || href.startsWith("//")) continue;
-    const path = href.split("#")[0] || `/lab/b/work/${slug}`;
+    const path = href.split("#")[0] || `/work/${slug}`;
     if (!checked.has(path)) checked.set(path, (await page.request.get(base + path)).status());
     if (checked.get(path) !== 200) bad.push(`${href} ${checked.get(path)}`);
     const id = href.split("#")[1];
-    if (id && path === `/lab/b/work/${slug}` && !(await page.evaluate((i) => !!document.getElementById(i), id))) bad.push(`${href} (no #${id})`);
+    if (id && path === `/work/${slug}` && !(await page.evaluate((i) => !!document.getElementById(i), id))) bad.push(`${href} (no #${id})`);
   }
   console.log(`${slug}: errors ${errors.length}${errors.length ? ` [${errors.slice(0, 2).join(" | ")}]` : ""}; bad links ${bad.length}${bad.length ? ` [${bad.join(", ")}]` : ""}`);
 }

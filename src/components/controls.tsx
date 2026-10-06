@@ -3,9 +3,9 @@
 import { type Pref, setPref, usePref } from "@/lib/prefs";
 import { sound } from "@/lib/sound";
 
-// The bay's switches: Lights (light sheet), Motion (site-wide off switch on top of the OS setting), Sound (opt-in).
+// The page switches: Motion (site-wide off switch on top of the OS setting) and Sound (opt-in).
 // Each writes an attribute on <html> and remembers it (src/lib/prefs.ts).
-const labels: Record<Pref, string> = { theme: "Lights", motion: "Motion", sound: "Sound" };
+const labels: Record<Pref, string> = { motion: "Motion", sound: "Sound" };
 
 export function Switch({ k }: { k: Pref }) {
   const on = usePref(k);
@@ -29,7 +29,6 @@ export function Switch({ k }: { k: Pref }) {
 export function Switches({ className = "" }: { className?: string }) {
   return (
     <div role="group" aria-label="Page settings" className={`flex items-center gap-3 ${className}`}>
-      <Switch k="theme" />
       <Switch k="motion" />
       <Switch k="sound" />
     </div>

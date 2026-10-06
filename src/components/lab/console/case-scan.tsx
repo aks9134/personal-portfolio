@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MediaImage } from "@/components/media-image";
 import { motionOk } from "@/lib/prefs";
+import { site } from "@/lib/site";
 import type { Media } from "@/lib/work";
 import { sectionProgress } from "../load";
 import type { ConsoleFrame, Measure, Spec } from "./scene";
@@ -38,17 +39,21 @@ export function Top({ code, label }: { code?: string; label?: string }) {
   return (
     <header className="lc-top">
       <div>
-        <a href="/lab/b" className="lc-name">Allen Sun</a>
-        <p className="lc-dim">Mechanical design engineer</p>
+        {/* Plain anchors site-wide: full navigations give the cross-page view transitions. */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a href="/" className="lc-name">{site.name}</a>
+        <p className="lc-dim">{site.role}</p>
       </div>
       <p className="lc-dim lc-status">
         <span className="lc-dot is-on" /> {label ?? `File ${code}`}
       </p>
-      <nav className="lc-dim flex gap-5">
-        <a href="/lab/b">Console</a>
-        <a href="/lab/b#index">Index</a>
-        <a href="/lab/b/resume">Resume</a>
-        <a href="mailto:aks9134@nyu.edu">Email</a>
+      <nav className="lc-dim lc-nav" aria-label="Primary">
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a href="/">Home</a>
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a href="/#index">Index</a>
+        <a href="/resume">Resume</a>
+        <a href={`mailto:${site.email}`}>Email</a>
       </nav>
     </header>
   );
@@ -78,7 +83,7 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
     let alive = true;
     let api: Awaited<ReturnType<typeof import("./scene").createConsole>> | null = null;
     let t0 = 0;
-    (async () => {
+    const start = async () => {
       const { createConsole } = await import("./scene");
       if (!alive || !canvas.current) return;
       api = await createConsole({
@@ -104,9 +109,21 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
         },
       });
       if (!alive) api.dispose();
-    })();
+    };
+    const go = () => {
+      start().catch(() => {}); // no WebGL: the title, telemetry and write-up are plain HTML and stay
+    };
+    // Phones load the model on the first touch or scroll, as the home page does; desktops at once.
+    const wake = ["pointerdown", "touchstart", "scroll", "keydown"] as const;
+    const first = () => {
+      wake.forEach((e) => removeEventListener(e, first));
+      go();
+    };
+    if (matchMedia("(pointer: coarse)").matches) wake.forEach((e) => addEventListener(e, first, { passive: true }));
+    else go();
     return () => {
       alive = false;
+      wake.forEach((e) => removeEventListener(e, first));
       api?.dispose();
     };
   }, [model, h.apart]);

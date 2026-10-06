@@ -5,7 +5,7 @@ import { chromium } from "@playwright/test";
 const base = process.argv[2] ?? "http://localhost:3300";
 const browser = await chromium.launch({ args: ["--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist"] });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-await page.goto(`${base}/lab/b`, { waitUntil: "networkidle", timeout: 120000 });
+await page.goto(`${base}/`, { waitUntil: "networkidle", timeout: 120000 });
 await page.waitForFunction(() => document.querySelector(".lc-dot.is-on"), null, { timeout: 120000 });
 await page.waitForTimeout(1500);
 const watch = () =>

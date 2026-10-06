@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { sound } from "@/lib/sound";
 import { togglePref } from "@/lib/prefs";
 
-export type PaletteItem = { label: string; hint: string; href?: string; action?: "lights" | "motion" | "sound" | "copy-email" };
+export type PaletteItem = { label: string; hint: string; href?: string; action?: "motion" | "sound" | "copy-email" };
 
 // Ctrl/Cmd-K jumps anywhere: pages, every project, and the bay's switches. A native modal <dialog> (focus trap,
 // Escape, inert page for free). No open or close animation: it is a keyboard tool, used fast and often.
@@ -48,7 +48,6 @@ export function Palette({ items, email }: { items: PaletteItem[]; email: string 
       window.location.href = i.href;
       return;
     }
-    if (i.action === "lights") togglePref("theme");
     if (i.action === "motion") togglePref("motion");
     if (i.action === "sound") togglePref("sound");
     if (i.action === "copy-email") void navigator.clipboard?.writeText(email).catch(() => {});
@@ -72,7 +71,7 @@ export function Palette({ items, email }: { items: PaletteItem[]; email: string 
       ref={dialog}
       aria-label="Jump to"
       onClick={(e) => e.target === dialog.current && dialog.current?.close()}
-      className="m-0 mx-auto mt-[12vh] w-[min(40rem,calc(100vw-2rem))] border border-rule-strong bg-bg-2 p-0 text-fg backdrop:bg-[oklch(0.1_0.005_70/0.7)]"
+      className="m-0 mx-auto mt-[12vh] w-[min(40rem,calc(100vw-2rem))] border border-rule-strong bg-bg-2 p-0 text-fg backdrop:bg-[rgba(2,3,5,0.75)]"
     >
       <div className="flex items-center gap-3 border-b border-rule px-4">
         <label htmlFor="palette-q" className="readout text-muted">Jump to</label>

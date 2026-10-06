@@ -8,7 +8,7 @@ const browser = await chromium.launch({ args: ["--use-angle=d3d11", "--enable-gp
 const open = async (reducedMotion) => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion });
   const page = await ctx.newPage();
-  await page.goto(`${base}/lab/b`, { waitUntil: "networkidle", timeout: 120000 });
+  await page.goto(`${base}/`, { waitUntil: "networkidle", timeout: 120000 });
   await page.waitForFunction(() => document.querySelector(".lc-dot.is-on"), null, { timeout: 120000 });
   await page.waitForTimeout(1200);
   return page;
@@ -59,7 +59,7 @@ const reduced = await open("reduce");
 check(await still(reduced), "reduced motion: the canvas holds still");
 // The geared module's project file rests assembled under reduced motion, and comes apart with scroll when allowed.
 const apartOn = async (p) => {
-  await p.goto(`${base}/lab/b/work/gravity-storage-drive`, { waitUntil: "networkidle", timeout: 120000 });
+  await p.goto(`${base}/work/gravity-storage-drive`, { waitUntil: "networkidle", timeout: 120000 });
   await p.waitForTimeout(3500);
   await p.mouse.move(720, 450);
   for (let k = 0; k < 6; k++) {

@@ -3,21 +3,24 @@
 import { useEffect, useRef, useState } from "react";
 import { Scramble } from "@/components/scramble";
 import { motionOk } from "@/lib/prefs";
+import { site } from "@/lib/site";
 import { sectionProgress } from "../load";
 import type { ConsoleFrame, Measure, Spec } from "./scene";
 import { SCAN, segments } from "./timeline";
 
 export type Target = { code: string; name: string; klass: string; status: string; line: string; facts: string[]; href: string; model: Spec; apartMm?: number };
+export type IndexEntry = { title: string; meta: string; href: string; target?: string };
 
-// Direction B, "Console". A pinned canvas carries the scan; the HTML around it reads as instrumentation: a target
+// The home page, "Console". A pinned canvas carries the scan; the HTML around it reads as instrumentation: a target
 // list, a telemetry block with dimensions measured from the CAD itself, a scan bar, and the project line, which only
-// prints once the part is solid.
-export function Console({ targets, more }: { targets: Target[]; more: { title: string; meta: string; href: string }[] }) {
+// prints once the part is solid. Below it, the Index of every project and whatever the page passes in (Experience).
+// Without WebGL the page still works: the telemetry, the brief and the Index are plain HTML.
+export function Console({ targets, index, children }: { targets: Target[]; index: IndexEntry[]; children?: React.ReactNode }) {
   const run = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const [m, setM] = useState<Measure[]>([]);
   const [f, setF] = useState<ConsoleFrame>({ index: 0, phase: "morph" });
-  const [ready, setReady] = useState(false);
+  const [state, setState] = useState<"idle" | "loading" | "ready" | "failed">("idle");
   // The scan bar and percentage change every frame: written straight to the DOM, so React re-renders only when the
   // target or the phase changes.
   const bar = useRef<HTMLElement>(null);
@@ -33,14 +36,24 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
     let alive = true;
     let api: Awaited<ReturnType<typeof import("./scene").createConsole>> | null = null;
     let lastPct = -1;
-    (async () => {
+    let t0 = 0;
+    const tl0 = segments(targets.map((x) => x.model.weight ?? 1));
+    const intro = tl0.to(0, SCAN + 0.02); // the first machine assembles by itself on arrival, up to just solid
+    const start = async () => {
+      setState("loading");
       const { createConsole } = await import("./scene");
       if (!alive || !canvas.current) return;
       api = await createConsole({
         canvas: canvas.current,
         models: targets.map((t) => t.model),
         motion: motionOk,
-        progress: () => (run.current ? sectionProgress(run.current) : 0),
+        // Scroll drives it; on arrival the first machine plays to solid over 2.4 s (at once under reduced motion).
+        progress: () => {
+          const p = run.current ? sectionProgress(run.current) : 0;
+          if (!motionOk()) return Math.max(p, intro);
+          t0 ||= performance.now();
+          return Math.max(p, Math.min(1, (performance.now() - t0) / 2400) * intro);
+        },
         onMeasure: setM,
         onFrame: setF,
         onTick: (scan, apart) => {
@@ -56,10 +69,22 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
       });
       if (!alive) return api.dispose();
       sceneRef.current = api;
-      setReady(true);
-    })();
+      setState("ready");
+    };
+    const go = () => {
+      start().catch(() => alive && setState("failed")); // no WebGL, or a model failed: the HTML stays usable
+    };
+    // Phones wait for the first touch or scroll before loading four models (as v4's hero did); desktops start now.
+    const wake = ["pointerdown", "touchstart", "scroll", "keydown"] as const;
+    const first = () => {
+      wake.forEach((e) => removeEventListener(e, first));
+      go();
+    };
+    if (matchMedia("(pointer: coarse)").matches) wake.forEach((e) => addEventListener(e, first, { passive: true }));
+    else go();
     return () => {
       alive = false;
+      wake.forEach((e) => removeEventListener(e, first));
       api?.dispose();
     };
   }, [targets]);
@@ -79,7 +104,7 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
 
   const t = targets[f.index];
   const mm = m[f.index];
-  const solid = f.phase === "solid";
+  const solid = f.phase === "solid" || state === "failed";
   const approx = t.model.build ? "≈ " : "";
   const tl = segments(targets.map((x) => x.model.weight ?? 1));
 
@@ -137,21 +162,23 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
     <main id="main" className="lab-console">
       <div ref={run} style={{ height: `${tl.total * 185 + 100}svh` }}>
         <div className="sticky top-0 h-svh w-full overflow-hidden">
-          <canvas ref={canvas} className="absolute inset-0 h-full w-full" />
+          <canvas ref={canvas} className="absolute inset-0 h-full w-full" aria-hidden />
           <div className="lc-frame" aria-hidden><i /><i /><i /><i /></div>
 
           <header className="lc-top">
             <div>
-              <p className="lc-name">Allen Sun</p>
-              <p className="lc-dim">Mechanical design engineer</p>
+              <h1 className="lc-name">{site.name}</h1>
+              <p className="lc-dim">{site.role}</p>
             </div>
             <p className="lc-dim lc-status">
-              <span className={ready ? "lc-dot is-on" : "lc-dot"} /> {ready ? "Link live, 4 targets" : "Sampling surfaces"}
+              <span className={state === "ready" ? "lc-dot is-on" : "lc-dot"} />{" "}
+              {{ idle: "Standing by", loading: "Sampling surfaces", ready: "Link live, 4 targets", failed: "3D view unavailable" }[state]}
             </p>
-            <nav className="lc-dim flex gap-5">
+            <nav className="lc-dim lc-nav" aria-label="Primary">
               <a href="#index" onClick={toIndex}>Index</a>
-              <a href="/lab/b/resume">Resume</a>
-              <a href="mailto:aks9134@nyu.edu">Email</a>
+              <a href="/about">About</a>
+              <a href="/resume">Resume</a>
+              <a href={`mailto:${site.email}`}>Email</a>
             </nav>
           </header>
 
@@ -192,6 +219,8 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
               <b ref={bar} style={{ transform: "scaleX(0)" }} />
               <span ref={pctEl}>000%</span>
             </div>
+            {/* Phones: the brief is hidden, so the file's link lives here. */}
+            <a href={t.href} className="lc-tele-open">Open the file</a>
           </section>
 
           <section className={`lc-brief ${solid ? "is-on" : ""}`}>
@@ -206,21 +235,24 @@ export function Console({ targets, more }: { targets: Target[]; more: { title: s
         </div>
       </div>
 
-      <section id="index" className="lc-index">
-        <p className="lc-dim">Index</p>
+      <section id="index" className="lc-index" aria-labelledby="index-title">
+        <h2 id="index-title" className="lc-dim">Index, every project</h2>
         <ul>
-          {more.map((x, i) => (
+          {index.map((x, i) => (
             <li key={x.href}>
               <a href={x.href}>
                 <span className="lc-dim">{String(i + 1).padStart(2, "0")}</span>
                 <b>{x.title}</b>
-                <span className="lc-dim">{x.meta}</span>
+                <span className="lc-dim">
+                  {x.target && <span className="lc-tag">Target {x.target}</span>}
+                  {x.meta}
+                </span>
               </a>
             </li>
           ))}
         </ul>
-        <p className="lc-dim mt-16">aks9134@nyu.edu</p>
       </section>
+      {children}
     </main>
   );
 }

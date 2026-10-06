@@ -1,12 +1,12 @@
 // node scripts/lab/lab-b-steps.mjs <target name> <prefix> [steps=10] [px=200] [w=1440] [h=900]
-// LAB_URL overrides the page (default http://localhost:3300/lab/b).
+// LAB_URL overrides the page (default http://localhost:3300/).
 // Clicks a target, then wheels through its segment, capturing each step and logging frame hitches.
 import { chromium } from "@playwright/test";
 
 const [name, prefix, steps = "10", px = "200", w = "1440", h = "900"] = process.argv.slice(2);
 const browser = await chromium.launch({ args: ["--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist"] });
 const page = await browser.newPage({ viewport: { width: +w, height: +h } });
-await page.goto(process.env.LAB_URL ?? "http://localhost:3300/lab/b", { waitUntil: "networkidle", timeout: 120000 });
+await page.goto(process.env.LAB_URL ?? "http://localhost:3300/", { waitUntil: "networkidle", timeout: 120000 });
 await page.waitForFunction(() => document.querySelector(".lc-dot.is-on"), null, { timeout: 120000 });
 await page.waitForTimeout(1200);
 await page.evaluate(() => {

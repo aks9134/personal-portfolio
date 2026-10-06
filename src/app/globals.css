@@ -1,51 +1,34 @@
 @import "tailwindcss";
 
-/* v4, "test cell at night": a dyno bay with the lights down and the instruments on. Warm black floor, bone text,
-   sodium amber for live values (readouts, the scope trace, focus, the one control that matters). Oxide red marks
-   "before" traces only. The lights toggle (data-theme="light") brings the bay lights up: bone floor, black ink,
-   a deeper amber that holds text contrast. Dark is the site's identity, so it is the default whatever the OS says. */
+/* v5, "Console": an instrument read in the dark. Near-black floor, ice text, a dim grey for labels, and one hot orange
+   for what is live (the scan, values, focus, the one action). Dark only: v4's Lights switch is gone. The Console's own
+   short names (--ice, --dim, --hot, --line) and the site's token names describe the same five colours, so the v4
+   components that remain (figures, models, the section index) take the Console look without a fork. */
 :root {
-  --bg: oklch(0.17 0.006 70);
-  --bg-2: oklch(0.205 0.007 70);
-  --bg-3: oklch(0.245 0.008 70);
-  --fg: oklch(0.93 0.015 85);
-  --muted: oklch(0.75 0.014 80);
-  --rule: oklch(0.93 0.015 85 / 0.16);
-  --rule-strong: oklch(0.93 0.015 85 / 0.42);
-  --accent: oklch(0.8 0.145 72);
-  --on-accent: oklch(0.17 0.006 70);
-  --oxide: oklch(0.68 0.16 38);
-  --scope-bg: oklch(0.13 0.005 70);
-  --scope-ink: oklch(0.82 0.14 72);
-  --scope-grid: oklch(0.93 0.015 85 / 0.09);
-  --scope-ref: oklch(0.93 0.015 85 / 0.34);
-  --stage-bg: oklch(0.17 0.006 70);
-  /* See-through images in the dark (media-image.tsx): renders sit on the bench; the few that need paper get a bone
-     plate, dimmed to the bay's light so it doesn't glare; ink drawings and plots turn light-on-dark (.ink). */
-  --bench: var(--bg-2);
-  --plate: oklch(0.72 0.012 85);
-  color-scheme: dark;
-}
-
-:root[data-theme="light"] {
-  --bg: oklch(0.945 0.012 85);
-  --bg-2: oklch(0.91 0.014 84);
-  --bg-3: oklch(0.87 0.016 83);
-  --fg: oklch(0.19 0.008 70);
-  --muted: oklch(0.43 0.014 70);
-  --rule: oklch(0.19 0.008 70 / 0.16);
-  --rule-strong: oklch(0.19 0.008 70 / 0.45);
-  --accent: oklch(0.52 0.13 62);
-  --on-accent: oklch(0.97 0.01 85);
-  --oxide: oklch(0.5 0.16 35);
-  --scope-bg: oklch(0.19 0.008 70);
-  --scope-ink: oklch(0.82 0.14 72);
-  --scope-grid: oklch(0.93 0.015 85 / 0.1);
-  --scope-ref: oklch(0.93 0.015 85 / 0.34);
-  --stage-bg: oklch(0.945 0.012 85);
+  --bg: #05070a;
+  --bg-2: #0a0e13;
+  --bg-3: #111820;
+  --ice: #d7e2ea;
+  --dim: #6c7d89;
+  --hot: #ff6a2b;
+  --line: rgba(215, 226, 234, 0.16);
+  --fg: var(--ice);
+  --muted: #8d9ba6;
+  --rule: rgba(215, 226, 234, 0.14);
+  --rule-strong: rgba(215, 226, 234, 0.4);
+  --accent: var(--hot);
+  --on-accent: #05070a;
+  --oxide: #c2462a;
+  --scope-bg: #020305;
+  --scope-ink: var(--hot);
+  --scope-grid: rgba(215, 226, 234, 0.08);
+  --scope-ref: rgba(215, 226, 234, 0.32);
+  --stage-bg: #05070a;
+  /* See-through images sit straight on the floor (no box behind cut-outs); the few that need paper (ground "sheet")
+     keep a dimmed plate; ink drawings and plots turn light-on-dark (.ink). */
   --bench: transparent;
-  --plate: transparent;
-  color-scheme: light;
+  --plate: #a3abb1;
+  color-scheme: dark;
 }
 
 /* Tailwind's motion variants also answer the site's Motion switch, not only the OS setting. */
@@ -76,9 +59,9 @@
   --color-accent: var(--accent);
   --color-on-accent: var(--on-accent);
   --color-oxide: var(--oxide);
-  --font-display: var(--font-shoulders), "Arial Narrow", sans-serif;
+  --font-display: var(--lc-mono), ui-monospace, monospace;
   --font-sans: var(--font-schibsted), ui-sans-serif, sans-serif;
-  --font-mono: var(--font-azeret), ui-monospace, monospace;
+  --font-mono: var(--lc-mono), ui-monospace, monospace;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
@@ -126,13 +109,14 @@
 }
 
 @layer components {
-  /* Display lettering: condensed industrial capitals, like stencilled bay markings. */
+  /* Display lettering: Martian Mono widened, the console's instrument capitals. */
   .display {
     font-family: var(--font-display);
+    font-variation-settings: "wdth" 118;
     font-weight: 800;
     text-transform: uppercase;
-    line-height: 0.84;
-    letter-spacing: -0.005em;
+    line-height: 1.04;
+    letter-spacing: 0;
   }
   /* Readouts: measurements, counts, dates, labels on instruments. Mono is for data only. */
   .readout {
@@ -155,7 +139,7 @@
   }
   /* Black ink on paper becomes bone ink on the bench; hue-rotate puts coloured traces back to their own hue. */
   @media screen {
-    :root:not([data-theme="light"]) .ink {
+    .ink {
       filter: invert(1) hue-rotate(180deg);
     }
   }
@@ -380,8 +364,8 @@ html[data-motion="off"]::view-transition-new(*) {
     size: letter;
     margin: 0.45in 0.55in;
   }
-  body:has(main.resume) > footer,
-  body:has(main.resume) > header {
+  body > footer,
+  body > header {
     display: none;
   }
 }

@@ -13,7 +13,7 @@ const check = (ok, label) => {
 const open = async (reducedMotion) => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion });
   const page = await ctx.newPage();
-  await page.goto(`${base}/lab/b`, { waitUntil: "networkidle", timeout: 120000 });
+  await page.goto(`${base}/`, { waitUntil: "networkidle", timeout: 120000 });
   await page.waitForFunction(() => document.querySelector(".lc-dot.is-on"), null, { timeout: 120000 });
   await page.waitForTimeout(1200);
   return page;
@@ -67,7 +67,7 @@ check(await atIndex(reduced), "reduced motion: lands on the Index at once");
 const r = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 for (const [w, h] of [[1440, 900], [390, 844]]) {
   await r.setViewportSize({ width: w, height: h });
-  await r.goto(`${base}/lab/b/resume`, { waitUntil: "networkidle" });
+  await r.goto(`${base}/resume`, { waitUntil: "networkidle" });
   await r.waitForTimeout(500);
   await r.screenshot({ path: `review-shots/resume-${w}.png`, fullPage: true });
 }

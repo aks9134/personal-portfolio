@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Top } from "@/components/lab/console/case-scan";
 import { preview } from "@/lib/og";
 import { resume } from "@/lib/resume";
 import { site } from "@/lib/site";
@@ -12,83 +13,94 @@ export const metadata: Metadata = {
   openGraph: preview("Resume | Allen Sun", description),
 };
 
-const h2 = "mt-9 border-t border-rule-strong pt-3 text-xl display print:mt-2.5 print:pt-1 print:text-[12pt]";
-
-// Screen: the site's sheet. Print (and the PDF made from it by scripts/resume-pdf.mjs): one letter page, white paper.
-export default function ResumePage() {
+// The resume in the console's language, from src/lib/resume.ts. Screen: the console. Print (and the PDF that
+// scripts/resume-pdf.mjs makes from this page): one letter page, plain type on white (console.css).
+export default function ConsoleResume() {
   const { jobs, projects, education, skills } = resume;
   return (
-    <>
-      <main id="main" className="resume mx-auto max-w-[920px] px-4 md:px-10 print:max-w-none print:px-0 print:text-[9.5pt] print:leading-snug">
-        <header className="mt-10 flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-t border-rule-strong pt-6 print:mt-0 print:border-0 print:pt-0">
-          <div>
-            <h1 className="text-5xl display print:text-[22pt]">{site.name}</h1>
-            <p className="mt-2 text-lg text-muted print:mt-1 print:text-[10.5pt]">
-              {site.role}, {resume.location}
-            </p>
-          </div>
-          <div className="flex flex-col items-start gap-1 text-sm sm:items-end print:text-[9.5pt]">
-            <a href={`mailto:${site.email}`} className="link">{site.email}</a>
-            <a href={site.linkedin} className="link">linkedin.com/in/allen-sun-b06858233</a>
-          </div>
+    <main id="main" className="lab-console lc-case lc-resume">
+      <div className="lcr-top">
+        <div className="lc-frame" aria-hidden><i /><i /><i /><i /></div>
+        <Top label="Resume" />
+      </div>
+
+      <div className="lcr-wrap">
+        <header className="lcr-head">
+          <p className="lc-dim">Resume</p>
+          <h1>{site.name}</h1>
+          <p className="lcr-role">
+            {site.role}, {resume.location}
+          </p>
+          <p className="lcr-links">
+            <a href={`mailto:${site.email}`}>{site.email}</a>
+            <a href={site.linkedin}>linkedin.com/in/allen-sun-b06858233</a>
+            <a href="/allen-sun-resume.pdf" download className="lcr-pdf">Download PDF</a>
+          </p>
         </header>
 
-        <p className="mt-6 print:hidden">
-          <a href="/allen-sun-resume.pdf" download className="inline-block border border-rule-strong px-3 py-1.5 text-sm font-bold hover:bg-fg hover:text-bg">
-            Download PDF
-          </a>
-        </p>
-
         <section aria-labelledby="experience">
-          <h2 id="experience" className={h2}>Experience</h2>
+          <h2 id="experience" className="lcr-h">
+            <span>01</span> Experience
+          </h2>
           {jobs.map((j) => (
-            <article key={j.org} className="mt-5 break-inside-avoid print:mt-1.5">
-              <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-                <h3 className="font-bold">{j.org}</h3>
-                <p className="whitespace-nowrap text-sm tabular-nums text-muted print:text-[9pt]">{j.dates}</p>
+            <article key={j.org} className="lcr-row">
+              <p className="lc-dim lcr-when">{j.dates}</p>
+              <div>
+                <h3>{j.org}</h3>
+                <p className="lcr-sub">
+                  {j.title}, {j.place}
+                </p>
+                <p className="lcr-text">{j.text}</p>
               </div>
-              <p className="text-muted">{j.title}, {j.place}</p>
-              <p className="mt-1.5 max-w-[75ch] print:max-w-none">{j.text}</p>
             </article>
           ))}
         </section>
 
         <section aria-labelledby="projects">
-          <h2 id="projects" className={h2}>Projects</h2>
+          <h2 id="projects" className="lcr-h">
+            <span>02</span> Projects
+          </h2>
           {projects.map((p) => (
-            <article key={p.slug} className="mt-5 break-inside-avoid print:mt-1.5">
-              <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-                <h3 className="font-bold">{p.name}</h3>
-                <p className="text-sm text-muted print:text-[9pt]">{p.context}</p>
+            <article key={p.slug} className="lcr-row">
+              <p className="lc-dim lcr-when">{p.context}</p>
+              <div>
+                <h3>{p.name}</h3>
+                <p className="lcr-text">{p.point}</p>
+                <a href={`/work/${p.slug}`} className="lcr-open">Open the file</a>
               </div>
-              <p className="mt-1 max-w-[75ch] print:max-w-none">
-                {p.point}{" "}
-                <a href={`/work/${p.slug}`} className="whitespace-nowrap underline hover:text-accent print:hidden">Case study</a>
-              </p>
             </article>
           ))}
         </section>
 
         <section aria-labelledby="education">
-          <h2 id="education" className={h2}>Education</h2>
-          <div className="mt-3 flex flex-wrap items-baseline justify-between gap-x-4 print:mt-1.5">
-            <p><span className="font-bold">{education.school}</span>, {education.degree}. GPA {education.gpa}</p>
-            <p className="text-sm tabular-nums text-muted print:text-[9pt]">{education.year}</p>
+          <h2 id="education" className="lcr-h">
+            <span>03</span> Education
+          </h2>
+          <div className="lcr-row">
+            <p className="lc-dim lcr-when">{education.year}</p>
+            <div>
+              <h3>{education.school}</h3>
+              <p className="lcr-sub">
+                {education.degree}. GPA {education.gpa}
+              </p>
+            </div>
           </div>
         </section>
 
         <section aria-labelledby="skills">
-          <h2 id="skills" className={h2}>Skills</h2>
-          <dl className="mt-3 grid gap-y-1.5 sm:grid-cols-[10rem_1fr] print:mt-1.5 print:grid-cols-[8.5rem_1fr] print:gap-y-0.5">
+          <h2 id="skills" className="lcr-h">
+            <span>04</span> Skills
+          </h2>
+          <dl className="lcr-skills">
             {skills.map(([k, v]) => (
-              <div key={k} className="contents">
-                <dt className="font-bold">{k}</dt>
+              <div key={k}>
+                <dt className="lc-dim">{k}</dt>
                 <dd>{v}</dd>
               </div>
             ))}
           </dl>
         </section>
-      </main>
-    </>
+      </div>
+    </main>
   );
 }

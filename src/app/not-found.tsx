@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Top } from "@/components/lab/console/case-scan";
 import { allWork } from "@/lib/work";
 
 export const metadata: Metadata = { title: "Page not found" };
@@ -7,27 +8,33 @@ export const metadata: Metadata = { title: "Page not found" };
 export default async function NotFound() {
   const work = await allWork();
   return (
-    <>
-      <main id="main" className="mx-auto max-w-[1600px] px-4 md:px-8">
-        <div className="pt-12 md:pt-16">
-          <h1 className="text-5xl display md:text-7xl">Page not found</h1>
-          <p className="mt-6 max-w-[55ch] text-xl leading-snug">
-            That address doesn&apos;t match anything here. It may have moved, or the link had a typo. Here&apos;s everything that is here:
-          </p>
-          <ul className="mt-8 grid max-w-3xl gap-x-10 gap-y-3 sm:grid-cols-2">
-            {work.map((w) => (
-              <li key={w.slug}>
-                <a href={`/work/${w.slug}`} className="link text-lg font-semibold">{w.title}</a>
-                <span className="block text-sm text-muted">{w.context}, {w.year}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-10">
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- plain anchors keep the view transitions */}
-            <a href="/" className="link font-semibold">Back to the home page</a>
-          </p>
+    <main id="main" className="lab-console lc-page">
+      <div className="lcr-top">
+        <div className="lc-frame" aria-hidden><i /><i /><i /><i /></div>
+        <Top label="No signal" />
+      </div>
+      <div className="lc-pg">
+        <p className="lc-dim">Error 404</p>
+        <h1>Page not found</h1>
+        <div className="lc-prose mt-6">
+          <p>That address doesn&apos;t match anything here. It may have moved, or the link had a typo. Here&apos;s everything that is here:</p>
         </div>
-      </main>
-    </>
+        <ul className="lc-index lc-index-flat">
+          {work.map((w, i) => (
+            <li key={w.slug}>
+              <a href={`/work/${w.slug}`}>
+                <span className="lc-dim">{String(i + 1).padStart(2, "0")}</span>
+                <b>{w.title}</b>
+                <span className="lc-dim">{w.context}, {w.year}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <p className="lc-exp-more">
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- plain anchors keep the view transitions */}
+          <a href="/">Back to the home page</a>
+        </p>
+      </div>
+    </main>
   );
 }
