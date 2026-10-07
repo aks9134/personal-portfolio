@@ -48,7 +48,7 @@ export default function ConsoleResume() {
               <div>
                 <h3>{j.org}</h3>
                 <p className="lcr-sub">
-                  {j.title}, {j.place}
+                  {j.title}, <span className="lcr-place">{j.place}</span>
                 </p>
                 <p className="lcr-text">{j.text}</p>
               </div>
@@ -62,7 +62,7 @@ export default function ConsoleResume() {
           </h2>
           {projects.map((p) => (
             <article key={p.slug} className="lcr-row">
-              <p className="lc-dim lcr-when">{p.context}</p>
+              <p className="lc-dim lcr-when lcr-ctx">{p.context}</p>
               <div>
                 <h3>{p.name}</h3>
                 <p className="lcr-text">{p.point}</p>

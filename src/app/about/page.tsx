@@ -52,7 +52,7 @@ export default function AboutPage() {
               <div>
                 <h3>{j.org}</h3>
                 <p className="lcr-sub">
-                  {j.title}, {j.place}
+                  {j.title}, <span className="lcr-place">{j.place}</span>
                 </p>
                 {/* The resume's short version, or the longer About version where one exists. */}
                 {(j.detail ?? [j.text]).map((d) => (

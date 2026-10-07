@@ -46,6 +46,18 @@ test('write-up images sit in line with the text, never floated beside it', async
   }
 });
 
+test('mid-size screens: a project title sits up top, the telemetry at the bottom, apart, leaving the middle to the machine', async ({ page }) => {
+  for (const [width, height] of [[914, 1000], [1024, 768]]) {
+    await page.setViewportSize({ width, height });
+    await page.goto('/work/micro-vibration-canceller');
+    const head = (await page.locator('.lcs-head').boundingBox())!;
+    const tele = (await page.locator('.lc-tele').boundingBox())!;
+    expect(head.y + head.height, `${width}: title in the top half`).toBeLessThan(height * 0.5);
+    expect(tele.y, `${width}: telemetry in the bottom part`).toBeGreaterThan(height * 0.55);
+    expect(head.y + head.height < tele.y || head.x + head.width < tele.x, `${width}: title and telemetry apart`).toBe(true);
+  }
+});
+
 test('no page says a model was rebuilt', async ({ page }) => {
   for (const path of ['/', '/work/micro-vibration-canceller', '/work/tpu-weld-rig', '/work/motorized-couch']) {
     await page.goto(path);

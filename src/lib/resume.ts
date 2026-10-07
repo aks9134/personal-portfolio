@@ -13,7 +13,7 @@ export const resume = {
     {
       org: "Curtiss-Wright, Electro-Mechanical Division",
       // The company line carries his full tenure; the QA role he held until Mar 2026 stays off the site (his call).
-      title: "Mechanical Design Engineer since Mar 2026",
+      title: "Mechanical Design Engineer since Mar 2026",
       place: "Pittsburgh, PA",
       dates: "Jun 2025 - present",
       text: site.cwText,

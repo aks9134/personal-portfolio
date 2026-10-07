@@ -61,9 +61,13 @@ Dark only. Every moving thing stops under the OS reduced-motion setting and the 
 ## Layout
 
 - Home: pinned console (185 svh per machine weight, assemblies 1.6), then the Index of every project (featured ones tagged with their target number), then Experience (the resume entries verbatim), then the footer.
-- Project file: opener (pinned 250 svh with a model; one screen with an image), summary and four facts, the write-up at reading width with the section index as a list, next file.
+- Project file: opener (pinned 300 svh with a model, the first quarter forming it from the field; one screen with an image), summary and four facts, the write-up at reading width (36em, about 65 characters) with the section index as a list, next file.
+- Write-up figures sit in line with the text, never floated: narrow ones up to 576 px, wide up to 896 px, 56 px above and below (20 px under a heading), each with an "Open full size" link. Images side by side share a row by their shapes, so they come out the same height.
+- Text that sits on the canvas has a floor-coloured shade from the screen edge behind it (left and bottom on wide screens, top and bottom below 1280 px).
 - Plain pages (about, privacy, resume, 404): the console top bar, a 1100 px column.
-- Under 860 px the target list becomes a scrolling row, the brief folds into the telemetry panel ("Open the file"), and phones load the 3D only after the first touch or scroll.
+- 861 to 1279 px (tablets, narrow windows): the target list becomes a row and a file's title moves to the top, the telemetry sits bottom right, and the scene frames the machine in the band between; on screens under 821 px tall the telemetry folds to its name and scan.
+- Under 860 px the same, at 24 px gutters, with the brief folded into the telemetry panel ("Open the file"). Phones (a touch pointer on a screen whose short side is under 600 px) load the 3D only after the first touch or scroll; touchscreen laptops load it at once.
+- 1680 px and wider: the root size steps up (106, 112.5, then 125% from 2300 px), so type and panels grow with the screen.
 
 ## Shapes and depth
 
@@ -71,13 +75,13 @@ Square corners, hairline rules, corner ticks framing the viewport. Depth comes f
 
 ## Motion
 
-- Scroll is eased toward the target (about 0.25 s); a long jump (a target, keys 1-4) re-forms straight into the destination; the Index link glides down in about a second while the scene holds.
+- Scroll is eased toward the target (about 0.25 s); a long jump (a target, keys 1-4) re-forms straight into the destination; the Index link glides down in at most 0.7 s while the scene holds. The page opens on the scattered field, drawn while the models load; only the scroll forms a machine, so the top of the page always returns to the field.
 - Lights and room reflections ride with the camera, so every machine is lit from the front with the orange rim behind and flat metal never mirrors a panel into the lens.
-- Rebuilt models (canceller, weld rig, couch) say so beside the model; the weld rig and couch show no measured sizes.
+- Models built in code (canceller, weld rig, couch): the canceller's envelope carries "≈"; the weld rig and couch show "Not measured" (Allen dropped the "rebuilt" wording, 2026-10-06).
 
 ## Do's and don'ts
 
-- Do keep every number traceable to the write-ups or measured from the CAD; estimated models say "estimated".
+- Do keep every number traceable to the write-ups or measured from the CAD; an estimated size is marked ("≈", "Not measured").
 - Do give the canvas an HTML equivalent: the telemetry, brief and Index work without WebGL.
 - Don't add colours beyond the five; don't use orange for decoration.
 - Don't put Martian Mono on long sentences.

@@ -124,7 +124,7 @@ export function PaletteButton() {
       aria-keyshortcuts="Control+K Meta+K"
       className="readout-btn gap-2 border border-rule-strong px-2 py-1"
     >
-      Jump to <kbd className="text-fg">Ctrl K</kbd>
+      Jump to <kbd className="palette-key text-fg">Ctrl K</kbd>
     </button>
   );
 }

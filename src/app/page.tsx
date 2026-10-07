@@ -51,7 +51,7 @@ export default async function Home() {
               <div>
                 <h3>{j.org}</h3>
                 <p className="lcr-sub">
-                  {j.title}, {j.place}
+                  {j.title}, <span className="lcr-place">{j.place}</span>
                 </p>
                 <p className="lcr-text">{j.text}</p>
               </div>

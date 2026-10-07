@@ -178,6 +178,7 @@ export function Console({ targets, index, children }: { targets: Target[]; index
       <div ref={run} style={{ height: state === "failed" ? "100svh" : `${tl.total * 185 + 100}svh` }}>
         <div className="sticky top-0 h-svh w-full overflow-hidden">
           <canvas ref={canvas} className="absolute inset-0 h-full w-full" aria-hidden />
+          <div className="lc-shade" aria-hidden />
           <div className="lc-frame" aria-hidden><i /><i /><i /><i /></div>
 
           <header className="lc-top">

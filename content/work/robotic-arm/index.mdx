@@ -4,9 +4,9 @@ export const meta = {
   year: "2024",
   order: 3,
   format: "case",
-  line: "My partner and I designed a human-scale arm and rendered it in carbon fiber. I designed the hand, wrist and forearm, and the wrist held 1000 N in FEA, modeled in steel.",
+  line: "My partner and I designed a human-scale arm and rendered it in carbon fiber. I designed the hand, wrist and forearm, and the wrist held 1000 N in FEA, modeled in steel.",
   summary:
-    "For NYU's Advanced CAD course, my partner and I designed a human-scale arm, shoulder to fingertips, entirely in CAD. I designed the hand, palm, wrist and forearm, and the wrist took a 1000 N load in FEA at about a quarter of yield (modeled in steel).",
+    "For NYU's Advanced CAD course, my partner and I designed a human-scale arm, shoulder to fingertips, entirely in CAD. I designed the hand, palm, wrist and forearm, and the wrist took a 1000 N load in FEA at about a quarter of yield (modeled in steel).",
   status: "CAD and FEA",
   role: "I designed the hand, palm, wrist and forearm, ran the wrist FEA, and made the drawings for my parts.",
   team: "It was a two-person course project.",
@@ -27,7 +27,7 @@ It's a design and analysis project. Nothing was built, and there are no motors o
 
 We split the arm at the elbow. I took the fingers, palm, wrist and forearm in Fusion 360, and my partner took the elbow, upper arm, shoulder and the final assembly in SolidWorks, which is where my parts went in as a STEP file.
 
-The proportions came from anatomy rather than eyeballing. I set the middle finger at 7.70 cm and scaled the rest from typical human ratios: 0.92 for the index finger, 0.95 for the ring finger, 0.65 for the pinky and thumb. Each finger except the thumb has a proximal, middle and distal section, split roughly 50/30/20, and all four share one design at different lengths.
+The proportions came from anatomy rather than eyeballing. I set the middle finger at 7.70 cm and scaled the rest from typical human ratios: 0.92 for the index finger, 0.95 for the ring finger, 0.65 for the pinky and thumb. Each finger except the thumb has a proximal, middle and distal section, split roughly 50/30/20, and all four share one design at different lengths.
 
 The palm is four parts, so it can fold the way a real hand does. Four parts still lose some of a real palm's motion, and I took that trade to keep the design simple.
 
@@ -45,17 +45,17 @@ The forearm is a loft through three circular profiles. At the midterm it was an 
 
 ## The wrist under load
 
-We picked the wrist for FEA because it's usually the weakest joint in an arm, weaker than the elbow or the shoulder. I ran it in SolidWorks Simulation with 1000 N on the palm, far above the roughly 70 N our report cited for a human wrist, in two cases: the hand bent 90° with the load spread across the palm like a push, and the hand in line with the load at the palm's center.
+We picked the wrist for FEA because it's usually the weakest joint in an arm, weaker than the elbow or the shoulder. I ran it in SolidWorks Simulation with 1000 N on the palm, far above the roughly 70 N our report cited for a human wrist, in two cases: the hand bent 90° with the load spread across the palm like a push, and the hand in line with the load at the palm's center.
 
 <Strip
   items={[
-    { name: "fea-push", label: "Bent 90° in a push, the wrist peaked at 134 MPa." },
-    { name: "fea-inline", label: "In line with the load at the palm, it peaked at 149 MPa." },
+    { name: "fea-push", label: "Bent 90° in a push, the wrist peaked at 134 MPa." },
+    { name: "fea-inline", label: "In line with the load at the palm, it peaked at 149 MPa." },
   ]}
-  caption="These plots show von Mises stress at the wrist under 1000 N. Yield for the material in the study is 620 MPa."
+  caption="These plots show von Mises stress at the wrist under 1000 N. Yield for the material in the study is 620 MPa."
 />
 
-The worse case peaked at 149 MPa against a 620 MPa yield, about a quarter. But that's a steel number. The study used alloy steel for every part, including the M5 bolted connections added for it, while the drawings call out aluminum and the renders show carbon fiber, so the margin doesn't carry over to the arm as rendered.
+The worse case peaked at 149 MPa against a 620 MPa yield, about a quarter. But that's a steel number. The study used alloy steel for every part, including the M5 bolted connections added for it, while the drawings call out aluminum and the renders show carbon fiber, so the margin doesn't carry over to the arm as rendered.
 
 ## What didn't go to plan
 

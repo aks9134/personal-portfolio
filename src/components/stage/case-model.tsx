@@ -61,7 +61,7 @@ export function CaseModel({ m }: { m: Media }) {
         <TurnButtons stage={stage} />
       </div>
       {m.explode ? (
-        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6">
+        <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 [&>:first-child]:min-w-48 [&>:first-child]:flex-1">
           <ExplodeRange value={apart} mm={mm} onChange={setApart} disabled={!ready} />
           <p className="readout text-muted">
             <span className="val">{m.parts}</span> parts, <span className="val">{String(mm).padStart(3, "0")}</span> mm apart

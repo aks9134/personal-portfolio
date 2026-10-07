@@ -166,7 +166,10 @@ export async function createConsole(o: {
 
   let w = 0;
   let h = 0;
+  let mid = false; // a mid-size screen: the text sits above the machine and the telemetry below it (console.css)
+  const midQuery = matchMedia("(min-width: 861px) and (max-width: 1279px)");
   const resize = () => {
+    mid = midQuery.matches;
     w = o.canvas.clientWidth;
     h = o.canvas.clientHeight;
     renderer.setSize(w, h, false);
@@ -175,8 +178,9 @@ export async function createConsole(o: {
     const pr = renderer.getPixelRatio();
     bloom.setSize(Math.round((w * pr) / 2), Math.round((h * pr) / 2));
     camera.aspect = w / h;
-    // Centre the models in the clear space above the project text, not the geometric middle of the screen.
-    camera.setViewOffset(w, h, 0, h * 0.1, w, h);
+    // Centre the models in the clear space above the project text, not the geometric middle of the screen; on a
+    // mid-size screen, in the band between the title above and the telemetry below.
+    camera.setViewOffset(w, h, 0, h * (mid ? -0.04 : 0.1), w, h);
     camera.updateProjectionMatrix();
     uniforms.uPix.value = renderer.getPixelRatio() * (h / 900);
   };
@@ -468,9 +472,9 @@ export async function createConsole(o: {
     // the side panels on wide screens, above the readout on narrow ones), eased so a change of model glides.
     const r = s ? s.r0 + (s.r1 - s.r0) * pose : SIZE * 0.6;
     const vf = (camera.fov * Math.PI) / 360;
-    const wide = camera.aspect > 1.1;
-    const hf = Math.atan(Math.tan(vf) * camera.aspect * (wide ? 0.56 : 1));
-    const fit = (r / Math.sin(Math.min(Math.atan(Math.tan(vf) * (wide ? 0.74 : 0.6)), hf))) * (wide ? 1.04 : 1.14);
+    const wide = camera.aspect > 1.1 && !mid;
+    const hf = Math.atan(Math.tan(vf) * camera.aspect * (wide ? 0.56 : mid ? 0.85 : 1));
+    const fit = (r / Math.sin(Math.min(Math.atan(Math.tan(vf) * (wide ? 0.74 : mid ? 0.42 : 0.6)), hf))) * (wide ? 1.04 : 1.14);
     dist = moving ? dist + (fit - dist) * (1 - Math.exp(-dt * 5)) : fit;
     // Fog follows the camera, so a far framing (a long assembly apart, a narrow screen) never fogs the model out.
     (scene.fog as THREE.Fog).near = dist + 1.5;

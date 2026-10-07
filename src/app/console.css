@@ -2,6 +2,9 @@
    where direction B was built; the class names keep their prefixes (lc- console, lcs- file opener, lcc- file body,
    lcr- resume, lc-foot footer, lc-page plain pages). In the components layer, so Tailwind utilities still win. */
 @layer components {
+:where(.lab-console, .lc-case, .lc-page, .lc-resume, .lc-foot) :where(p, li, dd, figcaption) {
+  text-wrap: pretty;
+}
 /* ---- B: Console ------------------------------------------------------------------------------------------------- */
 .lab-console {
   background: var(--bg);
@@ -74,6 +77,25 @@
   display: grid;
   gap: 4px;
 }
+/* A shade from the screen's edge over the canvas, under the text that sits on it (the target list and a file's title
+   on the left, the brief and the title along the bottom), so the field never runs through the letters. Phones: the
+   text sits at the top. One hue, the floor, fading out (tell #1 allows that; the scanner flags any gradient). */
+.lc-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(5, 7, 10, 0.94), rgba(5, 7, 10, 0.86) 22%, rgba(5, 7, 10, 0) 40%),
+    linear-gradient(0deg, rgba(5, 7, 10, 0.9), rgba(5, 7, 10, 0.6) 18%, rgba(5, 7, 10, 0) 36%);
+}
+@media (max-width: 1279px) {
+  .lc-shade {
+    background:
+      linear-gradient(180deg, rgba(5, 7, 10, 0.85), rgba(5, 7, 10, 0.5) 24%, rgba(5, 7, 10, 0) 42%),
+      linear-gradient(0deg, rgba(5, 7, 10, 0.7), rgba(5, 7, 10, 0) 30%);
+  }
+}
 .lc-targets li {
   display: flex;
   gap: 12px;
@@ -97,7 +119,7 @@
   right: 48px;
   top: 50%;
   transform: translateY(-50%);
-  width: 19rem;
+  width: 21rem;
   padding: 18px 18px 16px;
   border: 1px solid var(--line);
   background: rgba(5, 7, 10, 0.78);
@@ -182,8 +204,10 @@
   position: relative;
 }
 .lc-brief p {
-  font-size: 0.95rem;
-  line-height: 1.55;
+  font-family: var(--font-schibsted), ui-sans-serif, sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  letter-spacing: 0;
 }
 .lc-brief ul {
   display: flex;
@@ -229,9 +253,27 @@
   font-size: clamp(1.2rem, 2.2vw, 1.9rem);
   text-transform: uppercase;
 }
+/* Mid-size screens (a tablet, a narrow window, up to 1279 px): side panels would cover the machine, so the targets
+   and the title move to the top, the telemetry to the bottom right, and the scene frames the machine between them
+   (scene.ts). Phones refine this below. */
+@media (max-width: 1279px) {
+  .lc-targets { top: 108px; left: 48px; right: 48px; transform: none; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+  .lc-targets li { white-space: nowrap; }
+  .lc-tele { top: auto; bottom: 32px; right: 48px; transform: none; }
+  .lc-brief { display: none; }
+  .lc-tele-open { display: inline-block; margin-top: 12px; color: var(--hot); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.68rem; }
+}
+/* A tablet held sideways: the telemetry folds to its name, scan and link, so the machine keeps the middle. */
+@media (min-width: 861px) and (max-width: 1279px) and (max-height: 820px) {
+  .lc-tele { padding: 10px 14px; }
+  .lc-tele dl, .lc-tele > .lc-dim { display: none; }
+  .lc-title { margin: 0 0 4px; font-size: 1.05rem; }
+  .lc-scan { margin-top: 6px; }
+  .lc-tele-open { margin-top: 6px; }
+}
 @media (max-width: 860px) {
   .lc-targets { display: none; }
-  .lc-tele { top: auto; bottom: 20px; right: 20px; left: 20px; width: auto; transform: none; }
+  .lc-tele { top: auto; bottom: 24px; right: 24px; left: 24px; width: auto; transform: none; }
   .lc-brief { display: none; }
   .lc-top { padding: 28px 24px; grid-template-columns: 1fr auto; }
   .lc-status { display: none; }
@@ -298,7 +340,7 @@
   z-index: 5;
   left: 48px;
   bottom: 44px;
-  max-width: min(34rem, calc(100vw - 96px - 21rem));
+  max-width: min(34rem, calc(100vw - 96px - 23rem));
 }
 .lcs-head h1 {
   margin: 10px 0 14px;
@@ -310,15 +352,18 @@
   text-wrap: balance;
 }
 .lcs-line {
-  max-width: 46ch;
-  font-size: 0.9rem;
-  line-height: 1.55;
+  max-width: 30em;
+  font-family: var(--font-schibsted), ui-sans-serif, sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  letter-spacing: 0;
 }
 .lcs-award {
   display: inline-block;
   margin-top: 14px;
   padding: 4px 9px;
   border: 1px solid var(--hot);
+  background: var(--bg);
   color: var(--hot);
   font-size: 0.66rem;
   text-transform: uppercase;
@@ -332,7 +377,7 @@
    box); photos and screenshots keep their hairline frame. */
 .lcs-still {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 19rem;
+  grid-template-columns: minmax(0, 1fr) 21rem;
   grid-template-rows: minmax(0, 1fr) auto;
   column-gap: 56px;
   row-gap: 36px;
@@ -343,7 +388,7 @@
   container-type: size;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   min-height: 0;
 }
 .lcs-still .lcs-head {
@@ -462,8 +507,8 @@
 .lcc-next b {
   font-variation-settings: "wdth" 118;
   font-weight: 800;
-  font-size: clamp(1.8rem, 5vw, 4rem);
-  line-height: 1;
+  font-size: clamp(1.6rem, 3.2vw, 2.75rem);
+  line-height: 1.05;
   text-transform: uppercase;
   transition: color 200ms;
 }
@@ -481,6 +526,11 @@
 @media (max-height: 600px) {
   .lcs-pin { min-height: 0; }
 }
+/* Mid-size screens: a file's title moves to the top (after the opener's own rules, which it overrides). */
+@media (max-width: 1279px) {
+  .lcs-head { top: 104px; bottom: auto; max-width: min(40rem, calc(100vw - 96px)); }
+  .lcs-head h1 { font-size: clamp(2rem, 5vw, 3rem); }
+}
 @media (max-width: 860px) {
   .lcs-head { left: 24px; right: 24px; bottom: auto; top: 96px; max-width: none; }
   .lcs-head h1 { font-size: clamp(1.7rem, 8vw, 2.4rem); }
@@ -489,11 +539,12 @@
   .lcs-still { display: flex; flex-direction: column; gap: 0; height: auto; min-height: 0; overflow: visible; padding: 92px 0 24px; }
   .lcs-still .lcs-head, .lcs-still .lc-tele, .lcs-still .lcs-image { position: relative; inset: auto; transform: none; }
   .lcs-still .lcs-head { order: -1; padding: 0 24px; top: auto; }
-  .lcs-still .lcs-image { margin: 24px 20px 0; container-type: inline-size; } /* width-bound on phones; height follows the image */
+  .lcs-still .lcs-image { margin: 24px 24px 0; container-type: inline-size; } /* width-bound on phones; height follows the image */
   .lcs-still .lcs-image img { max-height: min(60svh, var(--h)); }
-  .lcs-still .lc-tele { margin: 24px 20px 0; width: auto; align-self: stretch; }
+  .lcs-still .lc-tele { margin: 24px 24px 0; width: auto; align-self: stretch; }
   .lcc-wrap { padding: 8vh 24px 0; }
   .lcc-facts { grid-template-columns: 1fr; }
+  .lcc-facts > div { padding-right: 0; }
   .lcc-next { padding: 8vh 24px 10vh; }
 }
 
@@ -513,8 +564,8 @@
   margin: 10px 0 12px;
   font-variation-settings: "wdth" 118;
   font-weight: 800;
-  font-size: clamp(2.4rem, 6vw, 4.6rem);
-  line-height: 1;
+  font-size: clamp(2rem, 6vw, 4.6rem);
+  line-height: 1.02;
   text-transform: uppercase;
 }
 .lcr-role {
@@ -582,8 +633,22 @@
   color: var(--muted);
   font-size: 0.82rem;
 }
+.lcr-text + .lcr-text {
+  margin-top: 0.9em;
+}
+.lcr-place {
+  white-space: nowrap;
+}
+/* A date in its own column never breaks inside; stacked on a phone it has the full width and may wrap. */
+@media (min-width: 761px) {
+  .lcr-when:not(.lcr-ctx) { white-space: nowrap; }
+}
+section > .lcr-row:last-child,
+.lcr-skills > div:last-child {
+  border-bottom: 0;
+}
 .lcr-text {
-  max-width: 68ch;
+  max-width: 36em;
   margin-top: 10px;
   font-family: var(--font-schibsted), ui-sans-serif, sans-serif;
   line-height: 1.55;
@@ -690,14 +755,6 @@
   }
   .lc-targets li { padding: 6px 8px; font-size: 0.6rem; white-space: nowrap; }
   .lc-targets li button span { display: none; }
-  .lc-tele-open {
-    display: inline-block;
-    margin-top: 12px;
-    color: var(--hot);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: 0.68rem;
-  }
   .lc-exp { padding: 4vh 24px 8vh; }
   .lc-index { padding: 10vh 24px 8vh; }
   .lc-index li a { grid-template-columns: 2.5rem 1fr; }
@@ -753,6 +810,7 @@
 }
 .lc-foot-note {
   margin-top: 28px;
+  font-family: var(--lc-mono), monospace;
 }
 /* The address at display size, sized for the mono's width so it never runs off a phone. */
 .lc-foot .display {
@@ -775,13 +833,13 @@
   margin: 10px 0 0;
   font-variation-settings: "wdth" 118;
   font-weight: 800;
-  font-size: clamp(1.55rem, 6vw, 4.6rem);
+  font-size: clamp(2rem, 6vw, 4.6rem);
   line-height: 1.02;
   text-transform: uppercase;
   text-wrap: balance;
 }
 .lc-prose {
-  max-width: 64ch;
+  max-width: 36em;
   font-family: var(--font-schibsted), ui-sans-serif, sans-serif;
   font-size: 1.1rem;
   line-height: 1.6;
@@ -807,15 +865,45 @@
   padding: 0;
   border-top: 0;
 }
-/* Versions side by side in a write-up: images sit on a common baseline, so their labels line up. */
-.lc-case .case-body figure > .grid > div {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
+@media (max-width: 860px) {
+  .lcs-head h1, .lc-case .display, .lc-pg h1, .lcr-head h1, .lcc-next b, .lcr-h { line-height: 1.12; }
 }
 @media (max-width: 760px) {
+  .lc-foot-row { gap: 0 28px; }
+  .lc-foot-row > a { padding: 12px 0; }
   .lc-foot { padding: 4vh 24px 40px; }
   .lc-foot-switches { margin-left: 0; }
   .lc-pg { padding: 4vh 24px 8vh; }
 }
+}
+
+/* Outside the layer on purpose: these adjust Tailwind utilities on the same elements, which beat any layered rule. */
+/* A figure right under its heading sits as close as a paragraph would. */
+.case-body :is(h2, h3) + figure {
+  margin-top: 1.25rem;
+}
+/* Phones: the Load button stays a small tag on the preview instead of covering it. */
+@media (max-width: 640px) {
+  .case-body figure .btn.absolute {
+    min-height: 2.25rem;
+    padding: 0 0.6rem;
+    font-size: 0.68rem;
+  }
+}
+/* A touch screen has no Ctrl K to press. */
+@media (hover: none) {
+  .palette-key {
+    display: none;
+  }
+}
+/* Big monitors: type, panels and readouts step up with the screen (everything sized in rem), so the console never
+   reads as a small island in a wide field. */
+@media (min-width: 1680px) {
+  html { font-size: 106.25%; }
+}
+@media (min-width: 1900px) {
+  html { font-size: 112.5%; }
+}
+@media (min-width: 2300px) {
+  html { font-size: 125%; }
 }

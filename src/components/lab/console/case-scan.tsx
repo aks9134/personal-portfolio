@@ -138,6 +138,7 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
     <div ref={run} className={failed ? "lcs-run is-failed" : "lcs-run"}>
       <div className="lcs-pin">
         <canvas ref={canvas} className="absolute inset-0 h-full w-full" aria-hidden />
+        <div className="lc-shade" aria-hidden />
         <div className="lc-frame" aria-hidden><i /><i /><i /><i /></div>
         <Top code={h.code} />
         <Head h={h} />
