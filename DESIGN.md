@@ -61,7 +61,7 @@ Dark only. Every moving thing stops under the OS reduced-motion setting and the 
 ## Layout
 
 - Home: pinned console (185 svh per machine weight, assemblies 1.6), then the Index of every project (featured ones tagged with their target number), then Experience (the resume entries verbatim), then the footer.
-- Project file: opener (pinned 300 svh with a model, the first quarter forming it from the field; one screen with an image), summary and four facts, the write-up at reading width (36em, about 65 characters) with the section index as a list, next file.
+- Project file: opener (pinned 300 svh with a model, the first quarter forming it from the field; one screen with an image), summary and four facts, the write-up at reading width (36em, about 65 characters) in a 46rem column with the section index right beside it, the pair centred so spare width goes to the outer margins (never a gap between text and index), next file. Plain pages and the home Experience: a 62rem column, entry text up to 40em.
 - Write-up figures sit in line with the text, never floated: narrow ones up to 576 px, wide up to 896 px, 56 px above and below (20 px under a heading), each with an "Open full size" link. Images side by side share a row by their shapes, so they come out the same height.
 - Text that sits on the canvas has a floor-coloured shade from the screen edge behind it (left and bottom on wide screens, top and bottom below 1280 px).
 - Plain pages (about, privacy, resume, 404): the console top bar, a 1100 px column.

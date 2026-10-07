@@ -462,8 +462,11 @@
 }
 
 /* File body */
+/* The file body is one centred unit: the reading column (46rem: text at about 65 characters, figures to its edge)
+   with the section index right beside it from 1280 px. Spare width goes to the outer margins, never into a gap
+   between the text and the index. */
 .lcc-wrap {
-  max-width: 1600px;
+  max-width: calc(46rem + 96px);
   margin: 0 auto;
   padding: 12vh 48px 0;
 }
@@ -489,10 +492,13 @@
   margin-top: 24px;
 }
 @media (min-width: 1280px) {
+  .lcc-wrap {
+    max-width: calc(66rem + 96px);
+  }
   .lcc-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 15rem;
-    gap: 4rem;
+    grid-template-columns: minmax(0, 46rem) 15rem;
+    gap: 5rem;
   }
 }
 .lcc-next {
@@ -554,7 +560,7 @@
   height: 112px;
 }
 .lcr-wrap {
-  max-width: 1100px;
+  max-width: calc(62rem + 96px);
   margin: 0 auto;
   padding: 6vh 48px 14vh;
   font-size: 1rem;
@@ -648,7 +654,7 @@ section > .lcr-row:last-child,
   border-bottom: 0;
 }
 .lcr-text {
-  max-width: 36em;
+  max-width: 40em;
   margin-top: 10px;
   font-family: var(--font-schibsted), ui-sans-serif, sans-serif;
   line-height: 1.55;
@@ -724,6 +730,7 @@ section > .lcr-row:last-child,
   font-weight: 400;
 }
 .lc-exp {
+  max-width: calc(62rem + 96px);
   padding: 4vh 48px 10vh;
   font-size: 1rem;
   letter-spacing: 0;
@@ -825,7 +832,7 @@ section > .lcr-row:last-child,
   letter-spacing: inherit;
 }
 .lc-pg {
-  max-width: 1100px;
+  max-width: calc(62rem + 96px);
   margin: 0 auto;
   padding: 6vh 48px 10vh;
 }
