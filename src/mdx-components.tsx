@@ -5,7 +5,7 @@ import { anchor } from "@/lib/anchor";
 // Section headings carry an id from their text, so the section index and a shared link can jump straight to them.
 const slug = (c: ReactNode) => (typeof c === "string" ? anchor(c) : undefined);
 
-// A section heading, tagged so the write-up can be regrouped into sections (components/case-body.tsx).
+// A section heading, tagged so the write-up can be grouped into sections (components/case-body.tsx).
 const H2 = Object.assign(
   (props: React.ComponentProps<"h2">) => <h2 id={slug(props.children)} className="display clear-both mt-16 scroll-mt-20 border-t border-rule pt-6" {...props} />, // size: console.css
   { kind: "h2" as const },
