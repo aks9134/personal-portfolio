@@ -295,7 +295,7 @@
   letter-spacing: 0;
 }
 .lc-case .case-body h2.display {
-  font-size: clamp(1.25rem, 2.6vw, 2.2rem);
+  font-size: clamp(1.25rem, 2.2vw, 1.85rem);
 }
 .lc-index:focus {
   outline: none;
@@ -462,11 +462,11 @@
 }
 
 /* File body */
-/* The file body is one centred unit: the reading column (46rem: text at about 65 characters, figures to its edge)
-   with the section index right beside it from 1280 px. Spare width goes to the outer margins, never into a gap
-   between the text and the index. */
+/* The file body is one centred unit: the reading column (42rem, which is the measure: text runs its full width at
+   about 70 characters, level with each heading's rule; figures to its edge) with the section index right beside it
+   from 1280 px. Spare width goes to the outer margins, never into a gap between the text and the index. */
 .lcc-wrap {
-  max-width: calc(46rem + 96px);
+  max-width: calc(42rem + 96px);
   margin: 0 auto;
   padding: 12vh 48px 0;
 }
@@ -493,12 +493,12 @@
 }
 @media (min-width: 1280px) {
   .lcc-wrap {
-    max-width: calc(66rem + 96px);
+    max-width: calc(61rem + 96px);
   }
   .lcc-grid {
     display: grid;
-    grid-template-columns: minmax(0, 46rem) 15rem;
-    gap: 5rem;
+    grid-template-columns: minmax(0, 42rem) 15rem;
+    gap: 4rem;
   }
 }
 .lcc-next {
