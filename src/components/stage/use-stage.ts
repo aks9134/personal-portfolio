@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { subscribe } from "@/lib/prefs";
 import { createStage, cssColor, type Mode, type Stage, type StageOptions } from "./engine";
+import { isPhone } from "../lab/progress";
 
 // Lifecycle shared by every 3D view: build the scene when the view comes within a screen of the viewport, free the
 // GPU context when it is two screens away (or when the browser drops it), and hand back a fresh <canvas> each time
@@ -83,7 +84,7 @@ export function useStage(
         if (ric) ric(open, { timeout: 2500 });
         else setTimeout(open, 800);
       };
-      if (window.matchMedia("(pointer: coarse)").matches) {
+      if (isPhone()) {
         const events = ["pointerdown", "scroll", "keydown"] as const;
         const first = () => {
           events.forEach((k) => window.removeEventListener(k, first));

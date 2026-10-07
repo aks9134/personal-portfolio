@@ -46,4 +46,4 @@ export function partsOf(root: THREE.Object3D) {
   return out;
 }
 
-export { clamp01, sectionProgress, smooth } from "./progress";
+export { clamp01, isPhone, sectionProgress, smooth } from "./progress";

@@ -183,6 +183,18 @@ test('phone: the console waits for the first touch before loading models', async
   await ctx.close();
 });
 
+test('touchscreen laptop: the console and a project machine start as the page loads, with no touch', async ({ browser }) => {
+  // A touch pointer on a laptop-sized screen: only phones wait for the first touch.
+  const ctx = await browser.newContext({ hasTouch: true, viewport: { width: 1440, height: 900 }, screen: { width: 1920, height: 1080 } });
+  const page = await ctx.newPage();
+  expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches), 'the browser reports a touch pointer').toBe(true);
+  await page.goto('/', { waitUntil: 'networkidle' });
+  await live(page);
+  await page.goto('/work/micro-vibration-canceller', { waitUntil: 'networkidle' });
+  await expect(page.locator('.lc-tele')).not.toContainText('measuring', { timeout: 60_000 });
+  await ctx.close();
+});
+
 test('phone: a project page waits for the first touch before loading its machine', async ({ browser }) => {
   const ctx = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();

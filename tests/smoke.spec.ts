@@ -46,7 +46,10 @@ for (const route of routes) {
       expect(authored.dead, 'dead links').toBe(0);
     });
 
-    test('no horizontal scroll at any width', async ({ page }) => {
+    test('no horizontal scroll at any width', async ({ page }, testInfo) => {
+      // Widened past phone size, the phone profile's screen widens too, so it is a touchscreen laptop and loads the 3D
+      // at once, on software rendering: same checks, more time.
+      test.slow(testInfo.project.name === 'phone');
       for (const width of widths) {
         await page.setViewportSize({ width, height: 900 });
         await page.goto(route);

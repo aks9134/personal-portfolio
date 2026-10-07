@@ -18,7 +18,7 @@ import { applyFinish } from "../../stage/engine";
 import { buildCanceller } from "../canceller";
 import { buildCouch } from "../couch";
 import { buildWeldRig } from "../weld-rig";
-import { clamp01, loadModel, smooth } from "../load";
+import { clamp01, isPhone, loadModel, smooth } from "../load";
 import { EXPLODE, MORPH, SCAN, segments } from "./timeline";
 
 const SIZE = 3.2;
@@ -43,7 +43,7 @@ export async function createConsole(o: {
   onMeasure: (m: Measure[]) => void;
 }) {
   if (o.models.length > MAX) throw new Error(`console scene holds at most ${MAX} models`);
-  const coarse = matchMedia("(pointer: coarse)").matches;
+  const coarse = isPhone(); // a phone gets half the points; a touchscreen laptop the full cloud
   const N = coarse ? 26000 : 52000;
   const renderer = new THREE.WebGLRenderer({ canvas: o.canvas, antialias: false, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, coarse ? 1.25 : 1.5));

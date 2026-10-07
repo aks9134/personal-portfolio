@@ -5,7 +5,7 @@ import { MediaImage } from "@/components/media-image";
 import { motionOk } from "@/lib/prefs";
 import { site } from "@/lib/site";
 import type { Media } from "@/lib/work";
-import { sectionProgress } from "../progress";
+import { isPhone, sectionProgress } from "../progress";
 import type { ConsoleFrame, Measure, Spec } from "./scene";
 import { EXPLODE, SCAN } from "./timeline";
 
@@ -117,13 +117,13 @@ function ModelScan({ h, model }: { h: CaseHead; model: Spec }) {
     const go = () => {
       start().catch(() => alive && setFailed(true)); // no WebGL: the title, telemetry and write-up are plain HTML and stay
     };
-    // Phones load the model on the first touch or scroll, as the home page does; desktops at once.
+    // Phones load the model on the first touch or scroll, as the home page does; everything else at once.
     const wake = ["pointerdown", "touchstart", "scroll", "keydown"] as const;
     const first = () => {
       wake.forEach((e) => removeEventListener(e, first));
       go();
     };
-    if (matchMedia("(pointer: coarse)").matches) wake.forEach((e) => addEventListener(e, first, { passive: true }));
+    if (isPhone()) wake.forEach((e) => addEventListener(e, first, { passive: true }));
     else go();
     return () => {
       alive = false;

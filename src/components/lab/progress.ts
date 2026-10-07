@@ -12,3 +12,7 @@ export function sectionProgress(el: HTMLElement) {
   const run = el.offsetHeight - window.innerHeight;
   return run > 0 ? clamp01(-r.top / run) : 0;
 }
+
+/** A phone: a touch pointer on a small screen. Only phones wait for the first touch before loading the 3D; a touchscreen
+ * laptop also reports a touch pointer, so the screen's short side tells them apart. */
+export const isPhone = () => matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) < 600;

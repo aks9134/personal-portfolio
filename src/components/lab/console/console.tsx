@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Scramble } from "@/components/scramble";
 import { motionOk } from "@/lib/prefs";
 import { site } from "@/lib/site";
-import { sectionProgress } from "../progress";
+import { isPhone, sectionProgress } from "../progress";
 import type { ConsoleFrame, Measure, Spec } from "./scene";
 import { SCAN, segments } from "./timeline";
 
@@ -78,13 +78,14 @@ export function Console({ targets, index, children }: { targets: Target[]; index
     const go = () => {
       start().catch(() => alive && setState("failed")); // no WebGL, or a model failed: the HTML stays usable
     };
-    // Phones wait for the first touch or scroll before loading four models (as v4's hero did); desktops start now.
+    // Phones wait for the first touch or scroll before loading four models (as v4's hero did); everything else,
+    // touchscreen laptops included, starts now, so the field shows as the page loads.
     const wake = ["pointerdown", "touchstart", "scroll", "keydown"] as const;
     const first = () => {
       wake.forEach((e) => removeEventListener(e, first));
       go();
     };
-    if (matchMedia("(pointer: coarse)").matches) wake.forEach((e) => addEventListener(e, first, { passive: true }));
+    if (isPhone()) wake.forEach((e) => addEventListener(e, first, { passive: true }));
     else go();
     return () => {
       alive = false;
