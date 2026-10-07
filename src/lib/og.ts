@@ -4,7 +4,7 @@ import { site } from "./site";
 
 // Link previews (images from `npm run og`). Next merges openGraph shallowly, so every page passes the whole object:
 // shared type and site name, its own title, description and image.
-export function preview(title: string, description: string, image: string = og.home, alt = "Exploded view of the micro-vibration canceller"): NonNullable<Metadata["openGraph"]> {
+export function preview(title: string, description: string, image: string = og.home, alt = "Render of the micro-vibration canceller: a voice coil motor in a printed cage shield on a machined mount plate"): NonNullable<Metadata["openGraph"]> {
   return { type: "website", siteName: site.name, title, description, images: [{ url: image, width: 1200, height: 630, alt }] };
 }
 
