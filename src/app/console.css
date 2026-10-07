@@ -462,11 +462,9 @@
 }
 
 /* File body */
-/* The file body is one centred unit: the reading column (42rem, which is the measure: text runs its full width at
-   about 70 characters, level with each heading's rule; figures to its edge) with the section index right beside it
-   from 1280 px. Spare width goes to the outer margins, never into a gap between the text and the index. */
+/* The file body runs the same width as the opener and the footer (48 px edges): text at a reading measure from the
+   left edge, figures and the rules above headings across the body, the section index at the right edge. */
 .lcc-wrap {
-  max-width: calc(42rem + 96px);
   margin: 0 auto;
   padding: 12vh 48px 0;
 }
@@ -492,12 +490,9 @@
   margin-top: 24px;
 }
 @media (min-width: 1280px) {
-  .lcc-wrap {
-    max-width: calc(61rem + 96px);
-  }
   .lcc-grid {
     display: grid;
-    grid-template-columns: minmax(0, 42rem) 15rem;
+    grid-template-columns: minmax(0, 1fr) 15rem;
     gap: 4rem;
   }
 }
@@ -559,9 +554,8 @@
   position: relative;
   height: 112px;
 }
+/* Plain pages run the same width as their top bar and footer (48 px edges). */
 .lcr-wrap {
-  max-width: calc(62rem + 96px);
-  margin: 0 auto;
   padding: 6vh 48px 14vh;
   font-size: 1rem;
   letter-spacing: 0;
@@ -730,7 +724,6 @@ section > .lcr-row:last-child,
   font-weight: 400;
 }
 .lc-exp {
-  max-width: calc(62rem + 96px);
   padding: 4vh 48px 10vh;
   font-size: 1rem;
   letter-spacing: 0;
@@ -832,8 +825,6 @@ section > .lcr-row:last-child,
   letter-spacing: inherit;
 }
 .lc-pg {
-  max-width: calc(62rem + 96px);
-  margin: 0 auto;
   padding: 6vh 48px 10vh;
 }
 .lc-pg h1 {

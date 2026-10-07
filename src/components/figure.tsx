@@ -19,12 +19,14 @@ const shares = (ms: Media[]) => ({ "--cols": ms.map((m) => `${(m.width / m.heigh
 
 // One image with a caption. `narrow` figures (a drawing, a portrait photo) are held to a smaller width, in line with
 // the text like every other figure: floated beside short paragraphs they left uneven gaps.
-// The full-size file opens from the link under the caption, so labels on drawings and plots can be read.
+// The full-size file opens from the link under the caption, so labels on drawings and plots can be read. Wide figures
+// run the full width of the body (never past their own pixels, never taller than 80% of the screen); narrow ones
+// (drawings, portrait photos) stay at the text's width.
 export function Figure({ media, name, caption, narrow = false }: { media: Record<string, Media>; name: string; caption?: string; narrow?: boolean }) {
   const m = get(media, name);
   return (
-    <figure className={narrow ? "clear-both my-14 max-w-xl" : "clear-both my-14 max-w-4xl"}>
-      <MediaImage m={m} sizes={narrow ? "36rem" : "(min-width: 1100px) 900px, 100vw"} className="w-fit max-w-full" />
+    <figure className={narrow ? "clear-both my-14 max-w-[42rem]" : "clear-both my-14"}>
+      <MediaImage m={m} sizes={narrow ? "42rem" : "(min-width: 1280px) 75vw, 100vw"} className="w-fit max-w-full" imgClassName="w-auto max-h-[80svh]" />
       {caption && <figcaption className={cap}>{caption}</figcaption>}
       <a href={m.src} className="readout link mt-2 inline-block py-1 text-muted">
         Open full size<span className="sr-only">: {m.alt ?? caption ?? name}</span>
@@ -42,7 +44,7 @@ export function Strip({ media, items, caption }: { media: Record<string, Media>;
       <div className="grid gap-6 border-y border-rule py-6 sm:[grid-template-columns:var(--cols)]" style={shares(ms)}>
         {items.map((it, i) => (
           <div key={it.name} className={i > 0 ? "sm:border-l sm:border-rule sm:pl-6" : ""}>
-            <MediaImage m={ms[i]} sizes="(min-width: 640px) 50vw, 100vw" className="w-fit max-w-full" imgClassName="sm:w-auto sm:max-h-[var(--low)]" style={{ "--low": `${low}px` } as React.CSSProperties} />
+            <MediaImage m={ms[i]} sizes="(min-width: 640px) 50vw, 100vw" className="w-fit max-w-full" imgClassName="sm:w-auto sm:max-h-[min(var(--low),70svh)]" style={{ "--low": `${low}px` } as React.CSSProperties} />
             <p className="mt-3 text-sm font-semibold">{it.label}</p>
           </div>
         ))}
@@ -55,7 +57,7 @@ export function Strip({ media, items, caption }: { media: Record<string, Media>;
 // A design generation as a live 3D model.
 export function Model({ media, name, caption }: { media: Record<string, Media>; name: string; caption?: string }) {
   return (
-    <figure className="clear-both my-14 max-w-4xl">
+    <figure className="clear-both my-14 max-w-5xl">
       <CaseModel m={get(media, name)} />
       {caption && <figcaption className={cap}>{caption}</figcaption>}
     </figure>
@@ -75,7 +77,7 @@ function Player({ m, label, shown }: { m: Media; label?: string; shown: 828 | 12
 
 export function Video({ media, name, caption }: { media: Record<string, Media>; name: string; caption?: string }) {
   return (
-    <figure className="clear-both my-14 max-w-4xl">
+    <figure className="clear-both my-14 max-w-5xl">
       <Player m={get(media, name)} shown={1200} />
       {caption && <figcaption className={cap}>{caption}</figcaption>}
     </figure>
