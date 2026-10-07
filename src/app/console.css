@@ -905,3 +905,52 @@ section > .lcr-row:last-child,
 @media (min-width: 2300px) {
   html { font-size: 125%; }
 }
+
+/* ---- Trial write-up layouts (case-body.tsx, layout-variant.tsx; Allen to pick one, 2026-10-07) -------------------
+   Outside the layer: they rearrange elements that carry Tailwind utilities. Default: plain flow, nothing extra. */
+.lcc-carry,
+.lcc-index-top {
+  display: none;
+}
+@media (min-width: 1280px) {
+  /* "side": text left, each picture beside the text that follows it, held in view until the next. */
+  html[data-layout="side"] .lcc-grid { display: block; }
+  html[data-layout="side"] .lcc-grid > aside { display: none; }
+  html[data-layout="side"] .lcc-index-top { display: block; margin-top: 56px; }
+  html[data-layout="side"] .lcc-index-top nav { position: static; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px; }
+  html[data-layout="side"] .lcc-index-top ol { display: flex; flex-wrap: wrap; gap: 4px 24px; margin: 0; border-left: 0; }
+  html[data-layout="side"] .lcc-index-top ol a { margin-left: 0; padding-left: 0; border-left: 0; }
+  html[data-layout="side"] .lcc-flow {
+    display: grid;
+    grid-template-columns: minmax(0, 42rem) minmax(0, 1fr);
+    grid-template-rows: var(--rows);
+    column-gap: 4rem;
+    align-items: start;
+  }
+  html[data-layout="side"] .lcc-sec,
+  html[data-layout="side"] .lcc-sec-body { display: contents; }
+  html[data-layout="side"] .lcc-sec-head,
+  html[data-layout="side"] .lcc-t { grid-column: 1; grid-row: var(--r); }
+  html[data-layout="side"] .lcc-media,
+  html[data-layout="side"] .lcc-carry { display: block; grid-column: 2; grid-row: var(--r); align-self: stretch; }
+  html[data-layout="side"] .lcc-stick { position: sticky; top: 6rem; padding-top: 1.25rem; }
+  html[data-layout="side"] .lcc-stick > figure { max-width: none; margin: 0 0 2.5rem; }
+  html[data-layout="side"] .lcc-stick img { max-height: 70svh; }
+  html[data-layout="side"] .lcc-carry img { display: block; width: auto; max-width: 100%; height: auto; max-height: 70svh; }
+
+  /* "heads": each section's heading in a left column, held in view while its section scrolls. */
+  html[data-layout="heads"] .lcc-sec {
+    display: grid;
+    grid-template-columns: 14rem minmax(0, 1fr);
+    column-gap: 3rem;
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+  }
+  html[data-layout="heads"] .lcc-sec-lead { margin-top: 0; padding-top: 0; border-top: 0; }
+  html[data-layout="heads"] .lcc-sec-head { grid-column: 1; }
+  html[data-layout="heads"] .lcc-sec-head h2 { position: sticky; top: 6rem; margin: 0; padding: 0; border: 0; font-size: 1.3rem; line-height: 1.15; }
+  html[data-layout="heads"] .lcc-sec-body { grid-column: 2; }
+  html[data-layout="heads"] .lcc-sec-body > .lcc-t:first-child > :first-child,
+  html[data-layout="heads"] .lcc-sec-body > .lcc-media:first-child figure { margin-top: 0; }
+}
